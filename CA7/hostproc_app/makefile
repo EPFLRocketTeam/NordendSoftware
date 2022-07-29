@@ -3,7 +3,7 @@
 SRC = $(wildcard *.c)
 OBJ = $(SRC:.c=.o)
 TARGET = hostproc_app
-CFLAGS = -Wall -O2
+CFLAGS = -Wall -O2 -lpthread
 
 all: $(TARGET)
 

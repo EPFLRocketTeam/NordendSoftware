@@ -8,21 +8,18 @@
 #include <termios.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <sys/ioctl.h>
 
 #include "serial.h"
 
-struct serial_dev {
-    int port;
-    struct termios tty;
-};
 
 
-
-int serial_setup(serial_dev_t * serial) {
+int serial_setup(serial_dev_t * serial, const char * file) {
 
 
     //open feedback serial channel
-	serial->port = open("/dev/ttyRPMSG0", O_RDWR);
+	serial->port = open(file, O_RDWR);
 
 	// Check for errors
 	if (serial->port < 0) {
@@ -30,7 +27,7 @@ int serial_setup(serial_dev_t * serial) {
         return EXIT_FAILURE;
 	}
 
-
+/*
 
 	if(tcgetattr(serial->port, &serial->tty) != 0) {
 	    printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
@@ -63,8 +60,8 @@ int serial_setup(serial_dev_t * serial) {
 
 
 	//non blocking mode, return immediately
-    serial->tty.c_cc[VTIME] = 0;
-    serial->tty.c_cc[VMIN] = 0;
+    serial->tty.c_cc[VTIME] = 1;
+    serial->tty.c_cc[VMIN] = 1; //read one char minimum otherwise block
 
 	//not sure if relevant as it is a virtual uart
 	cfsetospeed(&serial->tty, 115200);
@@ -73,6 +70,24 @@ int serial_setup(serial_dev_t * serial) {
 	    printf("Error %i from tcsetattr: %s\n", errno, strerror(errno));
         return EXIT_FAILURE;
 	}
-
+*/
     return EXIT_SUCCESS;
 }
+
+int serial_send(serial_dev_t * serial, uint8_t * msg, uint32_t len) {
+    write(serial->port, msg, len);
+    return EXIT_SUCCESS;
+}
+
+int serial_recv(serial_dev_t * serial, uint8_t * msg, uint32_t * len) {
+    *len = read(serial->port, msg, *len);
+    return EXIT_SUCCESS;
+}
+
+int serial_get_count(serial_dev_t * dev) {
+    int bytes;
+    ioctl(dev->port, FIONREAD, &bytes);
+    return bytes;
+}
+
+
