@@ -70,6 +70,7 @@ device_interface_t * spi_get_sensor_interface(void);
 } // extern "C"
 #endif /* __cplusplus */
 
+
 #endif /* SPI_H */
 
 /* END */

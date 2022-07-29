@@ -92,6 +92,7 @@ util_error_t spi_sensor_init(void) {
 }
 
 
+
 /**
  * @brief Function used to receive register data from a sensor
  *
@@ -137,7 +138,6 @@ util_error_t spi_sensor_write_reg(void* context, device_interface_t * interface,
 	error |= interface->send(interface->context, data, &len);
 	return error;
 }
-
 
 
 

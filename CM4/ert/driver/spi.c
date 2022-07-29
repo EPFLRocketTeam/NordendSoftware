@@ -59,17 +59,21 @@ static device_interface_t * spi_interfaces[] = {
 static uint32_t spi_interfaces_count = sizeof(spi_interfaces)/sizeof(device_interface_t *);
 
 
+
 /**********************
  *	PROTOTYPES
  **********************/
+
 
 util_error_t spi_send(void * context, uint8_t * data, uint32_t len);
 util_error_t spi_recv(void * context, uint8_t * data, uint32_t * len);
 
 
+
 /**********************
  *	DECLARATIONS
  **********************/
+
 
 device_interface_t ** spi_get_interfaces(void) {
 	return spi_interfaces;
@@ -79,13 +83,12 @@ uint32_t spi_get_interfaces_count(void) {
 	return spi_interfaces_count;
 }
 
-
-
 /**
  * @brief 	Getter for the interface associated with the sensors
  * 
  * @return	The pointer to the sensor interface object
  */
+
 device_interface_t * spi_get_sensor_interface(void) {
 	return &sensor_interface;
 }
@@ -101,6 +104,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef * hspi) {
 	}
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
+
 
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef * hspi) {
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
