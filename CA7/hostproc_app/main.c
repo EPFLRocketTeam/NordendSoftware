@@ -21,7 +21,6 @@ int main(void) {
     pthread_create(&feedback_thread, NULL, feedback_entry, NULL);
 
     for(;;) {
-        printf("mainloop\n");
         sleep(1);
     }
 

@@ -17,6 +17,10 @@ void * feedback_entry(void * ptr) {
     //first message for setup
     const char * msg = "hello";
     serial_send(&feedback_device, msg, 6);
+    //handle new file creation
+    //First check exitance of file -> then increment names until file does not exist
+    //maybe use the mkdir and check error code.
+    FILE * fp = fopen("av_log.log")
 
     for (;;) {
         uint32_t length = serial_get_count(&feedback_device);
@@ -24,6 +28,8 @@ void * feedback_entry(void * ptr) {
             char * msg_buffer = malloc(length);
 
             serial_recv(&feedback_device, msg_buffer, &length);
+
+            fwrite(msg_buffer, sizeof(char), length, fp);
 
             fflush(stdout);
             fwrite(msg_buffer, sizeof(char), length, stdout);
