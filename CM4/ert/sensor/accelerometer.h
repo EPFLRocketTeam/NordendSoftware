@@ -23,6 +23,9 @@
  *  CONSTANTS
  **********************/
 
+#define ACC_AXIS_COUNT	3
+
+
 
 /**********************
  *  MACROS
@@ -32,6 +35,18 @@
 /**********************
  *  TYPEDEFS
  **********************/
+
+typedef enum accelerometer_axis {
+	ACC_X,
+	ACC_Y,
+	ACC_Z
+}accelerometer_axis_t;
+
+
+typedef struct accelerometer_data {
+	int16_t raw[ACC_AXIS_COUNT];
+	int16_t	processed[ACC_AXIS_COUNT];
+}accelerometer_data_t;
 
 
 /**********************
@@ -47,7 +62,9 @@
 extern "C"{
 #endif
 
-
+void accelerometer_process_data(accelerometer_data_t * data, uint16_t range);
+util_error_t accelerometer_calibrate(device_t * acc, accelerometer_data_t * data);
+util_error_t accelerometer_read_data(device_t * acc, accelerometer_data_t * data);
 util_error_t accelerometer_init(device_t * acc);
 
 #ifdef __cplusplus

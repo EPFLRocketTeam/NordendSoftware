@@ -35,9 +35,7 @@
  *	TYPEDEFS
  **********************/
 
-typedef struct i2c_sensor_context {
-	uint8_t device_address;
-}i2c_sensor_context_t;
+
 
 
 /**********************
