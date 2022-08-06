@@ -190,20 +190,22 @@ void * kalman_entry(void *) {
 
     for(;;) {
         uint32_t len = sizeof(data);
+        //ideally a blocking receive
         serial_recv(&data_device, (uint8_t *) &data, &len);
-
-        uint32_t dt = data.time - state.last_time;
-        kalman_predict(&state, (float) dt);
-        switch(data.type) {
-            case TRANSFER_DATA_ACC:
-                kalman_update_acc(&state, (float) data.data);
-                break;
-            case TRANSFER_DATA_BARO:
-                kalman_update_baro(&state, (float) data.data);
-                break;
-            case TRANSFER_DATA_GNSS:
-                kalman_update_gnss(&state, (float) data.data);
-                break;
+        if(len = sizeof(data)) {
+			uint32_t dt = data.time - state.last_time;
+			kalman_predict(&state, (float) dt);
+			switch(data.type) {
+				case TRANSFER_DATA_ACC:
+					kalman_update_acc(&state, (float) data.data);
+					break;
+				case TRANSFER_DATA_BARO:
+					kalman_update_baro(&state, (float) data.data);
+					break;
+				case TRANSFER_DATA_GNSS:
+					kalman_update_gnss(&state, (float) data.data);
+					break;
+			}
         }
 
     }

@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
+#include <init.h>
 #include "FreeRTOS.h"
 #include "task.h"
 #include "main.h"
@@ -27,7 +28,6 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
-#include <threads.h>
 
 /* USER CODE END Includes */
 
@@ -125,7 +125,7 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_THREADS */
 #endif
   /* add threads, ... */
-  threads_init();
+  init();
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */

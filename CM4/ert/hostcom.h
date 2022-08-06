@@ -1,13 +1,13 @@
-/*  Title       : Threads
- *  Filename    : threads.h
+/*  Title       : Template
+ *  Filename    : template.h
  *  Author      : iacopo sprenger
- *  Date        : 20.02.2022
+ *  Date        : 20.01.2021
  *  Version     : 0.1
- *  Description : threads startup code
+ *  Description : template for code files
  */
 
-#ifndef THREADS_H
-#define THREADS_H
+#ifndef TEMPLATE_H
+#define TEMPLATE_H
 
 
 
@@ -25,6 +25,7 @@
 /**********************
  *  MACROS
  **********************/
+
 
 /**********************
  *  TYPEDEFS
@@ -45,12 +46,10 @@ extern "C"{
 #endif
 
 
-void threads_init(void);
-
 #ifdef __cplusplus
 } // extern "C"
 #endif /* __cplusplus */
 
-#endif /* THREADS_H */
+#endif /* TEMPLATE_H */
 
 /* END */

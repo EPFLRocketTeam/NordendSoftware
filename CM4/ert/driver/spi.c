@@ -140,7 +140,7 @@ util_error_t spi_send(void * context, uint8_t * data, uint32_t len) {
 		return ER_OUT_OF_RANGE;
 	}
 	HAL_SPI_Transmit_IT(ctx->spi, data, len);
-	if( xSemaphoreTake(ctx->sem, 0xffff) == pdTRUE ) {
+	if( xSemaphoreTake(ctx->sem, osWaitForever) == pdTRUE ) {
 		return ER_SUCCESS;
 	} else {
 		return ER_TIMEOUT;
@@ -160,7 +160,7 @@ util_error_t spi_send(void * context, uint8_t * data, uint32_t len) {
 util_error_t spi_recv(void * context, uint8_t * data, uint32_t * len) {
 	spi_interface_context_t * ctx = (spi_interface_context_t *) context;
 	HAL_SPI_Receive_IT(ctx->spi, data, *len);
-	if( xSemaphoreTake(ctx->sem, 0xffff) == pdTRUE ) {
+	if( xSemaphoreTake(ctx->sem, osWaitForever) == pdTRUE ) {
 		return ER_SUCCESS;
 	} else {
 		return ER_TIMEOUT;
