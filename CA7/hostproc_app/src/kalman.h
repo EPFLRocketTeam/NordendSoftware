@@ -5,6 +5,6 @@
 #ifndef HOSTPROC_APP_KALMAN_H
 #define HOSTPROC_APP_KALMAN_H
 
-void * matrix_test(void *);
+void * kalman_entry(void *);
 
 #endif //HOSTPROC_APP_KALMAN_H

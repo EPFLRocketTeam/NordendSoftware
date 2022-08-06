@@ -145,6 +145,12 @@ device_interface_t * hostproc_get_cmd_interface(void) {
 }
 
 
+//DATA HAS ARRIVED from Hostproc
+HAL_IPCC_RxCallback(IPCC_HandleTypeDef *hipcc, uint32_t ChannelIndex, IPCC_CHANNELDirTypeDef ChannelDir) {
+	//handle data arrived -> depending on channel trigger callback or semaphore.
+}
+
+
 
 /**
  * @brief Virtual uart reception callback, called from the rpmsg polling function.

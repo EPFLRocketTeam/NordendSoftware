@@ -18,7 +18,7 @@ OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 # As an example, ./build/hello.cpp.o turns into ./build/hello.cpp.d
 DEPS := $(OBJS:.o=.d)
 
-LIBS := -lpthread -lstdc++
+LIBS := -lpthread -lstdc++ -lm
 
 # Every folder in ./src will need to be passed to GCC so that it can find header files
 INC_DIRS := ./inc
