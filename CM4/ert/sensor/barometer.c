@@ -62,12 +62,13 @@ typedef struct barometer_meta {
  */
 
 util_error_t read_prom(device_t * baro, barometer_meta_t * meta) {
-
+	util_error_t error = device_read(baro, PROM_READ, &meta->baro_coeffs, 16);
+	return error;
 }
 
 util_error_t read_temp(device_t * baro, barometer_meta_t * meta) {
 	uint8_t data[3];
-	util_error_t error = device_read(baro, BARO_READ, &data, 3)
+	util_error_t error = device_read(baro, BARO_READ, &data, 3);
 	meta->baro_d2 = (data[0] << 16) + (data[1] << 8) + data[2];
 
 	meta->baro_dt = meta->baro_d2 - (meta->baro_coeffs[5] << 8);
@@ -77,7 +78,7 @@ util_error_t read_temp(device_t * baro, barometer_meta_t * meta) {
 
 util_error_t read_pres(device_t * baro, barometer_meta_t * meta) {
 	uint8_t data[3];
-	util_error_t error device_read(baro, BARO_READ, &data, 3)
+	util_error_t error = device_read(baro, BARO_READ, &data, 3);
 	meta->baro_d1 = (data[0] << 16) + (data[1] << 8) + data[2];
 
 	meta->baro_offset = ((int64_t)meta->baro_coeffs[2] << 16) + (((int64_t)meta->baro_dt * meta->baro_coeffs[4]) >> 7);
