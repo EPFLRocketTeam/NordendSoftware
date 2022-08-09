@@ -41,4 +41,17 @@
  *	DECLARATIONS
  **********************/
 
+
+/**
+ * One thread for OD sync --> in the OD
+ * One thread for data send -->
+ * One thread for cmd
+ */
+
+
+
+
+
+
+
 /* END */

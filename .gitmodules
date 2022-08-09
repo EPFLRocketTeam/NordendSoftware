@@ -25,3 +25,6 @@
 [submodule "distribution-package/layers/meta-ros"]
 	path = distribution-package/layers/meta-ros
 	url = https://github.com/ros/meta-ros.git
+[submodule "CM4/ert/RadioPacket"]
+	path = CM4/ert/RadioPacket
+	url = git@github.com:EPFLRocketTeam/RadioPacket.git

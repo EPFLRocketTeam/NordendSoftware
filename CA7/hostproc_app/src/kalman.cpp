@@ -17,9 +17,9 @@
 #define R		8.3145f
 #define T		298.15f
 
-#define sigma_z_gps	5.0f
-#define sigma_z_baro 5.0f
-#define sigma_z_acc 9.81f
+#define sigma_z_gps		5.0f
+#define sigma_z_baro 	5.0f
+#define sigma_z_acc 	9.81f
 
 #define sigma_a		1.0f
 #define sigma_p0	0.01f

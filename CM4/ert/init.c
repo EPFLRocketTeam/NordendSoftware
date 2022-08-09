@@ -113,9 +113,9 @@ void init(void) {
 
 	INIT_THREAD_CREATE(control_handle, control, control_thread, NULL, CONTROL_SZ, CONTROL_PRIO);
 
-
+#if WH_HAS_SENSORS == WH_TRUE
 	INIT_THREAD_CREATE(sensor_i2c_handle, sensor_i2c, sensor_i2c_thread, NULL, SENSOR_I2C_SZ, SENSOR_I2C_PRIO);
-
+#endif
 
 }
 

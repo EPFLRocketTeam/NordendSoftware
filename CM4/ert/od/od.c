@@ -11,7 +11,6 @@
  **********************/
 
 #include "od.h"
-
 #include <cmsis_os2.h>
 #include <FreeRTOS.h>
 
@@ -33,14 +32,14 @@
     enum { NAME = ID }; \
     static_assert((NAME) < OD_MAX_DATAID); \
     static_assert(sizeof(TYPE) < OD_FRAME_MAX_SIZE); \
-    static TYPE (NAME ## _var); \
-    static const od_entry_t (NAME ## _entry) = { .data_id=(NAME), .size=sizeof(TYPE), .data=(uint8_t*)&(NAME ## _var) }; \
+    static TYPE (NAME##_var); \
+    static const od_entry_t (NAME##_entry) = { .data_id=(NAME), .size=sizeof(TYPE), .data=(uint8_t*)&(NAME##_var) }; \
     \
-    void od_read_ ## NAME  (TYPE *dst) { od_unsafe_read ((NAME), (uint8_t*) dst); } \
-    void od_write_ ## NAME (TYPE *src) { od_unsafe_write((NAME), (uint8_t*) src); }
+    void od_read_##NAME  (TYPE *dst) { od_unsafe_read ((NAME), (uint8_t*) dst); } \
+    void od_write_##NAME (TYPE *src) { od_unsafe_write((NAME), (uint8_t*) src); }
 
 
-#define LINK_OD_ENTRY(NAME) [(NAME)] = (NAME ## _entry)
+#define LINK_OD_ENTRY(NAME) [(NAME)] = (NAME##_entry)
 
 /**********************
  *	TYPEDEFS
@@ -72,13 +71,42 @@ static void od_unsafe_write(uint8_t data_id, uint8_t *src);
 /**
  * Object dictionary entries
  */
-ALLOCATE_OD_ENTRY(TEMPERATURE, 0U, float)
+ALLOCATE_OD_ENTRY(ACC_I2C_A, 0, accelerometer_data_t);
+ALLOCATE_OD_ENTRY(ACC_SPI_A, 1, accelerometer_data_t);
+ALLOCATE_OD_ENTRY(ACC_I2C_B, 2, accelerometer_data_t);
+ALLOCATE_OD_ENTRY(ACC_SPI_B, 3, accelerometer_data_t);
+ALLOCATE_OD_ENTRY(GYRO_I2C_A, 4, gyroscope_data_t);
+ALLOCATE_OD_ENTRY(GYRO_SPI_A, 5, gyroscope_data_t);
+ALLOCATE_OD_ENTRY(GYRO_I2C_B, 6, gyroscope_data_t);
+ALLOCATE_OD_ENTRY(GYRO_SPI_B, 7, gyroscope_data_t);
+ALLOCATE_OD_ENTRY(BARO_I2C_A, 8, barometer_data_t);
+ALLOCATE_OD_ENTRY(BARO_SPI_A, 9, barometer_data_t);
+ALLOCATE_OD_ENTRY(BARO_I2C_B, 10, barometer_data_t);
+ALLOCATE_OD_ENTRY(BARO_SPI_B, 11, barometer_data_t);
+ALLOCATE_OD_ENTRY(GNSS, 12, gnss_data_t);
+ALLOCATE_OD_ENTRY(BATTERY_A, 13, uint32_t);
+ALLOCATE_OD_ENTRY(BATTERY_B, 14, uint32_t);
+
 
 /**
  * The object dictionary
  */
 static const od_entry_t od_entries[OD_MAX_DATAID] = {
-    LINK_OD_ENTRY(TEMPERATURE),
+    LINK_OD_ENTRY(ACC_I2C_A),
+	LINK_OD_ENTRY(ACC_SPI_A),
+	LINK_OD_ENTRY(ACC_I2C_B),
+	LINK_OD_ENTRY(ACC_SPI_B),
+	LINK_OD_ENTRY(GYRO_I2C_A),
+	LINK_OD_ENTRY(GYRO_SPI_A),
+	LINK_OD_ENTRY(GYRO_I2C_B),
+	LINK_OD_ENTRY(GYRO_SPI_B),
+	LINK_OD_ENTRY(BARO_I2C_A),
+	LINK_OD_ENTRY(BARO_SPI_A),
+	LINK_OD_ENTRY(BARO_I2C_B),
+	LINK_OD_ENTRY(BARO_SPI_B),
+	LINK_OD_ENTRY(GNSS),
+	LINK_OD_ENTRY(BATTERY_A),
+	LINK_OD_ENTRY(BATTERY_B)
 };
 
 /**
