@@ -33,6 +33,8 @@
  *  TYPEDEFS
  **********************/
 
+
+
 typedef struct barometer_data {
 	uint32_t pressure;
 	uint32_t altitude;

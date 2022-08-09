@@ -11,6 +11,7 @@
  **********************/
 
 #include <sensor.h>
+#include <od/od.h>
 
 #include <main.h>
 #include <cmsis_os.h>
@@ -105,6 +106,8 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 		}
 
 		//send data to hostproc for verif
+
+		od_write_ACC_I2C_A(&acc_data);
 
 		static char message[1024];
 
