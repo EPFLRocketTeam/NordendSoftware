@@ -26,6 +26,10 @@
 
 #define WH_TRUE		1
 #define WH_FALSE 	0
+#define NANGA		0 //NAKED
+#define PARBAT		1 //MOUNTAIN
+
+#define WH_COMPUTER	A
 
 
 #define WH_HAS_SENSORS	WH_TRUE

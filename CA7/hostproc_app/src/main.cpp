@@ -22,7 +22,7 @@ int main(void) {
     pthread_t kalman_thread;
 
     pthread_create(&feedback_thread, NULL, feedback_entry, NULL);
-    pthread_create(&kalman_thread, NULL, matrix_test, NULL);
+    pthread_create(&kalman_thread, NULL, kalman_entry, NULL);
 
     for(;;) {
         sleep(1);

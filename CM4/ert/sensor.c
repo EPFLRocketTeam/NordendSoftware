@@ -67,6 +67,13 @@ static accelerometer_data_t acc_data;
  *	DECLARATIONS
  **********************/
 
+
+
+/**
+ * @brief 	i2c sensor aqcuisition thread
+ * @details	this thread will acquire data from all the sensors connected on the
+ * 			i2c bus. The data will then be dispatched for delivery.
+ */
 void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	static TickType_t last_wake_time;
 	static const TickType_t period = pdMS_TO_TICKS(I2C_SENSOR_HEART_BEAT);

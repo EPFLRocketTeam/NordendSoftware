@@ -12,7 +12,6 @@
 
 
 #include <cmsis_os.h>
-#include <threads.h>
 #include <wildhorn.h>
 #include <feedback/led.h>
 #include <feedback/buzzer.h>
@@ -21,6 +20,7 @@
 #include <device/i2c_sensor.h>
 #include <control.h>
 #include <device/hostproc.h>
+#include <init.h>
 #include <sensor.h>
 #include <od/od.h>
 
@@ -48,29 +48,7 @@
  *	MACROS
  **********************/
 
-/**
- * @brief 	macro to declare a static thread in FreeRTOS
- * @details	This macros make the necessary funtion calls to setup a stack and
- * 			working area for the declaration of a static FreeRTOS thread.
- *
- * @param	handle	A @p TaskHandle_t object to reference the created Thread.
- * @param	name	A name for thread.
- * @param 	func	The entry point for the thread.
- * @param 	cont	The context for the thread.
- * @param 	sz		The desired size for the thread stack.
- * @param	prio	The priority for the thread.
- */
-#define CREATE_THREAD(handle, name, func, cont, sz, prio) \
-	static StaticTask_t name##_buffer; \
-	static StackType_t name##_stack[ sz ]; \
-	handle = xTaskCreateStatic( \
-			func, \
-	        #name, \
-			sz, \
-			( void * ) cont, \
-			prio, \
-			name##_stack, \
-			&name##_buffer)
+
 
 /**********************
  *	TYPEDEFS
@@ -102,7 +80,7 @@ static TaskHandle_t sensor_i2c_handle = NULL;
  * 			fails. This will minimize the code to be rewritten.
  *
  */
-void threads_init(void) {
+void init(void) {
 
 	//initialize serial
 	serial_init();
@@ -127,17 +105,17 @@ void threads_init(void) {
 #endif
 
 
-	CREATE_THREAD(od_handle, od, od_update_task, NULL, OD_SZ, OD_PRIO);
+	INIT_THREAD_CREATE(od_handle, od, od_update_task, NULL, OD_SZ, OD_PRIO);
 
 
-	CREATE_THREAD(led_rgb_handle, led_rgb, led_rgb_thread, NULL, LED_RGB_SZ, LED_RGB_PRIO);
+	INIT_THREAD_CREATE(led_rgb_handle, led_rgb, led_rgb_thread, NULL, LED_RGB_SZ, LED_RGB_PRIO);
 
 
-	CREATE_THREAD(control_handle, control, control_thread, NULL, CONTROL_SZ, CONTROL_PRIO);
+	INIT_THREAD_CREATE(control_handle, control, control_thread, NULL, CONTROL_SZ, CONTROL_PRIO);
 
-
-	CREATE_THREAD(sensor_i2c_handle, sensor_i2c, sensor_i2c_thread, NULL, SENSOR_I2C_SZ, SENSOR_I2C_PRIO);
-
+#if WH_HAS_SENSORS == WH_TRUE
+	INIT_THREAD_CREATE(sensor_i2c_handle, sensor_i2c, sensor_i2c_thread, NULL, SENSOR_I2C_SZ, SENSOR_I2C_PRIO);
+#endif
 
 }
 
