@@ -44,18 +44,21 @@
  **********************/
 
 
-static device_t * accelerometer;
-static device_t * gyroscope;
-static device_t * barometer;
+static device_t * i2c_acc;
+static device_t * i2c_gyro;
+static device_t * i2c_baro;
 
 static device_interface_t * hostproc_feedback;
 
 
-static uint8_t calibration;
+static uint8_t i2c_calib;
 
 //data
 
-static accelerometer_data_t acc_data;
+static accelerometer_data_t i2c_acc_data;
+static gyroscope_data_t i2c_gyro_data;
+static barometer_data_t i2c_baro_data;
+static barometer_meta_t i2c_baro_meta;
 
 
 
@@ -81,42 +84,68 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	last_wake_time = xTaskGetTickCount();
 
 	//get devices
-	accelerometer = i2c_sensor_get_accelerometer();
-	gyroscope = i2c_sensor_get_gyroscope();
-	barometer = i2c_sensor_get_barometer();
+	i2c_acc = i2c_sensor_get_accelerometer();
+	i2c_gyro = i2c_sensor_get_gyroscope();
+	i2c_baro = i2c_sensor_get_barometer();
 
 	hostproc_feedback = hostproc_get_feedback_interface();
 
 	//init
-	accelerometer_init(accelerometer);
-	gyroscope_init(gyroscope);
-	barometer_init(barometer);
+	accelerometer_init(i2c_acc);
+	gyroscope_init(i2c_gyro);
+	barometer_init(i2c_baro);
 
 	//manual calibration only:
-	calibration = 0;
+	i2c_calib = 0;
 
 	//mainloop
 	for(;;) {
+		if(!i2c_calib) { /* Normal operation */
+			TickType_t baro_delay = pdMS_TO_TICKS(10);
 
-		if(!calibration) {
-			accelerometer_read_data(accelerometer, &acc_data);
-			accelerometer_process_data(&acc_data, 10000);
-		} else {
+			//baro start temp
+			barometer_convert_temp(i2c_baro);
+			TickType_t baro_temp_time = xTaskGetTickCount();
+
+			//acc read
+			accelerometer_read_data(i2c_acc, &i2c_acc_data);
+			accelerometer_process_data(&i2c_acc_data, 10000);
+
+			vTaskDelayUntil(&baro_temp_time, baro_delay);
+
+			//baro read & start pres
+			barometer_read_temp(i2c_baro, &i2c_baro_meta);
+			barometer_convert_pres(i2c_baro);
+			TickType_t baro_pres_time = xTaskGetTickCount();
+
+			//gyro read or acc read second time
+			gyroscope_read_data(i2c_gyro, &i2c_gyro_data);
+			gyroscope_process_data(&i2c_gyro_data, 10000);
+
+			vTaskDelayUntil(&baro_pres_time, baro_delay);
+
+			//baro read
+			barometer_read_pres(i2c_baro, &i2c_baro_meta);
+			barometer_convert(&i2c_baro_meta, &i2c_baro_data);
+
+			//store everything
+			od_write_ACC_I2C_A(&i2c_acc_data);
+			od_write_GYRO_I2C_A(&i2c_gyro_data);
+			od_write_BARO_I2C_A(&i2c_baro_data);
+
+
+		} else { /* Calibration */
 			//calibration steps
+
+
+
 		}
 
 		//send data to hostproc for verif
 
-		od_write_ACC_I2C_A(&acc_data);
-
-		static char message[1024];
-
-		uint32_t msg_len = sprintf(message, "Accelerometer: %d | %d | %d\n", acc_data.processed[ACC_X], acc_data.processed[ACC_Y], acc_data.processed[ACC_Z]);
-
-		device_interface_send(hostproc_feedback, (uint8_t *)message, msg_len);
-		led_rgb_set_rgb(0xff, 0x00, 0x00);
 
 		vTaskDelayUntil( &last_wake_time, period );
+
 	}
 
 }

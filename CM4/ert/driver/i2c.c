@@ -46,7 +46,6 @@ static device_interface_t sensor_interface;
 
 static i2c_interface_context_t sensor_interface_context = {
 		.i2c = &S2_I2C
-
 };
 
 static device_interface_t * i2c_interfaces[] = {
