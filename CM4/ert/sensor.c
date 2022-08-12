@@ -93,12 +93,7 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	//init
 	accelerometer_init(i2c_acc);
 	gyroscope_init(i2c_gyro);
-<<<<<<< HEAD
 	barometer_init(i2c_baro, &i2c_baro_meta);
-
-=======
-	barometer_init(i2c_baro);
->>>>>>> 26-barometer-device
 
 	//manual calibration only:
 	i2c_calib = 0;
@@ -142,11 +137,8 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 		} else { /* Calibration */
 			//calibration steps
 
-<<<<<<< HEAD
 			//normally not necessary...
-=======
 
->>>>>>> 26-barometer-device
 
 		}
 
