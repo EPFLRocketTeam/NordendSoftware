@@ -25,7 +25,7 @@
  **********************/
 
 //TODO: check if this is short/long enough
-#define I2C_SENSOR_HEART_BEAT	500
+#define I2C_SENSOR_HEART_BEAT	80
 
 
 /**********************
@@ -80,9 +80,10 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	hostproc_feedback = hostproc_get_feedback_interface();
 
 	//init
-	accelerometer_init(accelerometer);
-	gyroscope_init(gyroscope);
-	barometer_init(barometer);
+	accelerometer_init(i2c_acc);
+	gyroscope_init(i2c_gyro);
+	barometer_init(i2c_baro, &i2c_baro_meta);
+
 
 	//manual calibration only:
 	calibration = 0;
@@ -95,6 +96,9 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 			accelerometer_process_data(&acc_data, 10000);
 		} else {
 			//calibration steps
+
+			//normally not necessary...
+
 		}
 
 		//send data to hostproc for verif
