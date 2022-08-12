@@ -131,7 +131,7 @@ util_error_t serial_feedback_init(void) {
 util_error_t serial_data_ready(void * context)
 {
 	serial_deamon_context_t * deamon_context = (serial_deamon_context_t *) context;
-	if( xSemaphoreTake(deamon_context->rx_sem, 0xffff) == pdTRUE ) {
+	if( xSemaphoreTake(deamon_context->rx_sem, osWaitForever) == pdTRUE ) {
 		return ER_SUCCESS;
 	} else {
 		return ER_TIMEOUT;

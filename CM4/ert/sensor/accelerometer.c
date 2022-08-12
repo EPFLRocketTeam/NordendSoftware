@@ -75,7 +75,7 @@ util_error_t accelerometer_calibrate(device_t * acc, accelerometer_data_t * data
 
 void accelerometer_process_data(accelerometer_data_t * data, uint16_t range) {
 	for (uint8_t i = 0; i < ACC_AXIS_COUNT; i++) {
-		data->processed[i] = ((int32_t)data->raw[i] * range) >> 15;
+		data->processed[i] = ((int64_t)data->raw[i] * range) >> 15;
 	}
 }
 

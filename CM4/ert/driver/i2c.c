@@ -46,7 +46,6 @@ static device_interface_t sensor_interface;
 
 static i2c_interface_context_t sensor_interface_context = {
 		.i2c = &S2_I2C
-
 };
 
 static device_interface_t * i2c_interfaces[] = {
@@ -145,7 +144,7 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c) {
 util_error_t i2c_send(void * context, uint8_t * data, uint32_t len) {
 	i2c_interface_context_t * ctx = (i2c_interface_context_t *) context;
 	HAL_I2C_Master_Transmit_IT(ctx->i2c, data[0], &(data[1]), len-1);
-	if( xSemaphoreTake(ctx->sem, 0xffff) == pdTRUE ) {
+	if( xSemaphoreTake(ctx->sem, osWaitForever) == pdTRUE ) {
 		return ER_SUCCESS;
 	} else {
 		return ER_TIMEOUT;
@@ -166,7 +165,7 @@ util_error_t i2c_send(void * context, uint8_t * data, uint32_t len) {
 util_error_t i2c_recv(void * context, uint8_t * data, uint32_t * len) {
 	i2c_interface_context_t * ctx = (i2c_interface_context_t *) context;
 	HAL_I2C_Master_Receive_IT(ctx->i2c, data[0], &(data[1]), (*len)-1);
-	if( xSemaphoreTake(ctx->sem, 0xffff) == pdTRUE ) {
+	if( xSemaphoreTake(ctx->sem, osWaitForever) == pdTRUE ) {
 		return ER_SUCCESS;
 	} else {
 		return ER_TIMEOUT;

@@ -39,11 +39,6 @@
 // pas sur pour les données de capteur ici...
 typedef struct i2c_sensor_context {
 	uint8_t device_address;
-	union data {
-		accelerometer_data_t acc_data;
-		barometer_data_t baro_data;
-		gyroscope_data_t gyro_data;
-	} data;
 }i2c_sensor_context_t;
 
 
