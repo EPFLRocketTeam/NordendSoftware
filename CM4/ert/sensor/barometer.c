@@ -129,12 +129,9 @@ void barometer_convert(barometer_meta_t * meta, barometer_data_t * data) {
 /**
  * @brief Initialize barometers
  */
-util_error_t barometer_init(device_t * baro) {
+util_error_t barometer_init(device_t * baro, barometer_meta_t * meta) {
 
-
-	//Barometer does not have an ID
-
-	//initialize sensor
+	barometer_read_prom(baro, meta);
 
 	return ER_SUCCESS;
 }

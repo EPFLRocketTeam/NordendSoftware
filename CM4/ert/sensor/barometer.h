@@ -72,7 +72,7 @@ util_error_t barometer_read_temp(device_t * baro, barometer_meta_t * meta);
 util_error_t barometer_convert_pres(device_t * baro);
 util_error_t barometer_read_pres(device_t * baro, barometer_meta_t * meta);
 void barometer_convert(barometer_meta_t * meta, barometer_data_t * data);
-util_error_t barometer_init(device_t * baro);
+util_error_t barometer_init(device_t * baro, barometer_meta_t * meta);
 
 #ifdef __cplusplus
 } // extern "C"
