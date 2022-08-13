@@ -3,6 +3,8 @@
 
 CM4/Debug/
 CM4/Release/
+CM4/doc/html
+CM4/doc/latex
 
 #compilation artifacts
 *.d
