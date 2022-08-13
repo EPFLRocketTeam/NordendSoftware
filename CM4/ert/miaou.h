@@ -1,13 +1,13 @@
-/*  Title       : Template
- *  Filename    : template.h
- *  Author      : iacopo sprenger
- *  Date        : 20.01.2021
- *  Version     : 0.1
- *  Description : template for code files
+/*  Title		: miaou
+ *  Filename	: miaou.c
+ *	Author		: iacopo sprenger
+ *	Date		: 13.08.2021
+ *	Version		: 0.1
+ *	Description	: Communication with the Miaou Radio modem
  */
 
-#ifndef TEMPLATE_H
-#define TEMPLATE_H
+#ifndef MIAOU_H
+#define MIAOU_H
 
 
 
@@ -45,6 +45,9 @@
 extern "C"{
 #endif
 
+
+
+void miaou_thread_(__attribute__((unused)) void * arg);
 
 #ifdef __cplusplus
 } // extern "C"

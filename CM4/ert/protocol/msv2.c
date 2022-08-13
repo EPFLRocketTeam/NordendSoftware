@@ -102,7 +102,7 @@ void msv2_init(MSV2_INST_t * msv2) {
  *
  * @param 	msv2		Pointer to the msv2 packet creator instance.
  * @param 	opcode		Opcode to be placed in the packet header.
- * @param 	data_len	Length of the packet data payload.
+ * @param 	data_len	Length of the packet data payload in words.
  * @param 	data		Data to be placed in the packet payload.
  */
 uint16_t msv2_create_frame(MSV2_INST_t * msv2, uint8_t opcode, uint8_t data_len, uint8_t * data) {

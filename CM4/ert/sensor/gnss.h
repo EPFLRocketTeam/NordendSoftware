@@ -32,6 +32,9 @@
  **********************/
 
 typedef struct gnss_data {
+	float lat;
+	float lon;
+	int32_t alt;
 
 }gnss_data_t;
 

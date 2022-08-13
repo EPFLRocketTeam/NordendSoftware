@@ -18,7 +18,7 @@
 #include <driver/serial.h>
 #include <device/device.h>
 #include <device/i2c_sensor.h>
-#include <device/hostproc.h>
+#include <driver/hostproc.h>
 
 #include <control.h>
 #include <feedback/led.h>

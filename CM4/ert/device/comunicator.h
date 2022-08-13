@@ -6,8 +6,8 @@
  *  Description : serial msv2 communicator
  */
 
-#ifndef COMMUNICATOR_H
-#define COMMUNICATOR_H
+#ifndef COMUNICATOR_H
+#define COMUNICATOR_H
 
 
 
@@ -18,6 +18,8 @@
 #include <stdint.h>
 #include <device/device.h>
 #include <util.h>
+
+#include <protocol/msv2.h>
 
 /**********************
  *  CONSTANTS
@@ -32,6 +34,14 @@
 /**********************
  *  TYPEDEFS
  **********************/
+
+typedef struct comunicator {
+	MSV2_INST_t msv2;
+	//opcode, len, data
+	void (*cb)(uint8_t, uint16_t, uint8_t *);
+	device_interface_t * interface;
+
+}comunicator_t;
 
 
 /**********************
@@ -48,9 +58,14 @@ extern "C"{
 #endif
 
 
-util_error_t communicator_init(device_t * com, void (*cb)(uint8_t, uint16_t, uint8_t *));
+util_error_t comunicator_init(	comunicator_t * com,
+								device_interface_t* channel,
+								void (*cb)(uint8_t, uint16_t, uint8_t *));
 
-util_error_t communicator_send(device_t * com, uint8_t opcode, uint16_t len, uint8_t * data);
+util_error_t comunicator_send(comunicator_t * com, uint8_t opcode, uint16_t len, uint8_t * data);
+
+void comunicator_thread(__attribute__((unused)) void * com);
+
 
 
 
@@ -59,6 +74,6 @@ util_error_t communicator_send(device_t * com, uint8_t opcode, uint16_t len, uin
 } // extern "C"
 #endif /* __cplusplus */
 
-#endif /* COMMUNICATOR_H */
+#endif /* COMUNICATOR_H */
 
 /* END */

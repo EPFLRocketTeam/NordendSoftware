@@ -42,15 +42,7 @@ typedef struct serial_deamon_context {
 
 }serial_deamon_context_t;
 
-typedef struct serial_interface_context {
-	UART_HandleTypeDef * uart;
-	util_buffer_u8_t rx_buffer;
-	uint8_t rx_data[SERIAL_BUFFER_LEN];
-	uint32_t rx_data_len;
-	uint8_t rx_fragment;
-	uint8_t tx_data[SERIAL_BUFFER_LEN];
-	void * protocol;
-}serial_interface_context_t;
+
 
 
 /**********************
@@ -70,11 +62,13 @@ util_error_t serial_init(void);
 
 util_error_t serial_feedback_init(void);
 
-device_daemon_t * serial_get_deamon(void);
+device_interface_t * serial_get_s3_interface(void);
 
-device_interface_t * serial_get_feedback_interface(void);
+device_interface_t * serial_get_s2_interface(void);
 
-util_error_t serial_setup_reception(serial_interface_context_t * interface_context);
+device_interface_t * serial_get_s1_interface(void);
+
+util_error_t serial_data_ready(void);
 
 util_error_t serial_send(void * context, uint8_t* data, uint32_t len);
 
