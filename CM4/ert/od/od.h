@@ -20,6 +20,7 @@
 #include "sensor/accelerometer.h"
 #include "sensor/barometer.h"
 #include "sensor/gyroscope.h"
+#include "sensor/gnss.h"
 
 /**********************
  *  CONSTANTS

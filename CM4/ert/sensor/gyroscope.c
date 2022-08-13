@@ -72,6 +72,22 @@
  *	DECLARATIONS
  **********************/
 
+void gyroscope_process_data(gyroscope_data_t * data, uint16_t range) {
+	data->processed[0] = 0;
+	data->processed[1] = 0;
+	data->processed[2] = 0;
+}
+
+util_error_t gyroscope_read_data(device_t * acc, gyroscope_data_t * data) {
+
+	data->raw[0] = 0;
+	data->raw[1] = 0;
+	data->raw[2] = 0;
+
+
+
+	return ER_SUCCESS;
+}
 /**
  * @brief Initialize gyroscopes
  */

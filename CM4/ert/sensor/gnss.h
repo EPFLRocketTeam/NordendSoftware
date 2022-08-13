@@ -31,6 +31,10 @@
  *  TYPEDEFS
  **********************/
 
+typedef struct gnss_data {
+
+}gnss_data_t;
+
 
 /**********************
  *  VARIABLES
