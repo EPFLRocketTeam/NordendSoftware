@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2022-08-14T14:36:50.572Z" agent="5.0 (X11)" etag="1BryfXgfgF7UP2Ny1FVi" version="20.2.3" type="github">
+<mxfile host="app.diagrams.net" modified="2022-08-14T14:39:58.507Z" agent="5.0 (X11)" etag="7iTn32YRrzqovR9owoWp" version="20.2.3" type="github">
   <diagram id="oHM9Ts-oEpWvEqwn-NW8" name="Page-1">
     <mxGraphModel dx="2844" dy="2689" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -567,7 +567,7 @@
           <mxGeometry x="320" y="-320" width="200" height="30" as="geometry" />
         </mxCell>
         <mxCell id="fYRwV2_t_8ricet78tLy-204" value="Cortex-A7 Dual-core" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
-          <mxGeometry x="1840" y="-320" width="200" height="30" as="geometry" />
+          <mxGeometry x="1520" y="-320" width="200" height="30" as="geometry" />
         </mxCell>
         <mxCell id="fYRwV2_t_8ricet78tLy-211" value="S1 UART" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;startArrow=block;startFill=0;endArrow=classic;endFill=1;shape=flexArrow;fillColor=#f8cecc;strokeColor=#b85450;" edge="1" parent="1" source="fYRwV2_t_8ricet78tLy-206" target="fYRwV2_t_8ricet78tLy-26">
           <mxGeometry relative="1" as="geometry" />
