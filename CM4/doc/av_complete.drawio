@@ -1,1 +1,46 @@
-<mxfile host="app.diagrams.net" modified="2022-08-14T10:20:19.826Z" agent="5.0 (X11)" version="20.2.3" etag="On97DCeS-yNf6PnqAY3s" type="github"><diagram id="oHM9Ts-oEpWvEqwn-NW8">UzV2zq1wL0osyPDNT0nNUTV2VTV2LsrPL4GwciucU3NyVI0MMlNUjV1UjYwMgFjVyA2HrCFY1qAgsSg1rwSLBiADYTaQg2Y1AA==</diagram></mxfile>
+<mxfile host="app.diagrams.net" modified="2022-08-14T10:27:39.282Z" agent="5.0 (X11)" etag="0IB3KLGPnkHP6G0u71Mh" version="20.2.3" type="github">
+  <diagram id="oHM9Ts-oEpWvEqwn-NW8" name="Page-1">
+    <mxGraphModel dx="1778" dy="950" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="fYRwV2_t_8ricet78tLy-12" value="" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="160" y="480" width="300" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-13" value="" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="160" y="560" width="300" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-11" value="" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="160" y="400" width="300" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-1" value="Sensor (I2C)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="170" y="410" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-2" value="&lt;div&gt;Sensor (SPI)&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="330" y="410" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-3" value="Comunicator" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="650" y="120" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-4" value="Object Dictionnary" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="640" y="440" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-6" value="Thread" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="20" y="40" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-7" value="I2C" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="170" y="570" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-8" value="I2C sensor" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="170" y="490" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-9" value="SPI" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="330" y="570" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-10" value="SPI sensor" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="330" y="490" width="120" height="40" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
