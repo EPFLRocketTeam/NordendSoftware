@@ -1,44 +1,113 @@
-<mxfile host="app.diagrams.net" modified="2022-08-14T10:27:39.282Z" agent="5.0 (X11)" etag="0IB3KLGPnkHP6G0u71Mh" version="20.2.3" type="github">
+<mxfile host="app.diagrams.net" modified="2022-08-14T10:43:48.541Z" agent="5.0 (X11)" etag="9xmUOoJla7ho8t0ZyOOH" version="20.2.3" type="github">
   <diagram id="oHM9Ts-oEpWvEqwn-NW8" name="Page-1">
-    <mxGraphModel dx="1778" dy="950" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="2628" dy="950" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="fYRwV2_t_8ricet78tLy-12" value="" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;fillColor=none;" vertex="1" parent="1">
-          <mxGeometry x="160" y="480" width="300" height="60" as="geometry" />
+          <mxGeometry x="350" y="430" width="300" height="60" as="geometry" />
         </mxCell>
         <mxCell id="fYRwV2_t_8ricet78tLy-13" value="" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;fillColor=none;" vertex="1" parent="1">
-          <mxGeometry x="160" y="560" width="300" height="60" as="geometry" />
+          <mxGeometry x="350" y="510" width="300" height="60" as="geometry" />
         </mxCell>
         <mxCell id="fYRwV2_t_8ricet78tLy-11" value="" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;fillColor=none;" vertex="1" parent="1">
-          <mxGeometry x="160" y="400" width="300" height="60" as="geometry" />
+          <mxGeometry x="350" y="270" width="300" height="60" as="geometry" />
         </mxCell>
         <mxCell id="fYRwV2_t_8ricet78tLy-1" value="Sensor (I2C)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="170" y="410" width="120" height="40" as="geometry" />
+          <mxGeometry x="360" y="280" width="120" height="40" as="geometry" />
         </mxCell>
         <mxCell id="fYRwV2_t_8ricet78tLy-2" value="&lt;div&gt;Sensor (SPI)&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="330" y="410" width="120" height="40" as="geometry" />
+          <mxGeometry x="520" y="280" width="120" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="fYRwV2_t_8ricet78tLy-3" value="Comunicator" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="650" y="120" width="120" height="40" as="geometry" />
+        <mxCell id="fYRwV2_t_8ricet78tLy-3" value="Comunicator" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="120" y="440" width="120" height="40" as="geometry" />
         </mxCell>
         <mxCell id="fYRwV2_t_8ricet78tLy-4" value="Object Dictionnary" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="640" y="440" width="120" height="40" as="geometry" />
+          <mxGeometry x="80" y="200" width="960" height="40" as="geometry" />
         </mxCell>
         <mxCell id="fYRwV2_t_8ricet78tLy-6" value="Thread" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="20" y="40" width="120" height="40" as="geometry" />
+          <mxGeometry x="-190" y="10" width="120" height="40" as="geometry" />
         </mxCell>
         <mxCell id="fYRwV2_t_8ricet78tLy-7" value="I2C" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
-          <mxGeometry x="170" y="570" width="120" height="40" as="geometry" />
+          <mxGeometry x="360" y="520" width="120" height="40" as="geometry" />
         </mxCell>
         <mxCell id="fYRwV2_t_8ricet78tLy-8" value="I2C sensor" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
-          <mxGeometry x="170" y="490" width="120" height="40" as="geometry" />
+          <mxGeometry x="360" y="440" width="120" height="40" as="geometry" />
         </mxCell>
         <mxCell id="fYRwV2_t_8ricet78tLy-9" value="SPI" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
-          <mxGeometry x="330" y="570" width="120" height="40" as="geometry" />
+          <mxGeometry x="520" y="520" width="120" height="40" as="geometry" />
         </mxCell>
         <mxCell id="fYRwV2_t_8ricet78tLy-10" value="SPI sensor" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
-          <mxGeometry x="330" y="490" width="120" height="40" as="geometry" />
+          <mxGeometry x="520" y="440" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-14" value="A" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="-540" y="80" width="60" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-15" value="B" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="-440" y="80" width="60" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-16" value="S1&lt;br&gt;Miaou" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="-600" y="80" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-17" value="S2&lt;br&gt;Sensors" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="-600" y="160" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-18" value="S1&lt;br&gt;GNSS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="-380" y="80" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-19" value="S2&lt;br&gt;Sensors" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="-380" y="160" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-20" value="S3&lt;br&gt;Krtek" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="-600" y="240" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-21" value="S3&lt;br&gt;Feedback" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="-380" y="240" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-22" value="Power" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="-540" y="320" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-25" value="Comunicator" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="760" y="440" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-26" value="Serial" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="120" y="520" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-27" value="Serial" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="760" y="520" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-28" value="Miaou" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="120" y="280" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-29" value="Barometer" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="280" y="360" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-30" value="Gyroscope" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="440" y="360" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-31" value="Accelerometer" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="600" y="360" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-37" value="Krtek" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="760" y="280" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-38" value="ADC" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="920" y="280" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-39" value="Control" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="120" y="120" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-40" value="CAN" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="200" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-41" value="CAN" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="280" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-42" value="OD Sync" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="400" y="120" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fYRwV2_t_8ricet78tLy-43" value="Data" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="560" y="120" width="120" height="40" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
