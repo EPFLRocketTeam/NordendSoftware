@@ -1,9 +1,12 @@
-/*  Title       : Communicator
- *  Filename    : communicator.c
- *  Author      : iacopo sprenger
- *  Date        : 12.08.2022
- *  Version     : 0.1
- *  Description : serial msv2 communicator
+/**
+ * @file 		comunicator.cpp
+ * @brief 		serial msv2 communicator
+ *
+ * @date 		12.08.2022
+ * @author 		Iacopo Sprenger
+ *
+ * @defgroup 	comunicator Comunicator
+ * @{
  */
 
 /**********************
@@ -126,7 +129,7 @@ void comunicator_thread(__attribute__((unused)) void * com) {
 
 
 
-
+/** @} */
 
 
 /* END */

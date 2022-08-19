@@ -1,6 +1,13 @@
-//
-// Created by iacopo on 8/5/22.
-//
+/**
+ * @file kalman.cpp
+ * @brief Vertical (1D) navigation based around an extended kalman filter
+ *
+ * @date 18.08.2022
+ * @author Iacopo Sprenger
+ *
+ * @defgroup host_kalman Kalman filter
+ * @{
+ */
 
 #include "kalman.h"
 #include "serial.h"
@@ -214,4 +221,8 @@ void * kalman_entry(void *) {
 
 }
 
+
+/**
+ * @}
+ */
 

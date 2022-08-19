@@ -92,8 +92,8 @@ void miaou_thread(__attribute__((unused)) void * arg) {
 		miaou_packet.gnss_alt = gnss_data.alt;
 
 		comunicator_send(	&miaou_comunicator,
-							0x00,
-							sizeof(radio_packet_t),
+							radio_packet_opcode,
+							radio_packet_size,
 							(uint8_t *) &miaou_packet);
 
 
