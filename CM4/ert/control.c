@@ -1,7 +1,12 @@
-/** @file	Control
- *	@author Iacopo Sprenger
- *	@date	20.01.2022
- *	@brief	Main control of the program through the global state machine
+/**
+ * @file 		control.c
+ * @brief 		Main control of the program through the global state machine
+ *
+ * @date 		20.01.2022
+ * @author 		Iacopo Sprenger
+ *
+ * @defgroup 	control Control
+ * @{
  */
 
 /**********************
@@ -18,7 +23,7 @@
 #include <driver/serial.h>
 #include <device/device.h>
 #include <device/i2c_sensor.h>
-#include <device/hostproc.h>
+#include <driver/hostproc.h>
 
 #include <control.h>
 #include <feedback/led.h>

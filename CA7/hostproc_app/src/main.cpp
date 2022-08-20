@@ -1,3 +1,16 @@
+/**
+ * \file main.cpp
+ * \brief Main function of the Host processor application
+ *
+ * \date 18.08.2022
+ * \author Iacopo Sprenger
+ *
+ *
+ * \defgroup host_main Host processor linux app
+ * \{
+ */
+
+
 // C library headers
 #include <stdio.h>
 #include <string.h>
@@ -33,3 +46,6 @@ int main(void) {
 
 
 }
+/**
+*   \}
+*/

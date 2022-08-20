@@ -1,8 +1,12 @@
 .settings
 .settings/*
 
+
+
 CM4/Debug/
 CM4/Release/
+doc/html
+doc/latex
 
 #compilation artifacts
 *.d
@@ -14,4 +18,4 @@ CM4/Release/
 *.list
 *.bin
 *.elf
-#.map
+*.map

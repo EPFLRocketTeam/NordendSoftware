@@ -26,8 +26,8 @@
 
 #define WH_TRUE		1
 #define WH_FALSE 	0
-#define NANGA		0 //NAKED
-#define PARBAT		1 //MOUNTAIN
+#define A			0
+#define B			1
 
 #define WH_COMPUTER	A
 

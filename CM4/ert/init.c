@@ -19,11 +19,11 @@
 #include <driver/i2c.h>
 #include <device/i2c_sensor.h>
 #include <control.h>
-#include <device/hostproc.h>
+#include <driver/hostproc.h>
 #include <init.h>
 #include <sensor.h>
 #include <od/od.h>
-
+#include <device/comunicator.h>
 
 /**********************
  *	CONSTANTS
@@ -42,6 +42,9 @@
 
 #define SENSOR_I2C_SZ	DEFAULT_SZ
 #define SENSOR_I2C_PRIO	(6)
+
+#define COMUNICATOR_SZ	DEFAULT_SZ
+#define COMUNICATOR_PRIO		(6)
 
 
 /**********************
@@ -63,6 +66,7 @@ static TaskHandle_t od_handle = NULL;
 static TaskHandle_t control_handle = NULL;
 static TaskHandle_t led_rgb_handle = NULL;
 static TaskHandle_t sensor_i2c_handle = NULL;
+static TaskHandle_t communicator_handle = NULL;
 
 /**********************
  *	PROTOTYPES
@@ -112,6 +116,9 @@ void init(void) {
 
 
 	INIT_THREAD_CREATE(control_handle, control, control_thread, NULL, CONTROL_SZ, CONTROL_PRIO);
+
+
+	INIT_THREAD_CREATE(communicator_handle, comunicator, comunicator_thread, NULL, COMUNICATOR_SZ, COMUNICATOR_PRIO);
 
 #if WH_HAS_SENSORS == WH_TRUE
 	INIT_THREAD_CREATE(sensor_i2c_handle, sensor_i2c, sensor_i2c_thread, NULL, SENSOR_I2C_SZ, SENSOR_I2C_PRIO);

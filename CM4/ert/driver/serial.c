@@ -38,6 +38,14 @@
  *	TYPEDEFS
  **********************/
 
+typedef struct serial_interface_context {
+	UART_HandleTypeDef * uart;
+	util_buffer_u8_t rx_buffer;
+	uint8_t rx_data[SERIAL_BUFFER_LEN];
+	uint32_t rx_data_len;
+	uint8_t rx_fragment;
+	uint8_t tx_data[SERIAL_BUFFER_LEN];
+}serial_interface_context_t;
 
 
 
@@ -47,12 +55,24 @@
 
 static device_daemon_t serial_deamon;
 
-static device_interface_t feedback_interface;
+static device_interface_t s3_interface;
+
+static device_interface_t s2_interface;
+
+static device_interface_t s1_interface;
 
 static serial_deamon_context_t serial_deamon_context;
 
-static serial_interface_context_t feedback_interface_context = {
+static serial_interface_context_t s3_interface_context = {
 		.uart = &S3_UART
+};
+
+static serial_interface_context_t s2_interface_context = {
+		.uart = &S2_UART
+};
+
+static serial_interface_context_t s1_interface_context = {
+		.uart = &S1_UART
 };
 
 
@@ -60,13 +80,17 @@ static serial_interface_context_t feedback_interface_context = {
  *	PROTOTYPES
  **********************/
 
-util_error_t serial_data_ready(void * context);
 
 util_error_t serial_send(void * context, uint8_t* data, uint32_t len);
 
 util_error_t serial_recv(void * context, uint8_t* data, uint32_t * len);
 
 util_error_t serial_handle_data(void * if_context, void * dem_context);
+
+util_error_t serial_interface_init(	device_interface_t * serial_if,
+									serial_interface_context_t * serial_ctx);
+
+util_error_t serial_setup_reception(serial_interface_context_t * interface_context);
 
 
 /**********************
@@ -94,14 +118,15 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
 
 
-device_daemon_t * serial_get_deamon(void)
+
+device_interface_t * serial_get_s3_interface(void)
 {
-	return &serial_deamon;
+	return &s3_interface;
 }
 
-device_interface_t * serial_get_feedback_interface(void)
+device_interface_t * serial_get_s1_interface(void)
 {
-	return &feedback_interface;
+	return &s1_interface;
 }
 
 
@@ -112,26 +137,43 @@ util_error_t serial_init(void)
 	//initialize deamon semaphore
 	serial_deamon_context.rx_sem = xSemaphoreCreateBinaryStatic(&serial_deamon_context.rx_sem_buffer);
 
-	error |= device_deamon_create(&serial_deamon, "serial deamon", 6, (void *) &serial_deamon_context, serial_data_ready);
+	//deamon only to keep track of interfaces (no runtime)
+	error |= device_deamon_create(	&serial_deamon,
+									"serial deamon",
+									6,
+									(void *) &serial_deamon_context,
+									NULL);
+
+	//miaou or gnss
+	error |= serial_interface_init(&s1_interface, &s1_interface_context);
+
+	//feedback or krtek
+	error |= serial_interface_init(&s3_interface, &s3_interface_context);
+
+
 
 
 	return error;
 }
 
-util_error_t serial_feedback_init(void) {
+
+util_error_t serial_interface_init(	device_interface_t * serial_if,
+									serial_interface_context_t * serial_ctx) {
 	util_error_t error = ER_SUCCESS;
+	error |= device_interface_create(	serial_if,
+										(void*) serial_ctx,
+										NULL,
+										serial_send,
+										serial_recv,
+										NULL);
 
-	error |= device_interface_create(&feedback_interface, (void*) &feedback_interface_context, &serial_deamon, serial_send, serial_recv, serial_handle_data);
-
-	serial_setup_reception(&feedback_interface_context);
-
+	serial_setup_reception((serial_interface_context_t * )serial_if->context);
 	return error;
 }
 
-util_error_t serial_data_ready(void * context)
+util_error_t serial_data_ready(void)
 {
-	serial_deamon_context_t * deamon_context = (serial_deamon_context_t *) context;
-	if( xSemaphoreTake(deamon_context->rx_sem, osWaitForever) == pdTRUE ) {
+	if( xSemaphoreTake(serial_deamon_context.rx_sem, osWaitForever) == pdTRUE ) {
 		return ER_SUCCESS;
 	} else {
 		return ER_TIMEOUT;
@@ -144,7 +186,12 @@ util_error_t serial_setup_reception(serial_interface_context_t * interface_conte
 	//setup Interrupt reception byte per byte
 	util_buffer_u8_init(&interface_context->rx_buffer, interface_context->rx_data, SERIAL_BUFFER_LEN);
 
-	HAL_UART_Receive_IT(interface_context->uart, &interface_context->rx_fragment, 1);
+	if(HAL_UART_Receive_IT(	interface_context->uart,
+							&interface_context->rx_fragment,
+							1) != HAL_OK) {
+		return ER_RESSOURCE_ERROR;
+	}
+	return ER_SUCCESS;
 
 }
 
@@ -152,7 +199,9 @@ util_error_t serial_send(void * context, uint8_t* data, uint32_t len)
 {
 	serial_interface_context_t * interface_context = (serial_interface_context_t *) context;
 
-	HAL_UART_Transmit_IT(interface_context->uart, data, len);
+	if(HAL_UART_Transmit_IT(interface_context->uart, data, len) != HAL_OK) {
+		return ER_RESSOURCE_ERROR;
+	}
 
 	return ER_SUCCESS;
 }
@@ -169,15 +218,6 @@ util_error_t serial_recv(void * context, uint8_t * data, uint32_t * len)
 }
 
 
-util_error_t serial_handle_data(void * if_context, void * dem_context)
-{
-	serial_interface_context_t * interface_context = (serial_interface_context_t *) if_context;
-	serial_deamon_context_t * deamon_context = (serial_deamon_context_t *) dem_context;
-
-	//no data handling for now
-
-	return ER_SUCCESS;
-}
 
 
 

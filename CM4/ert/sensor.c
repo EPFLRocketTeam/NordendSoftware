@@ -6,6 +6,7 @@
  *	Description	: Thread grouping all the sensors on the same I2C bus.
  */
 
+
 /**********************
  *	INCLUDES
  **********************/
@@ -129,9 +130,15 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 			barometer_convert(&i2c_baro_meta, &i2c_baro_data);
 
 			//store everything
+#if WH_COMPUTER == A
 			od_write_ACC_I2C_A(&i2c_acc_data);
 			od_write_GYRO_I2C_A(&i2c_gyro_data);
 			od_write_BARO_I2C_A(&i2c_baro_data);
+#else
+			od_write_ACC_I2C_B(&i2c_acc_data);
+			od_write_GYRO_I2C_B(&i2c_gyro_data);
+			od_write_BARO_I2C_B(&i2c_baro_data);
+#endif
 
 
 		} else { /* Calibration */

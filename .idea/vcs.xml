@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/CM4/ert/RadioPacket" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/distribution-package/layers/bitbake" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/distribution-package/layers/meta-openembedded" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/distribution-package/layers/meta-qt5" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/distribution-package/layers/meta-st/meta-st-openstlinux" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/distribution-package/layers/meta-st/meta-st-stm32mp" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/distribution-package/layers/meta-st/meta-st-stm32mp-addons" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/distribution-package/layers/meta-st/scripts" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/distribution-package/layers/openembedded-core" vcs="Git" />
+  </component>
+</project>

@@ -1,9 +1,12 @@
-/*  Title       : Control
- *  Filename    : control.h
- *  Author      : iacopo sprenger
- *  Date        : 20.01.2022
- *  Version     : 0.1
- *  Description : control
+/**
+ * @file 		control.h
+ * @brief 		Main control of the program through the global state machine
+ *
+ * @date 		20.01.2022
+ * @author 		Iacopo Sprenger
+ *
+ * @ingroup 	control
+ * @{
  */
 
 #ifndef CONTROL_H
@@ -53,5 +56,7 @@ void control_thread(void * arg);
 #endif /* __cplusplus */
 
 #endif /* TEMPLATE_H */
+
+/** @} */
 
 /* END */
