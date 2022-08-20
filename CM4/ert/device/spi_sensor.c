@@ -83,9 +83,9 @@ util_error_t spi_sensor_init(void) {
 
 	device_interface_t * spi_sensor_interface = spi_get_sensor_interface();
 
-	device_create((void*) &spi_accelerometer_device, &spi_accelerometer_device_context, spi_sensor_interface, spi_sensor_read_reg_HAL, spi_sensor_write_reg_HAL);
-	device_create((void*) &spi_gyroscope_device, &spi_gyroscope_device_context, spi_sensor_interface, spi_sensor_read_reg_HAL, spi_sensor_write_reg_HAL);
-	device_create((void*) &spi_barometer_device, &spi_barometer_device_context, spi_sensor_interface, spi_sensor_read_reg_HAL, spi_sensor_write_reg_HAL);
+	device_create((void*) &spi_accelerometer_device, &spi_accelerometer_device_context, spi_sensor_interface, spi_sensor_read_reg, spi_sensor_write_reg);
+	device_create((void*) &spi_gyroscope_device, &spi_gyroscope_device_context, spi_sensor_interface, spi_sensor_read_reg, spi_sensor_write_reg);
+	device_create((void*) &spi_barometer_device, &spi_barometer_device_context, spi_sensor_interface, spi_sensor_read_reg, spi_sensor_write_reg);
 
 	return ER_SUCCESS;
 

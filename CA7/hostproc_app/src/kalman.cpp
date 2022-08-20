@@ -195,11 +195,18 @@ void * kalman_entry(void *) {
     kalman_setup(&state);
     serial_setup(&data_device, "/dev/ttyRPMSG2");
 
+    uint8_t msg[] = "hello";
+    serial_send(&data_device, msg, 6);
+
+    printf("setup kalman channel\n");
+
     for(;;) {
+
         uint32_t len = sizeof(data);
         //ideally a blocking receive
         serial_recv(&data_device, (uint8_t *) &data, &len);
         if(len = sizeof(data)) {
+        	printf("kalman cycle\n");
 			uint32_t dt = data.time - state.last_time;
 			kalman_predict(&state, (float) dt);
 			switch(data.type) {

@@ -1,9 +1,12 @@
-/*  Title		: Generic device driver
- *  Filename	: device.c
- *	Author		: iacopo sprenger
- *	Date		: 20.03.2022
- *	Version		: 0.1
- *	Description	: 
+/**
+ * @file 		device.c
+ * @brief 		Generic device driver
+ *
+ * @date 		20.03.2022
+ * @author 		Iacopo Sprenger
+ *
+ * @defgroup 	device Device
+ * @{
  */
 
 /**********************
@@ -416,4 +419,5 @@ util_error_t device_write(device_t * dev, uint32_t addr, uint8_t* data, uint32_t
 	dev->write_reg(dev->context, dev->interface, addr, data, len);
 }
 
+/** @} */
 /* END */

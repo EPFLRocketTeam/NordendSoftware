@@ -53,34 +53,36 @@
  */
 typedef enum control_state {
 	/** Wait for arming or calibration */
-	CONTROL_IDLE,
+	CONTROL_IDLE = 0,
 	/** Calibrate sensors and actuators */
-	CONTROL_CALIBRATION,
+	CONTROL_CALIBRATION = 1,
 	/** Armed, wait for liftoff */
-	CONTROL_ARMED,
+	CONTROL_ARMED = 2,
 	/** Powered ascent */
-	CONTROL_POWERED,
+	CONTROL_POWERED = 3,
 	/** Supersonic flight */
-	CONTROL_SUPERSONIC,
+	CONTROL_SUPERSONIC = 4,
 	/** Subsonic, coast flight */
-	CONTROL_COAST,
+	CONTROL_COAST = 5,
 	/** Apogee reached, trigger first event */
-	CONTROL_APOGEE,
+	CONTROL_APOGEE = 6,
 	/** Drogue chute descent, wait for second event */
-	CONTROL_DROGUE,
+	CONTROL_DROGUE = 7,
 	/** Low alt reached, trigger second event */
-	CONTROL_EVENT,
+	CONTROL_EVENT = 8,
 	/** Main chute descent, wait for touchdown */
-	CONTROL_MAIN,
+	CONTROL_MAIN = 9,
 	/** Touchdown detected, end of the flight */
-	CONTROL_TOUCHDOWN,
+	CONTROL_TOUCHDOWN = 10,
 	/** Ballistic flight detected */
-	CONTROL_BALLISTIC,
+	CONTROL_BALLISTIC = 11,
 	/** Auto triggered error */
-	CONTROL_ERROR,
+	CONTROL_ERROR = 12,
 	/** User triggered error */
-	CONTROL_ABORT
+	CONTROL_ABORT = 13
 }control_state_t;
+
+
 
 
 typedef struct control {
@@ -140,12 +142,29 @@ void control_error_run(void);
 void control_abort_start(void);
 void control_abort_run(void);
 
-
+void (*control_fcn[])(void) = {
+        control_idle_run,
+        control_calibration_run,
+        control_armed_run,
+        control_powered_run,
+        control_supersonic_run,
+        control_coast_run,
+        control_apogee_run,
+        control_drogue_run,
+        control_event_run,
+        control_main_run,
+        control_touchdown_run,
+        control_ballistic_run,
+        control_error_run,
+        control_abort_run
+};
 
 
 /**********************
  *	DECLARATIONS
  **********************/
+
+
 
 /**
  * @brief 	Control thread entry point
@@ -161,21 +180,12 @@ void control_thread(__attribute__((unused)) void * arg) {
 	static const TickType_t period = pdMS_TO_TICKS(CONTROL_HEART_BEAT);
 	last_wake_time = xTaskGetTickCount();
 
-	device_interface_t * hostproc_interface = hostproc_get_feedback_interface();
-
+    control_idle_start();
 
 	for(;;) {
 
 
-		static uint8_t data[32];
-		static uint32_t len = 32;
-		len = 32;
-		device_interface_recv(hostproc_interface, data, &len);
-		if(len > 0) {
-			device_interface_send(hostproc_interface, data, len);
-		}
-
-
+        control_fcn[control.state]();
 
 		vTaskDelayUntil( &last_wake_time, period );
 	}

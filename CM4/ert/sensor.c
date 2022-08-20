@@ -22,6 +22,7 @@
 #include <sensor/gyroscope.h>
 #include <sensor/barometer.h>
 #include <od/od.h>
+#include <driver/hostproc.h>
 /**********************
  *	CONSTANTS
  **********************/
@@ -48,8 +49,6 @@
 static device_t * i2c_acc;
 static device_t * i2c_gyro;
 static device_t * i2c_baro;
-
-static device_interface_t * hostproc_feedback;
 
 
 static uint8_t i2c_calib;
@@ -89,7 +88,7 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	i2c_gyro = i2c_sensor_get_gyroscope();
 	i2c_baro = i2c_sensor_get_barometer();
 
-	hostproc_feedback = hostproc_get_feedback_interface();
+	device_interface_t * hostproc_feedback = hostproc_get_feedback_interface();
 
 	//init
 	accelerometer_init(i2c_acc);
@@ -150,6 +149,14 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 		}
 
 		//send data to hostproc for verif
+
+		char msg[1042];
+		uint16_t msg_len = snprintf(msg, 1024, "acc: %d, %d, %d\npress: %ld, temp: %ld\n",
+				i2c_acc_data.processed[0], i2c_acc_data.processed[1],
+				i2c_acc_data.processed[2], i2c_baro_data.pressure,
+				i2c_baro_data.temperature);
+
+		device_interface_send(hostproc_feedback, (uint8_t*)msg, msg_len);
 
 
 		vTaskDelayUntil( &last_wake_time, period );

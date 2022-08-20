@@ -1,9 +1,12 @@
-/*  Title		: Serial
- *  Filename	: serial.c
- *	Author		: iacopo sprenger
- *	Date		: 02.04.2022
- *	Version		: 0.1
- *	Description	: serial interface for device driver
+/**
+ * @file 		serial.c
+ * @brief 		serial interface for device driver
+ *
+ * @date 		02.04.2022
+ * @author 		Iacopo Sprenger
+ *
+ * @defgroup 	serial Serial
+ * @{
  */
 
 /**********************
@@ -98,7 +101,10 @@ util_error_t serial_setup_reception(serial_interface_context_t * interface_conte
  **********************/
 
 //Interrupt receive handler for serial
-
+/**
+ * @brief       Serial reception interrupt callback.
+ * @param huart Serial UART device on which the bytes have arrived.
+ */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	for(uint8_t i = 0; i < serial_deamon.interfaces_count; i++) {
@@ -118,18 +124,24 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
 
 
-
+/**
+ * @brief   Returns a pointer to the s3 serial interface.
+ */
 device_interface_t * serial_get_s3_interface(void)
 {
 	return &s3_interface;
 }
-
+/**
+ * @brief   Returns a pointer to the s1 serial interface.
+ */
 device_interface_t * serial_get_s1_interface(void)
 {
 	return &s1_interface;
 }
 
-
+/**
+ * @brief   Initialize the serial driver.
+ */
 util_error_t serial_init(void)
 {
 	util_error_t error = ER_SUCCESS;
@@ -156,7 +168,9 @@ util_error_t serial_init(void)
 	return error;
 }
 
-
+/**
+ * @brief   Initialize a serial interface.
+ */
 util_error_t serial_interface_init(	device_interface_t * serial_if,
 									serial_interface_context_t * serial_ctx) {
 	util_error_t error = ER_SUCCESS;
@@ -171,6 +185,9 @@ util_error_t serial_interface_init(	device_interface_t * serial_if,
 	return error;
 }
 
+/**
+ * @brief   Blocking function, waiting for data to be ready.
+ */
 util_error_t serial_data_ready(void)
 {
 	if( xSemaphoreTake(serial_deamon_context.rx_sem, osWaitForever) == pdTRUE ) {
@@ -181,6 +198,9 @@ util_error_t serial_data_ready(void)
 
 }
 
+/**
+ * @brief   Setup reception on the serial interface.
+ */
 util_error_t serial_setup_reception(serial_interface_context_t * interface_context)
 {
 	//setup Interrupt reception byte per byte
@@ -220,5 +240,5 @@ util_error_t serial_recv(void * context, uint8_t * data, uint32_t * len)
 
 
 
-
+/** @} */
 /* END */

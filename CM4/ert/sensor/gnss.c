@@ -27,6 +27,10 @@
  **********************/
 
 
+typedef struct gnss_context {
+
+}gnss_context_t;
+
 /**********************
  *	VARIABLES
  **********************/

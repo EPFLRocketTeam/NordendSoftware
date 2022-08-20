@@ -25,6 +25,7 @@
 /* USER CODE BEGIN Includes */
 #include <abstraction/uart.h>
 #include <feedback/buzzer.h>
+#include <feedback/led.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -102,10 +103,14 @@ void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
 
+	led_feedback_init();
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {
     /* USER CODE BEGIN W1_HardFault_IRQn 0 */
+
+
+	  led_rgb_set_rgb(0xff, 0x00, 0xff);
     /* USER CODE END W1_HardFault_IRQn 0 */
   }
 }

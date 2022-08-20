@@ -1,9 +1,12 @@
-/*  Title		: Maxon serial v2
- *  Filename	: msv2.c
- *	Author		: iacopo sprenger
- *	Date		: 20.01.2021
- *	Version		: 0.1
- *	Description	: Maxon serial v2 data transport layer
+/**
+ * @file 		msv2.c
+ * @brief 		Maxon serial v2 data transport layer
+ *
+ * @date 		20.01.2021
+ * @author 		Iacopo Sprenger
+ *
+ * @defgroup 	msv2 MSV2
+ * @{
  */
 
 /**********************
@@ -245,6 +248,7 @@ uint8_t * msv2_tx_data(MSV2_INST_t * msv2) {
 }
 
 
+/** @} */
 /* END */
 
 

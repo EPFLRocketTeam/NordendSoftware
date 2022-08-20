@@ -56,6 +56,9 @@ extern "C"{
 
 util_error_t gyroscope_init(device_t * gyro);
 
+void gyroscope_process_data(gyroscope_data_t * data, uint16_t range);
+util_error_t gyroscope_read_data(device_t * acc, gyroscope_data_t * data);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif /* __cplusplus */

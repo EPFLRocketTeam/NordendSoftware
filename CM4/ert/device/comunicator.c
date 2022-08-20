@@ -1,5 +1,5 @@
 /**
- * @file 		comunicator.cpp
+ * @file 		comunicator.c
  * @brief 		serial msv2 communicator
  *
  * @date 		12.08.2022
@@ -113,7 +113,7 @@ util_error_t comunicator_send(	comunicator_t * com,
  * @brief 	comunicator data handling thread
  * @brief	For now only works with serial -> interrupts data rdy comes
  * 			from the serial driver.
- * 			only one thread -> later maybe one thread per communicator!
+ * 			only one thread -> later maybe one thread per comunicator!
  */
 void comunicator_thread(__attribute__((unused)) void * com) {
 

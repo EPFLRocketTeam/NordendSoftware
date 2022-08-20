@@ -1,9 +1,12 @@
-/*  Title       : Serial
- *  Filename    : serial.h
- *  Author      : iacopo sprenger
- *  Date        : 02.04.2022
- *  Version     : 0.1
- *  Description : serial interface for device driver
+/**
+ * @file 		serial.h
+ * @brief 		serial interface for device driver
+ *
+ * @date 		02.04.2022
+ * @author 		Iacopo Sprenger
+ *
+ * @ingroup 	serial
+ * @{
  */
 
 #ifndef SERIAL_H
@@ -84,4 +87,6 @@ util_error_t serial_recv(void * context, uint8_t * data, uint32_t * len);
 
 #endif /* SERIAL_H */
 
+
+/** @} */
 /* END */

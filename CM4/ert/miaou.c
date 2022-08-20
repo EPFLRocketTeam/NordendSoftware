@@ -1,9 +1,12 @@
-/*  Title		: miaou
- *  Filename	: miaou.c
- *	Author		: iacopo sprenger
- *	Date		: 13.08.2021
- *	Version		: 0.1
- *	Description	: Communication with the Miaou Radio modem
+/**
+ * @file 		miaou.c
+ * @brief 		Communication with the Miaou Radio modem
+ *
+ * @date 		13.08.2021
+ * @author 		Iacopo Sprenger
+ *
+ * @defgroup 	miaou Miaou
+ * @{
  */
 
 /**********************
@@ -74,7 +77,7 @@ void miaou_thread(__attribute__((unused)) void * arg) {
 
 	for(;;) {
 
-		miaou_packet.preamble = 0xAE;
+		miaou_packet.preamble = 'I';
 
 		accelerometer_data_t acc_data;
 		od_read_ACC_I2C_A(&acc_data);
@@ -105,6 +108,6 @@ void miaou_thread(__attribute__((unused)) void * arg) {
 
 
 
-
+/** @} */
 
 /* END */
