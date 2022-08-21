@@ -27,6 +27,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+#include "init.h"
 
 /* USER CODE END Includes */
 
@@ -97,6 +98,8 @@ __weak unsigned long getRunTimeCounterValue(void)
   */
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
+
+	init();
 
   /* USER CODE END Init */
 

@@ -35,7 +35,6 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
-#include <init.h>
 
 /* USER CODE END Includes */
 
@@ -133,7 +132,7 @@ int main(void)
   MX_TIM16_Init();
   /* USER CODE BEGIN 2 */
 
-  init();
+
 
   /* USER CODE END 2 */
 

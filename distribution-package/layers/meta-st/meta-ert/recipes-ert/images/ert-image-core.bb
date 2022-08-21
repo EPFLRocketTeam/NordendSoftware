@@ -9,10 +9,11 @@ IMAGE_LINGUAS = "en-us"
 
 IMAGE_FEATURES += "\
     package-management  \
+    ssh-server-openssh \
     tools-debug \
     tools-sdk \ 
     "
-# ssh-server-openssh
+# 
 #
 # INSTALL addons
 #
