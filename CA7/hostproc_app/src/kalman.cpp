@@ -11,7 +11,7 @@
 
 #include "kalman.h"
 #include "serial.h"
-#include "structures.h"
+#include "protocol/structures.h"
 
 #include <math.h>
 #include <Eigen/Dense>
@@ -195,10 +195,12 @@ void * kalman_entry(void *) {
     kalman_setup(&state);
     serial_setup(&data_device, "/dev/ttyRPMSG2");
 
-    uint8_t msg[] = "hello";
+    uint8_t msg[] = "start";
     serial_send(&data_device, msg, 6);
 
     printf("setup kalman channel\n");
+
+    state.last_time = 0;
 
     for(;;) {
 
@@ -206,20 +208,38 @@ void * kalman_entry(void *) {
         //ideally a blocking receive
         serial_recv(&data_device, (uint8_t *) &data, &len);
         if(len = sizeof(data)) {
-        	printf("kalman cycle\n");
+        	printf("kalman cycle| data: %d, type: %d, time: %d\n",
+        			data.data, data.type, data.time);
+        	if(state.last_time == 0) {
+        		state.last_time = data.time;
+        		continue;
+        	}
 			uint32_t dt = data.time - state.last_time;
-			kalman_predict(&state, (float) dt);
+			state.last_time = data.time;
+			float delta_t = dt/1000.0;
+			printf("delta time: %f\n", delta_t);
+			kalman_predict(&state, delta_t);
+			float acc, pres, alt;
 			switch(data.type) {
 				case TRANSFER_DATA_ACC:
-					kalman_update_acc(&state, (float) data.data);
+					acc = data.data / 10000; //0.1millig
+					printf("acc data: %f\n", acc);
+					kalman_update_acc(&state, acc);
 					break;
 				case TRANSFER_DATA_BARO:
-					kalman_update_baro(&state, (float) data.data);
+					pres = data.data*10.0;
+					printf("baro data: %f\n", pres);
+					kalman_update_baro(&state, pres);
 					break;
 				case TRANSFER_DATA_GNSS:
-					kalman_update_gnss(&state, (float) data.data);
+					alt = data.data;
+					printf("alt data: %f\n", alt);
+					kalman_update_gnss(&state, alt);
 					break;
+				default:
+					printf("data error\n");
 			}
+			printf("compute_result: %f\n", state.X_hat(0, 0));
         }
 
     }

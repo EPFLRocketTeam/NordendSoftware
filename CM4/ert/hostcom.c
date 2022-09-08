@@ -44,7 +44,7 @@ SemaphoreHandle_t hostcom_data_rdy = NULL;
 StaticSemaphore_t hostcom_data_rdy_buffer;
 
 
-transfer_data_t hostcom_data;
+
 
 
 /**********************
@@ -66,24 +66,30 @@ transfer_data_t hostcom_data;
 
 
 void hostcom_data_acc_send(uint32_t timestamp, int32_t acc) {
+	device_interface_t * data_if = hostproc_get_data_interface();
+	static transfer_data_t hostcom_data;
 	hostcom_data.data = acc;
 	hostcom_data.time = timestamp;
 	hostcom_data.type = TRANSFER_DATA_ACC;
-	xSemaphoreGive(hostcom_data_rdy);
+	device_interface_send(data_if, (uint8_t *)&hostcom_data, sizeof(hostcom_data));
 }
 
 void hostcom_data_baro_send(uint32_t timestamp, int32_t pres) {
+	device_interface_t * data_if = hostproc_get_data_interface();
+	static transfer_data_t hostcom_data;
 	hostcom_data.data = pres;
 	hostcom_data.time = timestamp;
 	hostcom_data.type = TRANSFER_DATA_BARO;
-	xSemaphoreGive(hostcom_data_rdy);
+	device_interface_send(data_if, (uint8_t *)&hostcom_data, sizeof(hostcom_data));
 }
 
 void hostcom_data_gnss_send(uint32_t timestamp, int32_t alt) {
+	device_interface_t * data_if = hostproc_get_data_interface();
+	static transfer_data_t hostcom_data;
 	hostcom_data.data = alt;
 	hostcom_data.time = timestamp;
 	hostcom_data.type = TRANSFER_DATA_GNSS;
-	xSemaphoreGive(hostcom_data_rdy);
+	device_interface_send(data_if, (uint8_t *)&hostcom_data, sizeof(hostcom_data));
 }
 
 
@@ -101,20 +107,6 @@ void hostcom_sync_thread(void * arg) {
     }
 }
 
-void hostcom_data_thread(void * arg) {
-
-	device_interface_t * data_if = hostproc_get_data_interface();
-
-
-    for(;;) {
-
-    	//semaphore
-    	xSemaphoreTake(hostcom_data_rdy, osWaitForever);
-    	device_interface_send(data_if, (uint8_t *)&hostcom_data, sizeof(hostcom_data));
-
-
-    }
-}
 
 
 
