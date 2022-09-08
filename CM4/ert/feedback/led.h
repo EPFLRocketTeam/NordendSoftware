@@ -83,6 +83,19 @@ static const led_color_t led_black = {
 		.b = 0x00
 };
 
+static const led_color_t led_white = {
+		.r = 0xff,
+		.g = 0xff,
+		.b = 0xff
+};
+
+
+static const led_color_t led_orange = {
+		.r = 0xff,
+		.g = 0xff,
+		.b = 0x00
+};
+
 
 
 /**********************
@@ -92,6 +105,10 @@ static const led_color_t led_black = {
 #ifdef __cplusplus
 extern "C"{
 #endif
+
+uint16_t led_add_checkpoint(led_color_t color);
+
+void led_checkpoint(uint16_t point);
 
 void led_rgb_init(void);
 

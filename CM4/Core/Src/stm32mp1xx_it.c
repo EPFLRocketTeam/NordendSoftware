@@ -110,7 +110,7 @@ void HardFault_Handler(void)
     /* USER CODE BEGIN W1_HardFault_IRQn 0 */
 
 
-	  led_rgb_set_rgb(0xff, 0x00, 0xff);
+	  led_rgb_set_rgb(0xff, 0xff, 0xff);
     /* USER CODE END W1_HardFault_IRQn 0 */
   }
 }

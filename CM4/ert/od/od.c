@@ -22,7 +22,7 @@
  **********************/
 
 #define OD_MSGQ_SIZE (16)
-#define DEBUG_NO_CAN 0      // set to 1 to turn off CAN to test OD functionality only
+#define DEBUG_NO_CAN 1      // set to 1 to turn off CAN to test OD functionality only
 
 /**********************
  *	MACROS

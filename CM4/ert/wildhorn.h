@@ -29,6 +29,10 @@
 #define A			0
 #define B			1
 
+
+/**
+ * COMPUTER TYPE HERE !!
+ */
 #define WH_COMPUTER	A
 
 #if WH_COMPUTER == A

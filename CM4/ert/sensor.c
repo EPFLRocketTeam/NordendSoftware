@@ -23,12 +23,13 @@
 #include <sensor/barometer.h>
 #include <od/od.h>
 #include <driver/hostproc.h>
+#include <feedback/led.h>
 /**********************
  *	CONSTANTS
  **********************/
 
 //TODO: check if this is short/long enough
-#define I2C_SENSOR_HEART_BEAT	80
+#define I2C_SENSOR_HEART_BEAT	100
 
 
 /**********************
@@ -81,8 +82,11 @@ static barometer_meta_t i2c_baro_meta;
 void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	static TickType_t last_wake_time;
 	static const TickType_t period = pdMS_TO_TICKS(I2C_SENSOR_HEART_BEAT);
+	static const TickType_t baro_delay = pdMS_TO_TICKS(10);
 	last_wake_time = xTaskGetTickCount();
 
+	uint16_t checkpoint = led_add_checkpoint(led_green);
+	debug_log("Sensor i2c start\n");
 	//get devices
 	i2c_acc = i2c_sensor_get_accelerometer();
 	i2c_gyro = i2c_sensor_get_gyroscope();
@@ -90,45 +94,87 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 
 	device_interface_t * hostproc_feedback = hostproc_get_feedback_interface();
 
+
+
 	//init
-	accelerometer_init(i2c_acc);
-	gyroscope_init(i2c_gyro);
-	barometer_init(i2c_baro, &i2c_baro_meta);
+	util_error_t acc_err = accelerometer_init(i2c_acc);
+	util_error_t gyro_err = gyroscope_init(i2c_gyro);
+	util_error_t baro_err = barometer_init(i2c_baro, &i2c_baro_meta);
+	uint16_t checkpoint_acc;
+	if(acc_err == ER_SUCCESS) {
+		checkpoint_acc = led_add_checkpoint(led_green);
+	} else {
+		checkpoint_acc = led_add_checkpoint(led_red);
+	}
+	uint16_t checkpoint_gyro;
+	if(gyro_err == ER_SUCCESS) {
+		checkpoint_gyro = led_add_checkpoint(led_green);
+	} else {
+		checkpoint_gyro = led_add_checkpoint(led_red);
+	}
+	uint16_t checkpoint_baro;
+	if(baro_err == ER_SUCCESS) {
+		checkpoint_baro = led_add_checkpoint(led_green);
+	} else {
+		checkpoint_baro = led_add_checkpoint(led_red);
+	}
 
 	//manual calibration only:
 	i2c_calib = 0;
 
 	//mainloop
 	for(;;) {
-		if(!i2c_calib) { /* Normal operation */
-			TickType_t baro_delay = pdMS_TO_TICKS(10);
+		led_checkpoint(checkpoint);
+		led_checkpoint(checkpoint_baro);
+		led_checkpoint(checkpoint_gyro);
+		led_checkpoint(checkpoint_acc);
 
-			//baro start temp
-			barometer_convert_temp(i2c_baro);
-			TickType_t baro_temp_time = xTaskGetTickCount();
 
-			//acc read
-			accelerometer_read_data(i2c_acc, &i2c_acc_data);
-			accelerometer_process_data(&i2c_acc_data, 10000);
+		if(1) {
+			if(baro_err == ER_SUCCESS) {
+				//baro start temp
+				barometer_convert_temp(i2c_baro);
+				//TickType_t baro_temp_time = xTaskGetTickCount();
+			}
 
-			vTaskDelayUntil(&baro_temp_time, baro_delay);
+			if(acc_err == ER_SUCCESS) {
+				//acc read
+				accelerometer_read_data(i2c_acc, &i2c_acc_data);
+				accelerometer_process_data(&i2c_acc_data, 10000);
+				hostcom_data_acc_send(HAL_GetTick(), i2c_acc_data.processed[ACC_Z]);
+			}
 
-			//baro read & start pres
-			barometer_read_temp(i2c_baro, &i2c_baro_meta);
-			barometer_convert_pres(i2c_baro);
-			TickType_t baro_pres_time = xTaskGetTickCount();
+			vTaskDelay(baro_delay);
 
-			//gyro read or acc read second time
-			gyroscope_read_data(i2c_gyro, &i2c_gyro_data);
-			gyroscope_process_data(&i2c_gyro_data, 10000);
+			if(baro_err == ER_SUCCESS) {
+				//baro read & start pres
+				barometer_read_temp(i2c_baro, &i2c_baro_meta);
+				barometer_convert_pres(i2c_baro);
+				//TickType_t baro_pres_time = xTaskGetTickCount();
+			}
 
-			vTaskDelayUntil(&baro_pres_time, baro_delay);
+			if(gyro_err == ER_SUCCESS) {
+				//gyro read or acc read second time
+				gyroscope_read_data(i2c_gyro, &i2c_gyro_data);
+				gyroscope_process_data(&i2c_gyro_data, 10000);
+			}
 
-			//baro read
-			barometer_read_pres(i2c_baro, &i2c_baro_meta);
-			barometer_convert(&i2c_baro_meta, &i2c_baro_data);
+			vTaskDelay(baro_delay);
+
+			if(baro_err == ER_SUCCESS) {
+				//baro read
+				barometer_read_pres(i2c_baro, &i2c_baro_meta);
+				barometer_convert(&i2c_baro_meta, &i2c_baro_data);
+				hostcom_data_baro_send(HAL_GetTick(), i2c_baro_data.pressure);
+			}
 
 			//store everything
+
+
+
+
+
+
 #if WH_COMPUTER == A
 			od_write_ACC_I2C_A(&i2c_acc_data);
 			od_write_GYRO_I2C_A(&i2c_gyro_data);
@@ -148,15 +194,27 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 
 		}
 
+
+
+
+
 		//send data to hostproc for verif
 
-		char msg[1042];
-		uint16_t msg_len = snprintf(msg, 1024, "acc: %d, %d, %d\npress: %ld, temp: %ld\n",
-				i2c_acc_data.processed[0], i2c_acc_data.processed[1],
-				i2c_acc_data.processed[2], i2c_baro_data.pressure,
-				i2c_baro_data.temperature);
 
-		device_interface_send(hostproc_feedback, (uint8_t*)msg, msg_len);
+//		static char msg[64];
+//		uint16_t msg_len = snprintf(msg, 128, "time: %ld\nacc: %d, %d, %d\npress: %ld, temp: %ld\n",
+//				HAL_GetTick(),
+//				i2c_acc_data.processed[0], i2c_acc_data.processed[1],
+//				i2c_acc_data.processed[2], i2c_baro_data.pressure,
+//				i2c_baro_data.temperature);
+//
+//		device_interface_send(hostproc_feedback, (uint8_t*)msg, msg_len);
+
+		debug_log(	"time: %ld\nacc: %d, %d, %d\npress: %ld, temp: %ld\n",
+					HAL_GetTick(),
+					i2c_acc_data.processed[0], i2c_acc_data.processed[1],
+					i2c_acc_data.processed[2], i2c_baro_data.pressure,
+					i2c_baro_data.temperature);
 
 
 		vTaskDelayUntil( &last_wake_time, period );

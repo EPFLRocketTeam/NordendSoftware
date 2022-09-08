@@ -94,7 +94,6 @@ util_error_t comunicator_recv(comunicator_t * com) {
 			return ER_SUCCESS;
 		}
 	}
-
 }
 
 util_error_t comunicator_send(	comunicator_t * com,
@@ -102,10 +101,10 @@ util_error_t comunicator_send(	comunicator_t * com,
 								uint16_t len,
 								uint8_t * data) {
 
-	msv2_create_frame(&com->msv2, opcode, len/2, data);
+	uint16_t bin_len = msv2_create_frame(&com->msv2, opcode, len/2, data);
 	util_error_t error = device_interface_send(	com->interface,
 												com->msv2.tx.data,
-												com->msv2.tx.data_len);
+												bin_len);
 	return error;
 }
 
@@ -115,17 +114,17 @@ util_error_t comunicator_send(	comunicator_t * com,
  * 			from the serial driver.
  * 			only one thread -> later maybe one thread per comunicator!
  */
-void comunicator_thread(__attribute__((unused)) void * com) {
+void comunicator_thread(__attribute__((unused)) void * arg) {
 
-		for(;;) {
-			if(serial_data_ready() == ER_SUCCESS) {
-				//iterate over all interfaces in deamon
-				for(uint16_t i = 0; i < comunicator_count; i++) {
-					comunicator_recv(comunicators[i]);
-				}
+	for(;;) {
+		if(serial_data_ready() == ER_SUCCESS) {
+			//iterate over all interfaces in deamon
+			for(uint16_t i = 0; i < comunicator_count; i++) {
+				comunicator_recv(comunicators[i]);
 			}
 		}
 	}
+}
 
 
 

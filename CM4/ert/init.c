@@ -41,7 +41,7 @@
 #define CONTROL_PRIO	(6)
 
 #define LED_RGB_SZ		DEFAULT_SZ
-#define LED_RGB_PRIO	(1)
+#define LED_RGB_PRIO	(6)
 
 
 #define COMUNICATOR_SZ	DEFAULT_SZ
@@ -49,11 +49,11 @@
 
 
 #define MIAOU_SZ	DEFAULT_SZ
-#define MIAOU_PRIO		(6)
+#define MIAOU_PRIO		(1)
 
 
 #define SENSOR_SZ	DEFAULT_SZ
-#define SENSOR_PRIO		(6)
+#define SENSOR_PRIO		(1)
 
 
 /**********************
@@ -129,11 +129,12 @@ void init(void) {
 	INIT_THREAD_CREATE(control_handle, control, control_thread, NULL, CONTROL_SZ, CONTROL_PRIO);
 #endif
 
-	INIT_THREAD_CREATE(communicator_handle, comunicator, comunicator_thread, NULL, COMUNICATOR_SZ, COMUNICATOR_PRIO);
 
 #if WH_HAS_RADIO
 	INIT_THREAD_CREATE(miaou_handle, miaou, miaou_thread, NULL, MIAOU_SZ, MIAOU_PRIO);
 #endif
+
+	INIT_THREAD_CREATE(communicator_handle, comunicator, comunicator_thread, NULL, COMUNICATOR_SZ, COMUNICATOR_PRIO);
 
 
 #if WH_HAS_SENSORS
