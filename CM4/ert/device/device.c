@@ -116,11 +116,16 @@ util_error_t device_interface_create(   device_interface_t * interface,
     interface->recv = recv;
     interface->handle_data = handle_data;
     interface->id = count++;
-    if(daemon && handle_data) {
+    if(daemon) {
     	daemon->interfaces[daemon->interfaces_count] = interface;
     	daemon->interfaces_count++;
     }
     return ER_SUCCESS;
+}
+
+util_error_t device_interface_register_handle_data(	device_interface_t * interface,
+													util_error_t (*handle_data)(void*, void*)) {
+	interface->handle_data = handle_data;
 }
 
 /**
@@ -173,7 +178,9 @@ void device_deamon_thread(void * arg)
 			//iterate over all interfaces in deamon
 			for(uint16_t i = 0; i < deamon->interfaces_count; i++) {
 				device_interface_t * interface = deamon->interfaces[i];
-				interface->handle_data(interface->context, deamon->context);
+				if(interface->handle_data) {
+					interface->handle_data(interface->context, deamon->context);
+				}
 			}
 		}
 	}

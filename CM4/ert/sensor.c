@@ -141,7 +141,7 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 				//acc read
 				accelerometer_read_data(i2c_acc, &i2c_acc_data);
 				accelerometer_process_data(&i2c_acc_data, 10000);
-				hostcom_data_acc_send(HAL_GetTick(), i2c_acc_data.processed[ACC_Z]);
+				//hostcom_data_acc_send(HAL_GetTick(), i2c_acc_data.processed[ACC_Z]);
 			}
 
 			vTaskDelay(baro_delay);
@@ -201,20 +201,11 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 		//send data to hostproc for verif
 
 
-//		static char msg[64];
-//		uint16_t msg_len = snprintf(msg, 128, "time: %ld\nacc: %d, %d, %d\npress: %ld, temp: %ld\n",
-//				HAL_GetTick(),
-//				i2c_acc_data.processed[0], i2c_acc_data.processed[1],
-//				i2c_acc_data.processed[2], i2c_baro_data.pressure,
-//				i2c_baro_data.temperature);
-//
-//		device_interface_send(hostproc_feedback, (uint8_t*)msg, msg_len);
-
-		debug_log(	"time: %ld\nacc: %d, %d, %d\npress: %ld, temp: %ld\n",
-					HAL_GetTick(),
-					i2c_acc_data.processed[0], i2c_acc_data.processed[1],
-					i2c_acc_data.processed[2], i2c_baro_data.pressure,
-					i2c_baro_data.temperature);
+//		debug_log(	"time: %ld\nacc: %d, %d, %d\npress: %ld, temp: %ld\n",
+//					HAL_GetTick(),
+//					i2c_acc_data.processed[0], i2c_acc_data.processed[1],
+//					i2c_acc_data.processed[2], i2c_baro_data.pressure,
+//					i2c_baro_data.temperature);
 
 
 		vTaskDelayUntil( &last_wake_time, period );

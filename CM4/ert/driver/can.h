@@ -1,13 +1,13 @@
-/*  Title       : Template
- *  Filename    : template.h
- *  Author      : iacopo sprenger
- *  Date        : 20.01.2021
+/*  Title       : Object dictionary
+ *  Filename    : od.h
+ *  Author      : Oliver Facklam
+ *  Date        : 28.05.2022
  *  Version     : 0.1
- *  Description : template for code files
+ *  Description : Object dictionary implementation
  */
 
-#ifndef HOSTCOM_H
-#define HOSTCOM_H
+#ifndef CAN_H
+#define CAN_H
 
 
 
@@ -15,11 +15,15 @@
  *  INCLUDES
  **********************/
 
-#include <stdint.h>
+
 
 /**********************
  *  CONSTANTS
  **********************/
+
+
+#define CAN_DATAID_OFFSET 3U 	// 8-bit data ID | 3-bit board ID
+#define CAN_BOARDID_MASK 0x07U
 
 
 /**********************
@@ -30,6 +34,9 @@
 /**********************
  *  TYPEDEFS
  **********************/
+
+
+
 
 
 /**********************
@@ -46,19 +53,10 @@ extern "C"{
 #endif
 
 
-void hostcom_data_acc_send(uint32_t timestamp, int32_t acc);
-
-void hostcom_data_baro_send(uint32_t timestamp, int32_t pres);
-
-void hostcom_data_gnss_send(uint32_t timestamp, int32_t alt);
-
-
-void hostcom_thread(void * arg);
-
 #ifdef __cplusplus
 } // extern "C"
 #endif /* __cplusplus */
 
-#endif /* HOSTCOM_H */
+#endif /* CAN_H */
 
 /* END */

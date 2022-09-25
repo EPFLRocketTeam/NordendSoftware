@@ -32,11 +32,11 @@ void * feedback_entry(void * ptr) {
             serial_recv(&feedback_device, msg_buffer, &length);
 
             fwrite(msg_buffer, sizeof(char), length, fp);
-
+#ifdef VERBOSE
             fflush(stdout);
             fwrite(msg_buffer, sizeof(char), length, stdout);
             fflush(stdout);
-
+#endif
             free(msg_buffer);
         }
         sleep(1);

@@ -71,7 +71,21 @@ util_error_t comunicator_init(	comunicator_t * com,
 	msv2_init(&com->msv2);
 	com->cb = cb;
 	com->interface = channel;
+	device_interface_register_handle_data(channel, comunicator_handle_data);
 	comunicators[comunicator_count++] = com;
+	return ER_SUCCESS;
+}
+
+/**
+ * @brief 	initialize communicator device
+ * @detail
+ */
+util_error_t comunicator_init_lone(	comunicator_t * com,
+									device_interface_t * channel,
+									void (*cb)(uint8_t, uint16_t, uint8_t *)) {
+	msv2_init(&com->msv2);
+	com->cb = cb;
+	com->interface = channel;
 	return ER_SUCCESS;
 }
 
@@ -108,12 +122,23 @@ util_error_t comunicator_send(	comunicator_t * com,
 	return error;
 }
 
+
+util_error_t comunicator_handle_data(void* if_ctx, void* dem_ctx) {
+	for(uint16_t i = 0; i < comunicator_count; i++) {
+		if(comunicators[i]->interface->context == if_ctx) {
+			return comunicator_recv(comunicators[i]);
+		}
+	}
+}
+
 /**
  * @brief 	comunicator data handling thread
  * @brief	For now only works with serial -> interrupts data rdy comes
  * 			from the serial driver.
  * 			only one thread -> later maybe one thread per comunicator!
  */
+
+/*
 void comunicator_thread(__attribute__((unused)) void * arg) {
 
 	for(;;) {
@@ -125,6 +150,7 @@ void comunicator_thread(__attribute__((unused)) void * arg) {
 		}
 	}
 }
+*/
 
 
 

@@ -26,6 +26,7 @@
 #include <sensor.h>
 #include <od/od.h>
 #include <device/comunicator.h>
+#include <hostcom.h>
 #include <miaou.h>
 
 /**********************
@@ -46,6 +47,9 @@
 
 #define COMUNICATOR_SZ	DEFAULT_SZ
 #define COMUNICATOR_PRIO		(6)
+
+#define HOSTCOM_SZ		DEFAULT_SZ
+#define HOSTCOM_PRIO		(6)
 
 
 #define MIAOU_SZ	DEFAULT_SZ
@@ -76,6 +80,7 @@ static TaskHandle_t control_handle = NULL;
 static TaskHandle_t led_rgb_handle = NULL;
 static TaskHandle_t sensor_i2c_handle = NULL;
 static TaskHandle_t communicator_handle = NULL;
+static TaskHandle_t hostcom_handle = NULL;
 static TaskHandle_t miaou_handle = NULL;
 
 /**********************
@@ -134,7 +139,9 @@ void init(void) {
 	INIT_THREAD_CREATE(miaou_handle, miaou, miaou_thread, NULL, MIAOU_SZ, MIAOU_PRIO);
 #endif
 
-	INIT_THREAD_CREATE(communicator_handle, comunicator, comunicator_thread, NULL, COMUNICATOR_SZ, COMUNICATOR_PRIO);
+	//INIT_THREAD_CREATE(communicator_handle, comunicator, comunicator_thread, NULL, COMUNICATOR_SZ, COMUNICATOR_PRIO);
+
+	INIT_THREAD_CREATE(hostcom_handle, hostcom, hostcom_thread, NULL, HOSTCOM_SZ, HOSTCOM_PRIO);
 
 
 #if WH_HAS_SENSORS

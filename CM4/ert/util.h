@@ -67,15 +67,15 @@ typedef enum util_error {
 	/** Operation completed successfully */
     ER_SUCCESS = 0,
 	/** Error due to lack of readiness */
-    ER_DATA_NOT_RDY = 0<<1,
+    ER_DATA_NOT_RDY = 1<<1,
 	/** Error due to a generic failure */
-    ER_FAILURE = 1<<1,
+    ER_FAILURE = 1<<2,
 	/** Error due to a range issue */
-    ER_OUT_OF_RANGE = 1<<2,
+    ER_OUT_OF_RANGE = 1<<3,
 	/** Error due to a timeout */
-	ER_TIMEOUT = 1<<3,
+	ER_TIMEOUT = 1<<4,
 	/** Error due to a ressource issue */
-	ER_RESSOURCE_ERROR = 1<<4
+	ER_RESSOURCE_ERROR = 1<<5
 }util_error_t;
 
 #ifdef UTIL_ALLOW_LIST

@@ -63,15 +63,13 @@ extern "C"{
 
 util_error_t serial_init(void);
 
-util_error_t serial_feedback_init(void);
-
 device_interface_t * serial_get_s3_interface(void);
 
 device_interface_t * serial_get_s2_interface(void);
 
 device_interface_t * serial_get_s1_interface(void);
 
-util_error_t serial_data_ready(void);
+util_error_t serial_data_ready(void * dem_ctx);
 
 util_error_t serial_send(void * context, uint8_t* data, uint32_t len);
 

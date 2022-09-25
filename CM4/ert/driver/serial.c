@@ -93,6 +93,9 @@ util_error_t serial_handle_data(void * if_context, void * dem_context);
 util_error_t serial_interface_init(	device_interface_t * serial_if,
 									serial_interface_context_t * serial_ctx);
 
+util_error_t serial_interface_init_d(	device_interface_t * serial_if,
+										serial_interface_context_t * serial_ctx);
+
 util_error_t serial_setup_reception(serial_interface_context_t * interface_context);
 
 
@@ -154,13 +157,13 @@ util_error_t serial_init(void)
 									"serial deamon",
 									6,
 									(void *) &serial_deamon_context,
-									NULL);
+									serial_data_ready);
 
 	//miaou or gnss
-	error |= serial_interface_init(&s1_interface, &s1_interface_context);
+	error |= serial_interface_init_d(&s1_interface, &s1_interface_context);
 
 	//feedback or krtek
-	error |= serial_interface_init(&s3_interface, &s3_interface_context);
+	error |= serial_interface_init_d(&s3_interface, &s3_interface_context);
 
 
 
@@ -186,16 +189,33 @@ util_error_t serial_interface_init(	device_interface_t * serial_if,
 }
 
 /**
+ * @brief   Initialize a serial interface.
+ */
+util_error_t serial_interface_init_d(	device_interface_t * serial_if,
+										serial_interface_context_t * serial_ctx) {
+	util_error_t error = ER_SUCCESS;
+	error |= device_interface_create(	serial_if,
+										(void*) serial_ctx,
+										&serial_deamon,
+										serial_send,
+										serial_recv,
+										NULL);
+
+	serial_setup_reception((serial_interface_context_t * )serial_if->context);
+	return error;
+}
+
+/**
  * @brief   Blocking function, waiting for data to be ready.
  */
-util_error_t serial_data_ready(void)
+util_error_t serial_data_ready(void * dem_ctx)
 {
-	if( xSemaphoreTake(serial_deamon_context.rx_sem, osWaitForever) == pdTRUE ) {
+	serial_deamon_context_t * context = (serial_deamon_context_t *) dem_ctx;
+	if( xSemaphoreTake(context->rx_sem, osWaitForever) == pdTRUE ) {
 		return ER_SUCCESS;
 	} else {
 		return ER_TIMEOUT;
 	}
-
 }
 
 /**

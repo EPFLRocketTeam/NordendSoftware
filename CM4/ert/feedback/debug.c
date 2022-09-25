@@ -53,9 +53,10 @@ void debug_log(const char * lotte, ...) {
 	char buffer[128];
 	va_list args;
 	va_start(args, lotte);
-	uint8_t len = vsnprintf(buffer, 128, lotte, args);
-	device_interface_send(hostproc_get_feedback_interface(), (uint8_t *) buffer, len);
-
+	//add timestamp but without \0 char
+	uint16_t p_len = snprintf(buffer, 128, "[ %05lu ] ", HAL_GetTick()) - 1;
+	uint16_t len = vsnprintf(buffer+p_len, 128-p_len, lotte, args);
+	device_interface_send(hostproc_get_feedback_interface(), (uint8_t *) buffer, len+p_len);
 	va_end(args);
 }
 
