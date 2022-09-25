@@ -96,9 +96,9 @@ void miaou_thread(__attribute__((unused)) void * arg) {
 
 		gnss_data_t gnss_data;
 		od_read_GNSS(&gnss_data);
-		miaou_packet.gnss_lat = gnss_data.lat;
-		miaou_packet.gnss_lon = gnss_data.lon;
-		miaou_packet.gnss_alt = gnss_data.alt;
+		miaou_packet.gnss_lat = gnss_data.latitude;
+		miaou_packet.gnss_lon = gnss_data.longitude;
+		miaou_packet.gnss_alt = gnss_data.altitude;
 
 		comunicator_send(	&miaou_comunicator,
 							radio_packet_opcode,

@@ -22,6 +22,8 @@
 
 /* USER CODE BEGIN 0 */
 
+#include "wildhorn.h"
+
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart2;
@@ -41,6 +43,37 @@ void MX_USART2_UART_Init(void)
   /* USER CODE END USART2_Init 0 */
 
   /* USER CODE BEGIN USART2_Init 1 */
+
+#if WH_HAS_GNSS
+	huart2.Instance = USART2;
+	huart2.Init.BaudRate = 9600;
+	huart2.Init.WordLength = UART_WORDLENGTH_8B;
+	huart2.Init.StopBits = UART_STOPBITS_1;
+	huart2.Init.Parity = UART_PARITY_NONE;
+	huart2.Init.Mode = UART_MODE_TX_RX;
+	huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+	huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+	huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+	huart2.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+	huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+	if (HAL_UART_Init(&huart2) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
+	uint8_t change_baud[] = {
+			0xb5, 0x62, 0x06, 0x00, 0x14, 0x00, 0x01, 0x00,
+			0x00, 0x00, 0xd0, 0x08, 0x00, 0x00, 0x00, 0xc2,
+			0x01, 0x00, 0x07, 0x00, 0x07, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0xc4, 0x96, 0xb5, 0x62, 0x06, 0x00,
+			0x01, 0x00, 0x01, 0x08, 0x22
+	};
+
+	HAL_UART_Transmit(&huart2, change_baud, sizeof(change_baud), 1000);
+
+
+
+#endif
 
   /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;

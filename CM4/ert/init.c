@@ -28,6 +28,7 @@
 #include <device/comunicator.h>
 #include <hostcom.h>
 #include <miaou.h>
+#include <sensor/gnss.h>
 
 /**********************
  *	CONSTANTS
@@ -79,7 +80,7 @@ static TaskHandle_t od_handle = NULL;
 static TaskHandle_t control_handle = NULL;
 static TaskHandle_t led_rgb_handle = NULL;
 static TaskHandle_t sensor_i2c_handle = NULL;
-static TaskHandle_t communicator_handle = NULL;
+//static TaskHandle_t communicator_handle = NULL;
 static TaskHandle_t hostcom_handle = NULL;
 static TaskHandle_t miaou_handle = NULL;
 
@@ -130,13 +131,17 @@ void init(void) {
 	INIT_THREAD_CREATE(led_rgb_handle, led_rgb, led_rgb_thread, NULL, LED_RGB_SZ, LED_RGB_PRIO);
 
 
-#if WH_HAS_KRTEK
+#if !WH_HAS_KRTEK
 	INIT_THREAD_CREATE(control_handle, control, control_thread, NULL, CONTROL_SZ, CONTROL_PRIO);
 #endif
 
 
 #if WH_HAS_RADIO
 	INIT_THREAD_CREATE(miaou_handle, miaou, miaou_thread, NULL, MIAOU_SZ, MIAOU_PRIO);
+#endif
+
+#if WH_HAS_GNSS
+	gnss_init();
 #endif
 
 	//INIT_THREAD_CREATE(communicator_handle, comunicator, comunicator_thread, NULL, COMUNICATOR_SZ, COMUNICATOR_PRIO);
@@ -149,9 +154,6 @@ void init(void) {
 	//INIT_THREAD_CREATE(sensor_spi_handle, sensor_spi, sensor_spi_thread, NULL, SENSOR_SZ, SENSOR_PRIO);
 #endif
 
-#if WH_HAS_GNSS
-
-#endif
 
 }
 
