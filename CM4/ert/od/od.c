@@ -22,7 +22,7 @@
  **********************/
 
 #define OD_MSGQ_SIZE (32)
-#define DEBUG_NO_CAN 1      // set to 1 to turn off CAN to test OD functionality only
+//#define DEBUG_NO_CAN 1      // set to 1 to turn off CAN to test OD functionality only
 
 /**********************
  *	MACROS
@@ -135,6 +135,12 @@ void od_init() {
 			.mq_size = sizeof(in_mem)
 	};
 	in_q = osMessageQueueNew(OD_MSGQ_SIZE, sizeof(od_frame_t), &in_attr);
+}
+
+
+
+void od_handle_can_frame(uint8_t src, od_frame_t *frame) {
+	osMessageQueuePut(in_q, frame, 0U, osWaitForever);
 }
 
 

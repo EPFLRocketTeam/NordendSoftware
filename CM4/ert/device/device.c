@@ -171,6 +171,7 @@ util_error_t device_deamon_create(	device_daemon_t * deamon,
  */
 void device_deamon_thread(void * arg)
 {
+	#warning("device daemons don't work well!")
 	device_daemon_t * deamon = (device_daemon_t * ) arg;
 
 	for(;;) {

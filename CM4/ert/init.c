@@ -18,6 +18,7 @@
 #include <driver/serial.h>
 #include <driver/i2c.h>
 #include <driver/spi.h>
+#include <driver/can.h>
 #include <device/i2c_sensor.h>
 #include <device/spi_sensor.h>
 #include <control.h>
@@ -29,6 +30,7 @@
 #include <hostcom.h>
 #include <miaou.h>
 #include <sensor/gnss.h>
+
 
 /**********************
  *	CONSTANTS
@@ -46,8 +48,8 @@
 #define LED_RGB_PRIO	(6)
 
 
-#define COMUNICATOR_SZ	DEFAULT_SZ
-#define COMUNICATOR_PRIO		(6)
+#define SERIAL_SZ	DEFAULT_SZ
+#define SERIAL_PRIO		(6)
 
 #define HOSTCOM_SZ		DEFAULT_SZ
 #define HOSTCOM_PRIO		(6)
@@ -80,9 +82,11 @@ static TaskHandle_t od_handle = NULL;
 static TaskHandle_t control_handle = NULL;
 static TaskHandle_t led_rgb_handle = NULL;
 static TaskHandle_t sensor_i2c_handle = NULL;
-//static TaskHandle_t communicator_handle = NULL;
+static TaskHandle_t serial_handle = NULL;
 static TaskHandle_t hostcom_handle = NULL;
 static TaskHandle_t miaou_handle = NULL;
+static TaskHandle_t can_rx_handle = NULL;
+static TaskHandle_t can_tx_handle = NULL;
 
 /**********************
  *	PROTOTYPES
@@ -110,6 +114,8 @@ void init(void) {
 
 	// initialize object dictionary
 	od_init();
+
+	can_init(WH_COMPUTER);
 
 #if WH_HAS_FEEDBACK == WH_TRUE
 #if WH_USE_BUZZER == WH_TRUE
@@ -144,9 +150,13 @@ void init(void) {
 	gnss_init();
 #endif
 
-	//INIT_THREAD_CREATE(communicator_handle, comunicator, comunicator_thread, NULL, COMUNICATOR_SZ, COMUNICATOR_PRIO);
+	INIT_THREAD_CREATE(serial_handle, serial, serial_thread, NULL, SERIAL_SZ, SERIAL_PRIO);
 
 	INIT_THREAD_CREATE(hostcom_handle, hostcom, hostcom_thread, NULL, HOSTCOM_SZ, HOSTCOM_PRIO);
+
+	INIT_THREAD_CREATE(can_rx_handle, can_rx, can_receive_thread, NULL, HOSTCOM_SZ, HOSTCOM_PRIO);
+
+	INIT_THREAD_CREATE(can_tx_handle, can_tx, can_transmit_thread, NULL, HOSTCOM_SZ, HOSTCOM_PRIO);
 
 
 #if WH_HAS_SENSORS

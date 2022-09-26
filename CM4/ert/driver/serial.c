@@ -32,6 +32,9 @@
 #define SERIAL_DMA_LEN 32
 
 
+#define SERIAL_MAX_INTERFACES	8
+
+
 /**********************
  *	MACROS
  **********************/
@@ -48,6 +51,8 @@ typedef struct serial_interface_context {
 	uint32_t rx_data_len;
 	uint8_t rx_fragment;
 	uint8_t tx_data[SERIAL_BUFFER_LEN];
+	util_error_t (*serial_handler)(device_interface_t *, void *);
+	void * handler_context;
 }serial_interface_context_t;
 
 
@@ -64,8 +69,6 @@ static device_interface_t s2_interface;
 
 static device_interface_t s1_interface;
 
-static serial_deamon_context_t serial_deamon_context;
-
 static serial_interface_context_t s3_interface_context = {
 		.uart = &S3_UART
 };
@@ -77,6 +80,13 @@ static serial_interface_context_t s2_interface_context = {
 static serial_interface_context_t s1_interface_context = {
 		.uart = &S1_UART
 };
+
+
+static SemaphoreHandle_t serial_rx_sem;
+static StaticSemaphore_t serial_rx_sem_buffer;
+
+static device_interface_t * serial_interfaces[SERIAL_MAX_INTERFACES];
+static uint16_t serial_interfaces_count;
 
 
 /**********************
@@ -115,8 +125,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 		if(serial_context->uart == huart) {
 			util_buffer_u8_add(&serial_context->rx_buffer, serial_context->rx_fragment);
 
-			serial_deamon_context_t * deamon_context = (serial_deamon_context_t *) serial_deamon.context;
-			xSemaphoreGiveFromISR( deamon_context->rx_sem, &xHigherPriorityTaskWoken );
+			xSemaphoreGiveFromISR( serial_rx_sem, &xHigherPriorityTaskWoken );
 
 			break;
 		}
@@ -150,20 +159,15 @@ util_error_t serial_init(void)
 	util_error_t error = ER_SUCCESS;
 
 	//initialize deamon semaphore
-	serial_deamon_context.rx_sem = xSemaphoreCreateBinaryStatic(&serial_deamon_context.rx_sem_buffer);
+	serial_rx_sem = xSemaphoreCreateBinaryStatic(&serial_rx_sem_buffer);
 
-	//deamon only to keep track of interfaces (no runtime)
-	error |= device_deamon_create(	&serial_deamon,
-									"serial deamon",
-									6,
-									(void *) &serial_deamon_context,
-									serial_data_ready);
+	serial_interfaces_count = 0;
 
 	//miaou or gnss
-	error |= serial_interface_init_d(&s1_interface, &s1_interface_context);
+	error |= serial_interface_init(&s1_interface, &s1_interface_context);
 
 	//feedback or krtek
-	error |= serial_interface_init_d(&s3_interface, &s3_interface_context);
+	error |= serial_interface_init(&s3_interface, &s3_interface_context);
 
 
 
@@ -176,6 +180,9 @@ util_error_t serial_init(void)
  */
 util_error_t serial_interface_init(	device_interface_t * serial_if,
 									serial_interface_context_t * serial_ctx) {
+	if(serial_interfaces_count >= SERIAL_MAX_INTERFACES) {
+		return ER_RESSOURCE_ERROR;
+	}
 	util_error_t error = ER_SUCCESS;
 	error |= device_interface_create(	serial_if,
 										(void*) serial_ctx,
@@ -184,34 +191,30 @@ util_error_t serial_interface_init(	device_interface_t * serial_if,
 										serial_recv,
 										NULL);
 
+	serial_interfaces[serial_interfaces_count++] = serial_if;
+
 	serial_setup_reception((serial_interface_context_t * )serial_if->context);
+
 	return error;
 }
 
-/**
- * @brief   Initialize a serial interface.
- */
-util_error_t serial_interface_init_d(	device_interface_t * serial_if,
-										serial_interface_context_t * serial_ctx) {
-	util_error_t error = ER_SUCCESS;
-	error |= device_interface_create(	serial_if,
-										(void*) serial_ctx,
-										&serial_deamon,
-										serial_send,
-										serial_recv,
-										NULL);
 
-	serial_setup_reception((serial_interface_context_t * )serial_if->context);
-	return error;
+util_error_t serial_register_handler(
+		device_interface_t * serial_if,
+		util_error_t (*serial_handler)(device_interface_t *, void *),
+		void * handler_context ) {
+	serial_interface_context_t * ctx = (serial_interface_context_t *) serial_if->context;
+	ctx->handler_context = handler_context;
+	ctx->serial_handler = serial_handler;
+	return ER_SUCCESS;
 }
 
 /**
  * @brief   Blocking function, waiting for data to be ready.
  */
-util_error_t serial_data_ready(void * dem_ctx)
+util_error_t serial_data_ready()
 {
-	serial_deamon_context_t * context = (serial_deamon_context_t *) dem_ctx;
-	if( xSemaphoreTake(context->rx_sem, osWaitForever) == pdTRUE ) {
+	if( xSemaphoreTake(serial_rx_sem, osWaitForever) == pdTRUE ) {
 		return ER_SUCCESS;
 	} else {
 		return ER_TIMEOUT;
@@ -255,6 +258,23 @@ util_error_t serial_recv(void * context, uint8_t * data, uint32_t * len)
 	}
 	*len = i;
 	return ER_SUCCESS;
+}
+
+
+
+void serial_thread(__attribute__((unused)) void * arg) {
+
+	for(;;) {
+		if(serial_data_ready() == ER_SUCCESS) {
+			//iterate over all interfaces in deamon
+			for(uint16_t i = 0; i < serial_interfaces_count; i++) {
+				serial_interface_context_t * ctx = (serial_interface_context_t *) serial_interfaces[i]->context;
+				if(ctx->serial_handler) {
+					ctx->serial_handler(serial_interfaces[i], ctx->handler_context);
+				}
+			}
+		}
+	}
 }
 
 

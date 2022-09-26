@@ -26,16 +26,16 @@
 
 #define WH_TRUE		1
 #define WH_FALSE 	0
-#define A			0
-#define B			1
+#define WH_A			0
+#define WH_B			1
 
 
 /**
  * COMPUTER TYPE HERE !!
  */
-#define WH_COMPUTER	B
+#define WH_COMPUTER	WH_B
 
-#if WH_COMPUTER == A
+#if WH_COMPUTER == WH_A
 	#define WH_HAS_SENSORS	WH_TRUE
 	#define WH_HAS_FEEDBACK WH_FALSE
 	#define WH_HAS_RADIO	WH_TRUE

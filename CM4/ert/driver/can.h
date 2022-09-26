@@ -52,6 +52,10 @@
 extern "C"{
 #endif
 
+void can_transmit_thread(__attribute__((unused))  void *arg);
+void can_receive_thread(__attribute__((unused))  void *arg);
+
+void can_init(uint8_t board_id);
 
 #ifdef __cplusplus
 } // extern "C"

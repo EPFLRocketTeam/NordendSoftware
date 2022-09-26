@@ -182,8 +182,7 @@ gnss_return_t gnss_handle_fragment(gnss_context_t * decoder, uint8_t c) {
 
 
 
-util_error_t gnss_handle_data(__attribute__((unused)) void * if_ctx, __attribute__((unused)) void * dem_ctx) {
-	device_interface_t * gnss_interface = serial_get_s1_interface();
+util_error_t gnss_handle_data(device_interface_t * gnss_interface, void * context) {
 	uint32_t len = 1;
 	util_error_t error;
 	for(;;) {
@@ -231,7 +230,7 @@ util_error_t gnss_init(void) {
 	checkpoint = led_add_checkpoint(led_orange);
 
 
-	device_interface_register_handle_data(gnss_interface, gnss_handle_data);
+	serial_register_handler(gnss_interface, gnss_handle_data, NULL);
 
 	return ER_SUCCESS;
 }

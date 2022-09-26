@@ -71,7 +71,7 @@ extern "C"{
 void od_init();
 void od_update_task(void *argument);
 
-
+void od_handle_can_frame(uint8_t src, od_frame_t *frame);
 void od_push_to_out_q(od_frame_t *frame);
 void od_pop_from_in_q(od_frame_t *frame);
 void od_push_to_in_q(od_frame_t *frame);

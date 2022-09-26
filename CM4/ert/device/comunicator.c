@@ -71,9 +71,15 @@ util_error_t comunicator_init(	comunicator_t * com,
 	msv2_init(&com->msv2);
 	com->cb = cb;
 	com->interface = channel;
-	device_interface_register_handle_data(channel, comunicator_handle_data);
 	comunicators[comunicator_count++] = com;
+	//register callback
+
 	return ER_SUCCESS;
+}
+
+util_error_t communicator_handler(device_interface_t * channel, void * _com) {
+	comunicator_t * com = (comunicator_t *) _com;
+	return comunicator_recv(com);
 }
 
 /**

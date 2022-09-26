@@ -23,6 +23,7 @@
  *	CONSTANTS
  **********************/
 
+#define CAN_MAX_INTERFACES 2
 
 
 /**********************
@@ -40,11 +41,6 @@ typedef struct can_interface_context {
 	FDCAN_HandleTypeDef * fdcan;
 	uint8_t board_id;
 }can_interface_context_t;
-
-typedef struct can_daemon_context {
-	SemaphoreHandle_t rx_sem;
-	StaticSemaphore_t rx_sem_buffer;
-}can_daemon_context_t;
 
 
 /**********************
@@ -71,12 +67,11 @@ can_interface_context_t fdcan2_context = {
 	.board_id = 1
 };
 
+static SemaphoreHandle_t can_rx_sem;
+static StaticSemaphore_t can_rx_sem_buffer;
 
-device_daemon_t fdcan_daemon;
-
-can_daemon_context_t fdcan_daemon_context;
-
-
+static device_interface_t * can_interfaces[CAN_MAX_INTERFACES];
+static uint16_t can_interfaces_count;
 
 
 /**********************
@@ -95,7 +90,7 @@ void HAL_FDCAN_TxBufferCompleteCallback(FDCAN_HandleTypeDef *hfdcan, uint32_t Bu
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs) {
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	if(RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) {
-		xSemaphoreGiveFromISR( fdcan_daemon_context.rx_sem, &xHigherPriorityTaskWoken );
+		xSemaphoreGiveFromISR( can_rx_sem, &xHigherPriorityTaskWoken );
 	}
 	portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
 }
@@ -114,10 +109,9 @@ void HAL_FDCAN_ErrorStatusCallback(FDCAN_HandleTypeDef *hfdcan, uint32_t ErrorSt
 /**
  * @brief   Blocking function, waiting for data to be ready.
  */
-util_error_t can_data_ready(void * dem_ctx)
+util_error_t can_data_ready()
 {
-	can_daemon_context_t * daemon = (can_daemon_context_t *) dem_ctx;
-	if( xSemaphoreTake(fdcan_daemon_context.rx_sem, osWaitForever) == pdTRUE ) {
+	if( xSemaphoreTake(can_rx_sem, osWaitForever) == pdTRUE ) {
 		return ER_SUCCESS;
 	} else {
 		return ER_TIMEOUT;
@@ -131,8 +125,8 @@ util_error_t can_recv(void * context, uint8_t * data, uint32_t * len) {
 }
 
 
-util_error_t can_handle_data(void * if_context, __attribute__((unused)) void * dem_context) {
-	can_interface_context_t * can = (can_interface_context_t *) if_context;
+util_error_t can_handle_data(device_interface_t * can_if) {
+	can_interface_context_t * can = (can_interface_context_t *) can_if->context;
 	// drain the FIFO
 	while(HAL_FDCAN_GetRxFifoFillLevel(can->fdcan, FDCAN_RX_FIFO0) > 0) {
 		od_frame_t frame;
@@ -143,10 +137,13 @@ util_error_t can_handle_data(void * if_context, __attribute__((unused)) void * d
 		frame.data_id = rxHeader.Identifier >> CAN_DATAID_OFFSET;
 		uint8_t source = rxHeader.Identifier & CAN_BOARDID_MASK;
 
-		//TODO: call rx handler
+		od_handle_can_frame(source, &frame);
 
 	}
 }
+
+
+
 
 
 util_error_t can_send(void * context, uint8_t * data, uint32_t len) {
@@ -175,6 +172,11 @@ util_error_t can_send(void * context, uint8_t * data, uint32_t len) {
 
 
 util_error_t can_interface_init(device_interface_t * can_if, can_interface_context_t * can_ctx) {
+
+	if(can_interfaces_count >= CAN_MAX_INTERFACES) {
+		return ER_RESSOURCE_ERROR;
+	}
+
 	// Configure clock unit --> route kernel clock directly to CAN core
 	// Kernel clock & bit timings are determined by settings in CubeMX
 	// f_tqck = f_kerck = 32Mhz
@@ -189,7 +191,9 @@ util_error_t can_interface_init(device_interface_t * can_if, can_interface_conte
 	HAL_FDCAN_ConfigClockCalibration(can_ctx->fdcan, &ccuConfig);
 
 	//can callback init for reception
-	device_interface_create(can_if, can_ctx, &fdcan_daemon, can_send, can_recv, can_handle_data);
+	device_interface_create(can_if, can_ctx, NULL, can_send, can_recv, NULL);
+
+	can_interfaces[can_interfaces_count++] = can_if;
 
 	// Peripheral, clocks & baud rate already initialized
 
@@ -214,16 +218,18 @@ util_error_t can_interface_init(device_interface_t * can_if, can_interface_conte
 
 	// Start FDCAN
 	HAL_FDCAN_Start(can_ctx->fdcan);
+
+	return ER_SUCCESS;
 }
 
 
 
-void can_init() {
+void can_init(uint8_t board_id) {
 
 
-	fdcan_daemon_context.rx_sem = xSemaphoreCreateBinaryStatic(&fdcan_daemon_context.rx_sem_buffer);
+	can_rx_sem = xSemaphoreCreateBinaryStatic(&can_rx_sem_buffer);
 
-	device_deamon_create(&fdcan_daemon, "fdcan daemon", 6, &fdcan_daemon_context, can_data_ready);
+	fdcan1_context.board_id = board_id;
 
 	can_interface_init(&fdcan1_interface, &fdcan1_context);
 
@@ -241,9 +247,23 @@ void can_transmit_thread(__attribute__((unused))  void *arg) {
 		// retrieve next frame
 		od_frame_t frame;
 		od_pop_from_out_q(&frame);
+		od_push_to_in_q(&frame);
 
 		// send over CAN
 		device_interface_send(&fdcan1_interface, (uint8_t *) &frame, sizeof(od_frame_t));
+	}
+}
+
+void can_receive_thread(__attribute__((unused))  void *arg) {
+
+	// Infinite loop
+	while(1) {
+		if(can_data_ready() == ER_SUCCESS) {
+			//iterate over all interfaces in deamon
+			for(uint16_t i = 0; i < can_interfaces_count; i++) {
+				can_handle_data(can_interfaces[i]);
+			}
+		}
 	}
 }
 
