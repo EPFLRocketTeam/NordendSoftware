@@ -182,8 +182,6 @@ void control_thread(__attribute__((unused)) void * arg) {
 
     control_idle_start();
 
-	device_interface_t * hostproc_feedback = hostproc_get_feedback_interface();
-
 	uint16_t checkpoint = led_add_checkpoint(led_blue);
 	debug_log("Control start\n");
 

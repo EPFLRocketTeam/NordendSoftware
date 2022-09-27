@@ -14,6 +14,7 @@
 #include <main.h>
 #include <tim.h>
 #include <cmsis_os.h>
+#include <abstraction/gpio.h>
 
 /**********************
  *	CONFIGURATION
@@ -80,8 +81,17 @@ void led_feedback_init(void) {
 	GPIO_InitStructure.Pin = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3;
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_RESET);
 
+}
+
+
+void led_set(uint8_t num) {
+	gpio_set(GPIOA, 1<<num);
+}
+
+void led_clear(uint8_t num) {
+	gpio_clr(GPIOA, 1<<num);
 }
 
 /**
@@ -187,9 +197,13 @@ void led_rgb_thread(__attribute__((unused)) void * arg) {
 
 	led_rgb_set_color(led_blue);
 
+	uint16_t base = led_add_checkpoint(led_white);
+
 	static uint16_t counter = 0;
 
 	for(;;) {
+		led_clear(3);
+		led_checkpoint(base);
 		while(1) {
 			if(!(counter < checkpoint_count)) {
 				counter = 0;

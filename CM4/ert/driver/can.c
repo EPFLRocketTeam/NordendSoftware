@@ -18,6 +18,7 @@
 #include <driver/can.h>
 #include <od/od.h>
 #include <device/device.h>
+#include <feedback/led.h>
 
 /**********************
  *	CONSTANTS
@@ -58,6 +59,10 @@ can_interface_context_t fdcan1_context = {
 	.fdcan = &hfdcan1,
 	.board_id = 1
 };
+
+
+static uint16_t checkpoint_tx;
+static uint16_t checkpoint_rx;
 
 
 device_interface_t fdcan2_interface;
@@ -167,6 +172,8 @@ util_error_t can_send(void * context, uint8_t * data, uint32_t len) {
 			.TxEventFifoControl = FDCAN_NO_TX_EVENTS,
 	};
 	HAL_FDCAN_AddMessageToTxFifoQ(can->fdcan, &txHeader, frame->data);
+
+
 	return ER_SUCCESS;
 }
 
@@ -224,6 +231,8 @@ util_error_t can_interface_init(device_interface_t * can_if, can_interface_conte
 
 
 
+
+
 void can_init(uint8_t board_id) {
 
 
@@ -233,6 +242,10 @@ void can_init(uint8_t board_id) {
 
 	can_interface_init(&fdcan1_interface, &fdcan1_context);
 
+
+	checkpoint_tx = led_add_checkpoint(led_teal);
+
+	checkpoint_rx = led_add_checkpoint(led_pink);
 
 
 }
@@ -249,6 +262,8 @@ void can_transmit_thread(__attribute__((unused))  void *arg) {
 		od_pop_from_out_q(&frame);
 		od_push_to_in_q(&frame);
 
+		led_checkpoint(checkpoint_tx);
+
 		// send over CAN
 		device_interface_send(&fdcan1_interface, (uint8_t *) &frame, sizeof(od_frame_t));
 	}
@@ -261,6 +276,7 @@ void can_receive_thread(__attribute__((unused))  void *arg) {
 		if(can_data_ready() == ER_SUCCESS) {
 			//iterate over all interfaces in deamon
 			for(uint16_t i = 0; i < can_interfaces_count; i++) {
+				led_checkpoint(checkpoint_rx);
 				can_handle_data(can_interfaces[i]);
 			}
 		}

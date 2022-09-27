@@ -140,12 +140,12 @@ void od_init() {
 
 
 void od_handle_can_frame(uint8_t src, od_frame_t *frame) {
-	osMessageQueuePut(in_q, frame, 0U, osWaitForever);
+	osMessageQueuePut(in_q, frame, 0U, 100);
 }
 
 
 void od_push_to_out_q(od_frame_t *frame) {
-	osMessageQueuePut(out_q, frame, 0U, osWaitForever);
+	osMessageQueuePut(out_q, frame, 0U, 100);
 }
 
 void od_pop_from_in_q(od_frame_t *frame) {
@@ -153,7 +153,7 @@ void od_pop_from_in_q(od_frame_t *frame) {
 }
 
 void od_push_to_in_q(od_frame_t *frame) {
-	osMessageQueuePut(in_q, frame, 0U, osWaitForever);
+	osMessageQueuePut(in_q, frame, 0U, 100);
 }
 
 void od_pop_from_out_q(od_frame_t *frame) {
@@ -178,7 +178,7 @@ static void od_unsafe_write(uint8_t data_id, uint8_t *src) {
     to_send.size = od_entries[data_id].size;
     memcpy(to_send.data, src, to_send.size);
 
-    osMessageQueuePut(out_q, &to_send, 0U, osWaitForever);
+    osMessageQueuePut(out_q, &to_send, 0U, 100);
 }
 
 /**

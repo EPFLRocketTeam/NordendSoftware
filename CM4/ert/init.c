@@ -62,6 +62,12 @@
 #define SENSOR_SZ	DEFAULT_SZ
 #define SENSOR_PRIO		(1)
 
+#define CAN_RX_SZ	DEFAULT_SZ
+#define CAN_RX_PRIO		(1)
+
+#define CAN_TX_SZ	DEFAULT_SZ
+#define CAN_TX_PRIO		(1)
+
 
 /**********************
  *	MACROS
@@ -137,10 +143,17 @@ void init(void) {
 	INIT_THREAD_CREATE(led_rgb_handle, led_rgb, led_rgb_thread, NULL, LED_RGB_SZ, LED_RGB_PRIO);
 
 
-#if !WH_HAS_KRTEK
+#if WH_HAS_KRTEK
 	INIT_THREAD_CREATE(control_handle, control, control_thread, NULL, CONTROL_SZ, CONTROL_PRIO);
 #endif
 
+	INIT_THREAD_CREATE(serial_handle, serial, serial_thread, NULL, SERIAL_SZ, SERIAL_PRIO);
+
+	INIT_THREAD_CREATE(hostcom_handle, hostcom, hostcom_thread, NULL, HOSTCOM_SZ, HOSTCOM_PRIO);
+
+	INIT_THREAD_CREATE(can_rx_handle, can_rx, can_receive_thread, NULL, CAN_TX_SZ, CAN_TX_PRIO);
+
+	INIT_THREAD_CREATE(can_tx_handle, can_tx, can_transmit_thread, NULL, CAN_RX_SZ, CAN_RX_PRIO);
 
 #if WH_HAS_RADIO
 	INIT_THREAD_CREATE(miaou_handle, miaou, miaou_thread, NULL, MIAOU_SZ, MIAOU_PRIO);
@@ -149,15 +162,6 @@ void init(void) {
 #if WH_HAS_GNSS
 	gnss_init();
 #endif
-
-	INIT_THREAD_CREATE(serial_handle, serial, serial_thread, NULL, SERIAL_SZ, SERIAL_PRIO);
-
-	INIT_THREAD_CREATE(hostcom_handle, hostcom, hostcom_thread, NULL, HOSTCOM_SZ, HOSTCOM_PRIO);
-
-	INIT_THREAD_CREATE(can_rx_handle, can_rx, can_receive_thread, NULL, HOSTCOM_SZ, HOSTCOM_PRIO);
-
-	INIT_THREAD_CREATE(can_tx_handle, can_tx, can_transmit_thread, NULL, HOSTCOM_SZ, HOSTCOM_PRIO);
-
 
 #if WH_HAS_SENSORS
 	INIT_THREAD_CREATE(sensor_i2c_handle, sensor_i2c, sensor_i2c_thread, NULL, SENSOR_SZ, SENSOR_PRIO);

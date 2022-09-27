@@ -72,20 +72,22 @@ typedef enum gnss_trame_type {
     OTHER
 }gnss_trame_type_t;
 
+typedef enum gnss_return {
+	GNSS_PROGRESS = 0,
+	GNSS_SUCCESS = 1
+}gnss_return_t;
+
 typedef struct gnss_context {
     gnss_trame_type_t type;
     uint8_t accumulator[ACCU_SIZE];
     uint16_t accu_count;
     uint16_t word_count;
     gnss_data_t data;
-
+    gnss_return_t stat;
 } gnss_context_t;
 
 
-typedef enum gnss_return {
-	GNSS_PROGRESS = 0,
-	GNSS_SUCCESS = 1
-}gnss_return_t;
+
 
 /**********************
  *  VARIABLES

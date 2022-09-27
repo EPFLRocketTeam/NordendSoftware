@@ -19,6 +19,7 @@
 
 #include "serial.h"
 #include <device/device.h>
+#include <feedback/led.h>
 
 
 /**********************
@@ -120,11 +121,13 @@ util_error_t serial_setup_reception(serial_interface_context_t * interface_conte
  */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	for(uint8_t i = 0; i < serial_deamon.interfaces_count; i++) {
-		serial_interface_context_t * serial_context = (serial_interface_context_t *) serial_deamon.interfaces[i]->context;
+	for(uint8_t i = 0; i < serial_interfaces_count; i++) {
+		serial_interface_context_t * serial_context = (serial_interface_context_t *) serial_interfaces[i]->context;
 		if(serial_context->uart == huart) {
 			util_buffer_u8_add(&serial_context->rx_buffer, serial_context->rx_fragment);
 
+			//request next byte
+			HAL_UART_Receive_IT(huart, &serial_context->rx_fragment, 1);
 			xSemaphoreGiveFromISR( serial_rx_sem, &xHigherPriorityTaskWoken );
 
 			break;
@@ -158,7 +161,7 @@ util_error_t serial_init(void)
 {
 	util_error_t error = ER_SUCCESS;
 
-	//initialize deamon semaphore
+	//initialize serial semaphore
 	serial_rx_sem = xSemaphoreCreateBinaryStatic(&serial_rx_sem_buffer);
 
 	serial_interfaces_count = 0;
@@ -264,12 +267,15 @@ util_error_t serial_recv(void * context, uint8_t * data, uint32_t * len)
 
 void serial_thread(__attribute__((unused)) void * arg) {
 
+
+
 	for(;;) {
 		if(serial_data_ready() == ER_SUCCESS) {
 			//iterate over all interfaces in deamon
 			for(uint16_t i = 0; i < serial_interfaces_count; i++) {
 				serial_interface_context_t * ctx = (serial_interface_context_t *) serial_interfaces[i]->context;
 				if(ctx->serial_handler) {
+					led_set(3);
 					ctx->serial_handler(serial_interfaces[i], ctx->handler_context);
 				}
 			}

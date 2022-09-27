@@ -83,6 +83,19 @@ static const led_color_t led_black = {
 		.b = 0x00
 };
 
+static const led_color_t led_teal = {
+		.r = 0x00,
+		.g = 0x7f,
+		.b = 0x7f
+};
+
+static const led_color_t led_pink = {
+		.r = 0x7f,
+		.g = 0x00,
+		.b = 0x7f
+};
+
+
 static const led_color_t led_white = {
 		.r = 0xff,
 		.g = 0xff,
@@ -119,6 +132,10 @@ void led_rgb_set_rgb(uint8_t r, uint8_t g, uint8_t b);
 void led_feedback_init(void);
 
 void led_rgb_thread(void * arg);
+
+void led_set(uint8_t num);
+
+void led_clear(uint8_t num);
 
 #ifdef __cplusplus
 } // extern "C"

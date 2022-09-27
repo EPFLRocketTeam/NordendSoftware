@@ -23,7 +23,9 @@
 #include <sensor/barometer.h>
 #include <od/od.h>
 #include <driver/hostproc.h>
+#include <hostcom.h>
 #include <feedback/led.h>
+#include <feedback/debug.h>
 /**********************
  *	CONSTANTS
  **********************/
@@ -91,8 +93,6 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	i2c_acc = i2c_sensor_get_accelerometer();
 	i2c_gyro = i2c_sensor_get_gyroscope();
 	i2c_baro = i2c_sensor_get_barometer();
-
-	device_interface_t * hostproc_feedback = hostproc_get_feedback_interface();
 
 
 
