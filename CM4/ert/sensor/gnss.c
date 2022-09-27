@@ -46,7 +46,7 @@
  *	PROTOTYPES
  **********************/
 
-static volatile gnss_context_t gnss_decoder = {0};
+static gnss_context_t gnss_decoder = {0};
 
 static uint16_t checkpoint;
 
@@ -194,6 +194,7 @@ gnss_return_t gnss_handle_fragment(gnss_context_t * decoder, volatile uint8_t c)
 
 
 util_error_t gnss_handle_data(device_interface_t * gnss_interface, void * context) {
+	UNUSED(context);
 	led_set(0);
 	uint32_t len = 1;
 	util_error_t error;

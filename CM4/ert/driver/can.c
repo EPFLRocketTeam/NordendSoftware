@@ -86,6 +86,8 @@ static uint16_t can_interfaces_count;
 
 void HAL_FDCAN_TxBufferCompleteCallback(FDCAN_HandleTypeDef *hfdcan, uint32_t BufferIndexes) {
 	// messages have been transmitted
+	UNUSED(hfdcan);
+	UNUSED(BufferIndexes);
 }
 
 /*
@@ -93,6 +95,7 @@ void HAL_FDCAN_TxBufferCompleteCallback(FDCAN_HandleTypeDef *hfdcan, uint32_t Bu
  * -> make a bottom half to handle incomming data
  */
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs) {
+	UNUSED(hfdcan);
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	if(RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) {
 		xSemaphoreGiveFromISR( can_rx_sem, &xHigherPriorityTaskWoken );
@@ -103,11 +106,14 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 
 void HAL_FDCAN_ErrorCallback(FDCAN_HandleTypeDef *hfdcan) {
 	// protocol error occurred
+	UNUSED(hfdcan);
 }
 
 
 void HAL_FDCAN_ErrorStatusCallback(FDCAN_HandleTypeDef *hfdcan, uint32_t ErrorStatusITs) {
 	// bus error occurred
+	UNUSED(hfdcan);
+	UNUSED(ErrorStatusITs);
 }
 
 
@@ -126,6 +132,9 @@ util_error_t can_data_ready()
 
 
 util_error_t can_recv(void * context, uint8_t * data, uint32_t * len) {
+	UNUSED(context);
+	UNUSED(data);
+	UNUSED(len);
 	return ER_RESSOURCE_ERROR;
 }
 
@@ -145,6 +154,7 @@ util_error_t can_handle_data(device_interface_t * can_if) {
 		od_handle_can_frame(source, &frame);
 
 	}
+	return ER_SUCCESS;
 }
 
 
@@ -152,6 +162,9 @@ util_error_t can_handle_data(device_interface_t * can_if) {
 
 
 util_error_t can_send(void * context, uint8_t * data, uint32_t len) {
+	if(len != sizeof(od_frame_t)) {
+		return ER_FAILURE;
+	}
 	// check free level
 	can_interface_context_t * can = (can_interface_context_t *) context;
 	od_frame_t * frame = (od_frame_t *) data;

@@ -126,6 +126,7 @@ util_error_t device_interface_create(   device_interface_t * interface,
 util_error_t device_interface_register_handle_data(	device_interface_t * interface,
 													util_error_t (*handle_data)(void*, void*)) {
 	interface->handle_data = handle_data;
+	return ER_SUCCESS;
 }
 
 /**
@@ -171,7 +172,6 @@ util_error_t device_deamon_create(	device_daemon_t * deamon,
  */
 void device_deamon_thread(void * arg)
 {
-	#warning("device daemons don't work well!")
 	device_daemon_t * deamon = (device_daemon_t * ) arg;
 
 	for(;;) {
@@ -420,11 +420,12 @@ util_error_t device_read_u8(device_t * dev, uint32_t addr, uint8_t* data)
 }
 
 util_error_t device_read(device_t * dev, uint32_t addr, uint8_t* data, uint32_t len) {
-	dev->read_reg(dev->context, dev->interface, addr, data, len);
+	return dev->read_reg(dev->context, dev->interface, addr, data, len);
 }
 
 util_error_t device_write(device_t * dev, uint32_t addr, uint8_t* data, uint32_t len) {
-	dev->write_reg(dev->context, dev->interface, addr, data, len);
+	return dev->write_reg(dev->context, dev->interface, addr, data, len);
+
 }
 
 /** @} */

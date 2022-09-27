@@ -145,6 +145,8 @@ void init(void) {
 
 #if WH_HAS_KRTEK
 	INIT_THREAD_CREATE(control_handle, control, control_thread, NULL, CONTROL_SZ, CONTROL_PRIO);
+#else
+	UNUSED(control_handle);
 #endif
 
 	INIT_THREAD_CREATE(serial_handle, serial, serial_thread, NULL, SERIAL_SZ, SERIAL_PRIO);
@@ -157,6 +159,8 @@ void init(void) {
 
 #if WH_HAS_RADIO
 	INIT_THREAD_CREATE(miaou_handle, miaou, miaou_thread, NULL, MIAOU_SZ, MIAOU_PRIO);
+#else
+	UNUSED(miaou_handle);
 #endif
 
 #if WH_HAS_GNSS
@@ -166,6 +170,8 @@ void init(void) {
 #if WH_HAS_SENSORS
 	INIT_THREAD_CREATE(sensor_i2c_handle, sensor_i2c, sensor_i2c_thread, NULL, SENSOR_SZ, SENSOR_PRIO);
 	//INIT_THREAD_CREATE(sensor_spi_handle, sensor_spi, sensor_spi_thread, NULL, SENSOR_SZ, SENSOR_PRIO);
+#else
+	UNUSED(sensor_i2c_handle);
 #endif
 
 

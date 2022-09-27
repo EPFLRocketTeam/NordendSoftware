@@ -62,10 +62,11 @@ typedef struct serial_interface_context {
  *	VARIABLES
  **********************/
 
-static device_daemon_t serial_deamon;
+
 
 static device_interface_t s3_interface;
 
+__attribute__((unused))
 static device_interface_t s2_interface;
 
 static device_interface_t s1_interface;
@@ -74,6 +75,7 @@ static serial_interface_context_t s3_interface_context = {
 		.uart = &S3_UART
 };
 
+__attribute__((unused))
 static serial_interface_context_t s2_interface_context = {
 		.uart = &S2_UART
 };

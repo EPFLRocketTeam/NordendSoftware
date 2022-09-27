@@ -87,6 +87,9 @@ void hostcom_data_gnss_send(uint32_t timestamp, int32_t alt) {
 
 
 void hostcom_handle_data(uint8_t opcode, uint16_t len, uint8_t * data) {
+	UNUSED(opcode);
+	UNUSED(len);
+	UNUSED(data);
 	//handle kalman inbound data!!
 }
 
@@ -100,7 +103,7 @@ void hostcom_handle_data(uint8_t opcode, uint16_t len, uint8_t * data) {
  * @note	MSV2 is used to ensure synchronization of the data frames between
  * 			processors
  */
-void hostcom_thread(void * arg) {
+void hostcom_thread(__attribute__((unused)) void * arg) {
     static TickType_t last_wake_time;
     static const TickType_t period = pdMS_TO_TICKS(HOSTCOM_DATA_HEART_BEAT);
 

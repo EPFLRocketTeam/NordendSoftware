@@ -98,9 +98,11 @@ static hostproc_interface_context_t hostproc_data_interface_context = {
  */
 static VIRT_UART_HandleTypeDef host_UART3;
 static device_interface_t hostproc_cmd_interface;
+__attribute__((unused))
 static hostproc_interface_context_t hostproc_cmd_interface_context = {
 		.uart = &host_UART3
 };
+
 
 
 static device_interface_t * hostproc_interfaces[] = {

@@ -78,6 +78,7 @@ util_error_t comunicator_init(	comunicator_t * com,
 }
 
 util_error_t communicator_handler(device_interface_t * channel, void * _com) {
+	UNUSED(channel);
 	comunicator_t * com = (comunicator_t *) _com;
 	return comunicator_recv(com);
 }
@@ -130,11 +131,13 @@ util_error_t comunicator_send(	comunicator_t * com,
 
 
 util_error_t comunicator_handle_data(void* if_ctx, void* dem_ctx) {
+	UNUSED(dem_ctx);
 	for(uint16_t i = 0; i < comunicator_count; i++) {
 		if(comunicators[i]->interface->context == if_ctx) {
 			return comunicator_recv(comunicators[i]);
 		}
 	}
+	return ER_SUCCESS;
 }
 
 /**

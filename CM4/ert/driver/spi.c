@@ -119,11 +119,13 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef * hspi) {
 
 
 util_error_t spi_acquire_bus(device_t * dev) {
-
+	UNUSED(dev);
+	return ER_RESSOURCE_ERROR;
 }
 
 util_error_t spi_release_bus(device_t * dev) {
-
+	UNUSED(dev);
+	return ER_RESSOURCE_ERROR;
 }
 
 

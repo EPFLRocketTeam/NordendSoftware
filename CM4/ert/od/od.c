@@ -140,6 +140,7 @@ void od_init() {
 
 
 void od_handle_can_frame(uint8_t src, od_frame_t *frame) {
+	UNUSED(src);
 	osMessageQueuePut(in_q, frame, 0U, 100);
 }
 
