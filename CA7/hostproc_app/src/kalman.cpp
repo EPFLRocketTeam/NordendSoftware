@@ -11,7 +11,7 @@
 
 #include "kalman.h"
 #include "serial.h"
-#include "structures.h"
+#include "protocol/structures.h"
 
 #include <math.h>
 #include <Eigen/Dense>
@@ -25,8 +25,8 @@
 #define T		298.15f
 
 #define sigma_z_gps		5.0f
-#define sigma_z_baro 	5.0f
-#define sigma_z_acc 	9.81f
+#define sigma_z_baro 	10.0f
+#define sigma_z_acc 	25.0f
 
 #define sigma_a		1.0f
 #define sigma_p0	0.01f
@@ -80,9 +80,9 @@ typedef struct kalman_rocket_state{
 
 void kalman_setup(kalman_rocket_state_t * state) {
 
-    state->X_tilde << 400.0, 0, 0, 96.2*1000, M/(R*T), 400.0;
+    state->X_tilde << 400.0f, 0.0f, 0.0f, 96.2*1000, M/(R*T), 400.0;
 
-    state->P_tilde.diagonal() << 25.0, 0.25, 0.25, 25.0, 1e-12, 25.0;
+    state->P_tilde.diagonal() << 25.0, 0.1, 0.1, 25.0, 1e-12, 25.0;
 
     state->X_hat << state->X_tilde;
 
@@ -182,12 +182,64 @@ void kalman_update_acc(kalman_rocket_state_t * state, float a) {
 }
 
 
+
+static kalman_rocket_state_t state;
+
+
+void kalman_handle_data(uint8_t opcode, uint16_t len, uint8_t * _data) {
+
+	if(len = sizeof(transfer_data_t)) {
+		transfer_data_t data;
+		memcpy(&data, _data, len);
+		printf("kalman cycle| data: %d, type: %d, time: %d\n",
+				data.data, opcode, data.time);
+		if(state.last_time == 0) {
+			state.last_time = data.time;
+			return;
+		}
+		uint32_t dt = data.time - state.last_time;
+		state.last_time = data.time;
+		float delta_t = dt/1000.0;
+		printf("delta time: %f\n", delta_t);
+		kalman_predict(&state, delta_t);
+		float acc, pres, alt;
+		switch(opcode) {
+			case TRANSFER_DATA_ACC:
+				acc = data.data / 10000.0; //0.1millig
+				printf("acc data: %f\n", acc);
+				kalman_update_acc(&state, acc);
+				break;
+			case TRANSFER_DATA_BARO:
+				pres = data.data*10.0;  //baro in 0.1Pa
+				printf("baro data: %f\n", pres);
+				kalman_update_baro(&state, pres);
+				break;
+			case TRANSFER_DATA_GNSS:
+				alt = data.data/1000.0; //alt in mm
+				printf("alt data: %f\n", alt);
+				kalman_update_gnss(&state, alt);
+				break;
+			default:
+				printf("data error\n");
+		}
+		printf("compute_result: H=%f | sH=%f\n", state.X_hat(0, 0), state.P_hat(0, 0));
+		printf("compute_result: V=%f | sV=%f\n", state.X_hat(1, 0), state.P_hat(1, 1));
+		printf("compute_result: A=%f | sA=%f\n", state.X_hat(2, 0), state.P_hat(2, 2));
+	}
+
+}
+
+
+
+
+
+
 void * kalman_entry(void *) {
 
 
 	//setup
 
-    static kalman_rocket_state_t state;
+
     static serial_dev_t data_device;
 
     static transfer_data_t data;
@@ -195,27 +247,19 @@ void * kalman_entry(void *) {
     kalman_setup(&state);
     serial_setup(&data_device, "/dev/ttyRPMSG2");
 
-    for(;;) {
-        uint32_t len = sizeof(data);
-        //ideally a blocking receive
-        serial_recv(&data_device, (uint8_t *) &data, &len);
-        if(len = sizeof(data)) {
-			uint32_t dt = data.time - state.last_time;
-			kalman_predict(&state, (float) dt);
-			switch(data.type) {
-				case TRANSFER_DATA_ACC:
-					kalman_update_acc(&state, (float) data.data);
-					break;
-				case TRANSFER_DATA_BARO:
-					kalman_update_baro(&state, (float) data.data);
-					break;
-				case TRANSFER_DATA_GNSS:
-					kalman_update_gnss(&state, (float) data.data);
-					break;
-			}
-        }
+    uint8_t msg[] = "start";
+    serial_send(&data_device, msg, 6);
 
-    }
+    printf("setup kalman channel\n");
+
+    state.last_time = 0;
+
+    comunicator_t com;
+
+    comunicator_init(&com, &data_device, kalman_handle_data);
+
+
+    comunicator_recv(&com);
 
 
 

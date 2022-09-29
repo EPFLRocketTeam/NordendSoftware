@@ -230,7 +230,7 @@ dma_stream_dev_t * dma_scheduler_request_stream(dma_scheduler_dev_t * dma_schedu
 		return NULL;
 	}
 
-	dma_stream_dev_t * stream;
+	dma_stream_dev_t * stream = {0};
 
 	for(uint16_t i = 0; i < dma_scheduler->stream_count; i++) {
 		if(dma_scheduler->streams[i]->state == DMA_STREAM_FREE) {
@@ -309,6 +309,8 @@ util_error_t dma_start_stream(dma_stream_dev_t * stream, dma_stream_config_t con
 
 	//start DMA stream
 	stream->dma_stream->CR |= DMA_SxCR_EN;
+
+	return ER_SUCCESS;
 }
 
 /* END */

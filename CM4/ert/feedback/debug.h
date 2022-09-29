@@ -1,16 +1,14 @@
-/**
- * @file 		miaou.h
- * @brief 		Communication with the Miaou Radio modem
- *
- * @date 		13.08.2021
- * @author 		Iacopo Sprenger
- *
- * @ingroup 	miaou
- * @{
+/*  Title       : Debug
+ *  Filename    : debug.h
+ *  Author      : iacopo sprenger
+ *  Date        : 04.09.2022
+ *  Version     : 0.1
+ *  Description : debugging
  */
 
-#ifndef MIAOU_H
-#define MIAOU_H
+
+#ifndef DEBUG_H
+#define DEBUG_H
 
 
 
@@ -49,15 +47,12 @@ extern "C"{
 #endif
 
 
-
-void miaou_thread(__attribute__((unused)) void * arg);
-
 #ifdef __cplusplus
 } // extern "C"
 #endif /* __cplusplus */
 
-#endif /* TEMPLATE_H */
+void debug_log(const char * lotte, ...);
 
-/** @} */
+#endif /* DEBUG_H */
 
 /* END */

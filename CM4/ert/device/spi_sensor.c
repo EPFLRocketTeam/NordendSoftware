@@ -83,9 +83,9 @@ util_error_t spi_sensor_init(void) {
 
 	device_interface_t * spi_sensor_interface = spi_get_sensor_interface();
 
-	device_create((void*) &spi_accelerometer_device, &spi_accelerometer_device_context, spi_sensor_interface, spi_sensor_read_reg_HAL, spi_sensor_write_reg_HAL);
-	device_create((void*) &spi_gyroscope_device, &spi_gyroscope_device_context, spi_sensor_interface, spi_sensor_read_reg_HAL, spi_sensor_write_reg_HAL);
-	device_create((void*) &spi_barometer_device, &spi_barometer_device_context, spi_sensor_interface, spi_sensor_read_reg_HAL, spi_sensor_write_reg_HAL);
+	device_create((void*) &spi_accelerometer_device, &spi_accelerometer_device_context, spi_sensor_interface, spi_sensor_read_reg, spi_sensor_write_reg);
+	device_create((void*) &spi_gyroscope_device, &spi_gyroscope_device_context, spi_sensor_interface, spi_sensor_read_reg, spi_sensor_write_reg);
+	device_create((void*) &spi_barometer_device, &spi_barometer_device_context, spi_sensor_interface, spi_sensor_read_reg, spi_sensor_write_reg);
 
 	return ER_SUCCESS;
 
@@ -104,14 +104,14 @@ util_error_t spi_sensor_init(void) {
  *
  */
 util_error_t spi_sensor_read_reg(void* context, device_interface_t * interface, uint32_t addr, uint8_t * data, uint32_t len) {
-	spi_sensor_context_t * ctx = (spi_sensor_context_t *) context;
+	UNUSED(context);
 	util_error_t error = ER_SUCCESS;
 	//send address
 	//receive data
 	//TODO: Setup SPI transfer Type ??
 	//		This should be done with an SPI TAKE function -> to take
 	//		ownership of the bus (and assert the ChipSelect)
-	error |= interface->send(interface->context, &addr, 1);
+	error |= interface->send(interface->context, (uint8_t *) &addr, 1);
 	error |= interface->recv(interface->context, data, &len);
 	return error;
 }
@@ -128,14 +128,15 @@ util_error_t spi_sensor_read_reg(void* context, device_interface_t * interface, 
  */
 util_error_t spi_sensor_write_reg(void* context, device_interface_t * interface, uint32_t addr, uint8_t * data, uint32_t len) {
 	spi_sensor_context_t * ctx = (spi_sensor_context_t *) context;
+	UNUSED(ctx);
 	util_error_t error = ER_SUCCESS;
 	//send address
 	//send data
 	//TODO: Setup SPI transfer Type ??
 	//		This should be done with an SPI TAKE function -> to take
 	//		ownership of the bus (and assert the ChipSelect)
-	error |= interface->send(interface->context, &addr, 1);
-	error |= interface->send(interface->context, data, &len);
+	error |= interface->send(interface->context, (uint8_t *) &addr, 1);
+	error |= interface->send(interface->context, data, len);
 	return error;
 }
 

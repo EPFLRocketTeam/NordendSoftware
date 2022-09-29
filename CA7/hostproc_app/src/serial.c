@@ -12,6 +12,7 @@
 #include <sys/ioctl.h>
 
 #include "serial.h"
+#include "protocol/msv2.h"
 
 
 
@@ -45,5 +46,43 @@ int serial_get_count(serial_dev_t * dev) {
     ioctl(dev->port, FIONREAD, &bytes);
     return bytes;
 }
+
+
+/**
+ * @brief 	initialize communicator device
+ * @detail
+ */
+void comunicator_init(	comunicator_t * com,
+						serial_dev_t * serial,
+						void (*cb)(uint8_t, uint16_t, uint8_t *)) {
+	msv2_init(&com->msv2);
+	com->cb = cb;
+	com->serial = serial;
+}
+
+void comunicator_recv(comunicator_t * com) {
+	uint32_t len = 1;
+	for(;;) {
+		uint8_t data;
+		len  = 1;
+		serial_recv(com->serial, &data, &len);
+		if(len == 1) {
+			MSV2_ERROR_t ret = msv2_decode_fragment(&com->msv2, data);
+			if(ret == MSV2_SUCCESS) {
+				com->cb(com->msv2.rx.opcode, com->msv2.rx.data_len*2, com->msv2.rx.data);
+			}
+		}
+	}
+}
+
+void comunicator_send(	comunicator_t * com,
+								uint8_t opcode,
+								uint16_t len,
+								uint8_t * data) {
+
+	uint16_t bin_len = msv2_create_frame(&com->msv2, opcode, len/2, data);
+	serial_send(com->serial, com->msv2.tx.data, bin_len);
+}
+
 
 

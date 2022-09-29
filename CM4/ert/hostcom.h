@@ -6,8 +6,8 @@
  *  Description : template for code files
  */
 
-#ifndef TEMPLATE_H
-#define TEMPLATE_H
+#ifndef HOSTCOM_H
+#define HOSTCOM_H
 
 
 
@@ -46,10 +46,19 @@ extern "C"{
 #endif
 
 
+void hostcom_data_acc_send(uint32_t timestamp, int32_t acc);
+
+void hostcom_data_baro_send(uint32_t timestamp, int32_t pres);
+
+void hostcom_data_gnss_send(uint32_t timestamp, int32_t alt);
+
+
+void hostcom_thread(void * arg);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif /* __cplusplus */
 
-#endif /* TEMPLATE_H */
+#endif /* HOSTCOM_H */
 
 /* END */

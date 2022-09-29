@@ -1,11 +1,13 @@
-/*  Title       : Generic device driver
- *  Filename    : device.h
- *  Author      : iacopo sprenger
- *  Date        : 20.03.2022
- *  Version     : 0.1
- *  Description : 
+/**
+ * @file 		device.h
+ * @brief 		Generic device driver
+ *
+ * @date 		20.03.2022
+ * @author 		Iacopo Sprenger
+ *
+ * @ingroup 	device
+ * @{
  */
-
 #ifndef DEVICE_H
 #define DEVICE_H
 
@@ -105,6 +107,9 @@ util_error_t device_interface_create(   device_interface_t * interface,
 									util_error_t (*recv)(void*, uint8_t*, uint32_t*),
 									util_error_t (*handle_data)(void*, void*));
 
+util_error_t device_interface_register_handle_data(	device_interface_t * interface,
+													util_error_t (*handle_data)(void*, void*));
+
 
 util_error_t device_interface_send(device_interface_t * interface, uint8_t * data, uint32_t len);
 util_error_t device_interface_recv(device_interface_t * interface, uint8_t * data, uint32_t * len);
@@ -138,4 +143,5 @@ util_error_t device_write(device_t * dev, uint32_t addr, uint8_t* data, uint32_t
 
 #endif /* DEVICE_H */
 
+/** @} */
 /* END */

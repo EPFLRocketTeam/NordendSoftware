@@ -21,8 +21,8 @@
  *	CONSTANTS
  **********************/
 
-#define OD_MSGQ_SIZE (16)
-#define DEBUG_NO_CAN 0      // set to 1 to turn off CAN to test OD functionality only
+#define OD_MSGQ_SIZE (32)
+//#define DEBUG_NO_CAN 1      // set to 1 to turn off CAN to test OD functionality only
 
 /**********************
  *	MACROS
@@ -45,17 +45,7 @@
  *	TYPEDEFS
  **********************/
 
-typedef struct {
-    uint8_t data_id;
-    uint8_t size;
-    uint8_t *data;
-} od_entry_t;
 
-typedef struct {
-    uint8_t data_id;
-    uint8_t size;
-    uint8_t data[OD_FRAME_MAX_SIZE];
-} od_frame_t;
 
 /**********************
  *  PROTOTYPES
@@ -119,6 +109,9 @@ osMessageQueueId_t in_q;
  *	DECLARATIONS
  **********************/
 
+
+
+
 void od_init() {
     // Initialize queues
 	static StaticQueue_t out_cb;
@@ -144,6 +137,30 @@ void od_init() {
 	in_q = osMessageQueueNew(OD_MSGQ_SIZE, sizeof(od_frame_t), &in_attr);
 }
 
+
+
+void od_handle_can_frame(uint8_t src, od_frame_t *frame) {
+	UNUSED(src);
+	osMessageQueuePut(in_q, frame, 0U, 100);
+}
+
+
+void od_push_to_out_q(od_frame_t *frame) {
+	osMessageQueuePut(out_q, frame, 0U, 100);
+}
+
+void od_pop_from_in_q(od_frame_t *frame) {
+	osMessageQueueGet(in_q, frame, NULL, osWaitForever);
+}
+
+void od_push_to_in_q(od_frame_t *frame) {
+	osMessageQueuePut(in_q, frame, 0U, 100);
+}
+
+void od_pop_from_out_q(od_frame_t *frame) {
+	osMessageQueueGet(out_q, frame, NULL, osWaitForever);
+}
+
 /**
  * Read/write interface
  */
@@ -162,7 +179,7 @@ static void od_unsafe_write(uint8_t data_id, uint8_t *src) {
     to_send.size = od_entries[data_id].size;
     memcpy(to_send.data, src, to_send.size);
 
-    osMessageQueuePut(out_q, &to_send, 0U, osWaitForever);
+    osMessageQueuePut(out_q, &to_send, 0U, 100);
 }
 
 /**

@@ -24,6 +24,8 @@
 #define S2_I2C		hi2c2
 #define S3_I2C		hi2c5
 
+
+
 /**********************
  *	MACROS
  **********************/
@@ -117,6 +119,7 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
 		i2c_interface_context_t * if_ctx = (i2c_interface_context_t *) i2c_interfaces[i]->context;
 		if(if_ctx->i2c == hi2c) {
 			xSemaphoreGiveFromISR(if_ctx->sem, &xHigherPriorityTaskWoken);
+			if_ctx->error = ER_SUCCESS;
 		}
 	}
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
@@ -128,10 +131,13 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c) {
 		i2c_interface_context_t * if_ctx = (i2c_interface_context_t *) i2c_interfaces[i]->context;
 		if(if_ctx->i2c == hi2c) {
 			xSemaphoreGiveFromISR(if_ctx->sem, &xHigherPriorityTaskWoken);
+			if_ctx->error = ER_SUCCESS;
 		}
 	}
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
+
+
 
 /**
  * @brief I2C send
@@ -144,8 +150,8 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c) {
 util_error_t i2c_send(void * context, uint8_t * data, uint32_t len) {
 	i2c_interface_context_t * ctx = (i2c_interface_context_t *) context;
 	HAL_I2C_Master_Transmit_IT(ctx->i2c, data[0], &(data[1]), len-1);
-	if( xSemaphoreTake(ctx->sem, osWaitForever) == pdTRUE ) {
-		return ER_SUCCESS;
+	if( xSemaphoreTake(ctx->sem, I2C_TIMEOUT) == pdTRUE ) {
+		return ctx->error;
 	} else {
 		return ER_TIMEOUT;
 	}
@@ -165,8 +171,8 @@ util_error_t i2c_send(void * context, uint8_t * data, uint32_t len) {
 util_error_t i2c_recv(void * context, uint8_t * data, uint32_t * len) {
 	i2c_interface_context_t * ctx = (i2c_interface_context_t *) context;
 	HAL_I2C_Master_Receive_IT(ctx->i2c, data[0], &(data[1]), (*len)-1);
-	if( xSemaphoreTake(ctx->sem, osWaitForever) == pdTRUE ) {
-		return ER_SUCCESS;
+	if( xSemaphoreTake(ctx->sem, I2C_TIMEOUT) == pdTRUE ) {
+		return ctx->error;
 	} else {
 		return ER_TIMEOUT;
 	}

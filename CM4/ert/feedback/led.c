@@ -14,6 +14,7 @@
 #include <main.h>
 #include <tim.h>
 #include <cmsis_os.h>
+#include <abstraction/gpio.h>
 
 /**********************
  *	CONFIGURATION
@@ -29,6 +30,9 @@
  **********************/
 
 #define LED_MAX			(0xff)
+
+
+#define LED_MAX_CHECKPOINTS 32
 
 
 
@@ -77,8 +81,17 @@ void led_feedback_init(void) {
 	GPIO_InitStructure.Pin = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3;
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_RESET);
 
+}
+
+
+void led_set(uint8_t num) {
+	gpio_set(GPIOA, 1<<num);
+}
+
+void led_clear(uint8_t num) {
+	gpio_clr(GPIOA, 1<<num);
 }
 
 /**
@@ -139,21 +152,74 @@ void led_rgb_set_color(led_color_t color) {
 }
 
 
+/*
+ * Thread checker system
+ */
+
+
+typedef struct led_checkpoint {
+	led_color_t color;
+	uint8_t check;
+}led_checkpoint_t;
+
+
+
+static led_checkpoint_t checkpoints[LED_MAX_CHECKPOINTS];
+
+static uint16_t checkpoint_count = 0;
+
+
+
+uint16_t led_add_checkpoint(led_color_t color) {
+	if(checkpoint_count < LED_MAX_CHECKPOINTS) {
+		checkpoints[checkpoint_count].color = color;
+		checkpoints[checkpoint_count].check = 1;
+		uint16_t tmp = checkpoint_count;
+		checkpoint_count++;
+		return tmp;
+	}
+
+	return LED_MAX_CHECKPOINTS;
+}
+
+
+void led_checkpoint(uint16_t point) {
+	if(point < checkpoint_count) {
+		checkpoints[point].check = 1;
+	}
+}
+
+
+//TODO: A REVOIR AVEC UN VRAI SYSTEME
 void led_rgb_thread(__attribute__((unused)) void * arg) {
-	static TickType_t last_wake_time;
-	static TickType_t period = pdMS_TO_TICKS(500);
 
 	led_rgb_init();
 
 	led_rgb_set_color(led_blue);
 
-	last_wake_time = xTaskGetTickCount();
+	uint16_t base = led_add_checkpoint(led_white);
+
+	static uint16_t counter = 0;
 
 	for(;;) {
-
-		led_rgb_set_color(led_blue);
-
-		vTaskDelayUntil( &last_wake_time, period );
+		led_clear(3);
+		led_checkpoint(base);
+		while(1) {
+			if(!(counter < checkpoint_count)) {
+				counter = 0;
+			}
+			if(checkpoints[counter].check) {
+				led_rgb_set_color(checkpoints[counter].color);
+				checkpoints[counter].check = 0;
+				counter++;
+				break;
+			} else {
+				counter++;
+			}
+		}
+		osDelay(500);
+		led_rgb_set_color(led_black);
+		osDelay(500);
 	}
 }
 

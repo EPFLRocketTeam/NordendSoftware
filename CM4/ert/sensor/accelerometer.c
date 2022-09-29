@@ -70,7 +70,9 @@
  **********************/
 
 util_error_t accelerometer_calibrate(device_t * acc, accelerometer_data_t * data) {
-
+	UNUSED(acc);
+	UNUSED(data);
+	return ER_RESSOURCE_ERROR;
 }
 
 void accelerometer_process_data(accelerometer_data_t * data, uint16_t range) {

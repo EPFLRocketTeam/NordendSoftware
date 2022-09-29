@@ -16,6 +16,8 @@ Cortex-M4 coprocessor.
 
 ![complete diagram](img/av_complete.drawio.svg)
 
+This is a complete functionnal diagram of the Wildhorn avionics software. 
+
 
 
 ### Applications

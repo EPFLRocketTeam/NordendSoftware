@@ -1,9 +1,12 @@
-/*  Title		: Generic device driver
- *  Filename	: device.c
- *	Author		: iacopo sprenger
- *	Date		: 20.03.2022
- *	Version		: 0.1
- *	Description	: 
+/**
+ * @file 		device.c
+ * @brief 		Generic device driver
+ *
+ * @date 		20.03.2022
+ * @author 		Iacopo Sprenger
+ *
+ * @defgroup 	device Device
+ * @{
  */
 
 /**********************
@@ -113,11 +116,17 @@ util_error_t device_interface_create(   device_interface_t * interface,
     interface->recv = recv;
     interface->handle_data = handle_data;
     interface->id = count++;
-    if(daemon && handle_data) {
+    if(daemon) {
     	daemon->interfaces[daemon->interfaces_count] = interface;
     	daemon->interfaces_count++;
     }
     return ER_SUCCESS;
+}
+
+util_error_t device_interface_register_handle_data(	device_interface_t * interface,
+													util_error_t (*handle_data)(void*, void*)) {
+	interface->handle_data = handle_data;
+	return ER_SUCCESS;
 }
 
 /**
@@ -170,7 +179,9 @@ void device_deamon_thread(void * arg)
 			//iterate over all interfaces in deamon
 			for(uint16_t i = 0; i < deamon->interfaces_count; i++) {
 				device_interface_t * interface = deamon->interfaces[i];
-				interface->handle_data(interface->context, deamon->context);
+				if(interface->handle_data) {
+					interface->handle_data(interface->context, deamon->context);
+				}
 			}
 		}
 	}
@@ -409,11 +420,13 @@ util_error_t device_read_u8(device_t * dev, uint32_t addr, uint8_t* data)
 }
 
 util_error_t device_read(device_t * dev, uint32_t addr, uint8_t* data, uint32_t len) {
-	dev->read_reg(dev->context, dev->interface, addr, data, len);
+	return dev->read_reg(dev->context, dev->interface, addr, data, len);
 }
 
 util_error_t device_write(device_t * dev, uint32_t addr, uint8_t* data, uint32_t len) {
-	dev->write_reg(dev->context, dev->interface, addr, data, len);
+	return dev->write_reg(dev->context, dev->interface, addr, data, len);
+
 }
 
+/** @} */
 /* END */

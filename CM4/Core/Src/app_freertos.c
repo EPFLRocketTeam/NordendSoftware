@@ -19,7 +19,6 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
-#include <init.h>
 #include "FreeRTOS.h"
 #include "task.h"
 #include "main.h"
@@ -28,6 +27,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+#include "init.h"
 
 /* USER CODE END Includes */
 
@@ -99,6 +99,8 @@ __weak unsigned long getRunTimeCounterValue(void)
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
 
+	init();
+
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -125,7 +127,6 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_THREADS */
 #endif
   /* add threads, ... */
-  init();
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */

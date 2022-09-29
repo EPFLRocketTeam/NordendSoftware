@@ -42,7 +42,17 @@
  **********************/
 
 
-//declare data types here ???
+typedef struct {
+    uint8_t data_id;
+    uint8_t size;
+    uint8_t *data;
+} od_entry_t;
+
+typedef struct {
+    uint8_t data_id;
+    uint8_t size;
+    uint8_t data[OD_FRAME_MAX_SIZE];
+} od_frame_t;
 
 
 /**********************
@@ -60,6 +70,12 @@ extern "C"{
 
 void od_init();
 void od_update_task(void *argument);
+
+void od_handle_can_frame(uint8_t src, od_frame_t *frame);
+void od_push_to_out_q(od_frame_t *frame);
+void od_pop_from_in_q(od_frame_t *frame);
+void od_push_to_in_q(od_frame_t *frame);
+void od_pop_from_out_q(od_frame_t *frame);
 
 DECLARE_OD_ENTRY(ACC_I2C_A, accelerometer_data_t);
 DECLARE_OD_ENTRY(ACC_SPI_A, accelerometer_data_t);

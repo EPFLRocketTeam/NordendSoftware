@@ -1,9 +1,12 @@
-/*  Title		: miaou
- *  Filename	: miaou.c
- *	Author		: iacopo sprenger
- *	Date		: 13.08.2021
- *	Version		: 0.1
- *	Description	: Communication with the Miaou Radio modem
+/**
+ * @file 		miaou.c
+ * @brief 		Communication with the Miaou Radio modem
+ *
+ * @date 		13.08.2021
+ * @author 		Iacopo Sprenger
+ *
+ * @defgroup 	miaou Miaou
+ * @{
  */
 
 /**********************
@@ -19,6 +22,8 @@
 #include <sensor/gnss.h>
 #include <driver/serial.h>
 #include <device/device.h>
+#include <feedback/led.h>
+#include <feedback/debug.h>
 
 /**********************
  *	CONSTANTS
@@ -57,6 +62,9 @@ static radio_packet_t miaou_packet;
 
 
 void miaou_handler(uint8_t opcode, uint16_t len, uint8_t * data) {
+	UNUSED(opcode);
+	UNUSED(len);
+	UNUSED(data);
 
 }
 
@@ -66,15 +74,17 @@ void miaou_thread(__attribute__((unused)) void * arg) {
 	static const TickType_t period = pdMS_TO_TICKS(MIAOU_HEART_BEAT);
 	last_wake_time = xTaskGetTickCount();
 
-	device_interface_t * miaou_interface = serial_get_s3_interface();
+	device_interface_t * miaou_interface = serial_get_s1_interface();
 
 	comunicator_init(&miaou_comunicator, miaou_interface, miaou_handler);
 
-
+	uint16_t checkpoint = led_add_checkpoint(led_orange);
 
 	for(;;) {
 
-		miaou_packet.preamble = 0xAE;
+		led_checkpoint(checkpoint);
+
+		miaou_packet.preamble = 'I';
 
 		accelerometer_data_t acc_data;
 		od_read_ACC_I2C_A(&acc_data);
@@ -87,14 +97,16 @@ void miaou_thread(__attribute__((unused)) void * arg) {
 
 		gnss_data_t gnss_data;
 		od_read_GNSS(&gnss_data);
-		miaou_packet.gnss_lat = gnss_data.lat;
-		miaou_packet.gnss_lon = gnss_data.lon;
-		miaou_packet.gnss_alt = gnss_data.alt;
+		miaou_packet.gnss_lat = gnss_data.latitude;
+		miaou_packet.gnss_lon = gnss_data.longitude;
+		miaou_packet.gnss_alt = gnss_data.altitude;
 
 		comunicator_send(	&miaou_comunicator,
 							radio_packet_opcode,
 							radio_packet_size,
 							(uint8_t *) &miaou_packet);
+
+		debug_log("mioau packet sent!\n");
 
 
 		vTaskDelayUntil( &last_wake_time, period );
@@ -105,6 +117,6 @@ void miaou_thread(__attribute__((unused)) void * arg) {
 
 
 
-
+/** @} */
 
 /* END */

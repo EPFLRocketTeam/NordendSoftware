@@ -58,7 +58,7 @@ static i2c_sensor_context_t i2c_gyroscope_device_context = {
 };
 
 static i2c_sensor_context_t i2c_barometer_device_context = {
-		.device_address = 0x18
+		.device_address = 0xee
 };
 
 /**********************
@@ -107,6 +107,7 @@ void HAL_I2C_MemTxCpltCallback(I2C_HandleTypeDef *hi2c) {
 		i2c_interface_context_t * if_ctx = (i2c_interface_context_t *) i2c_interfaces[i]->context;
 		if(if_ctx->i2c == hi2c) {
 			xSemaphoreGiveFromISR(if_ctx->sem, &xHigherPriorityTaskWoken);
+			if_ctx->error = ER_SUCCESS;
 		}
 	}
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
@@ -119,6 +120,20 @@ void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c) {
 		i2c_interface_context_t * if_ctx = (i2c_interface_context_t *) i2c_interfaces[i]->context;
 		if(if_ctx->i2c == hi2c) {
 			xSemaphoreGiveFromISR(if_ctx->sem, &xHigherPriorityTaskWoken);
+			if_ctx->error = ER_SUCCESS;
+		}
+	}
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+
+void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	device_interface_t ** i2c_interfaces = i2c_get_interfaces();
+	for(uint32_t i = 0; i < i2c_get_interfaces_count(); i++) {
+		i2c_interface_context_t * if_ctx = (i2c_interface_context_t *) i2c_interfaces[i]->context;
+		if(if_ctx->i2c == hi2c) {
+			xSemaphoreGiveFromISR(if_ctx->sem, &xHigherPriorityTaskWoken);
+			if_ctx->error = ER_RESSOURCE_ERROR;
 		}
 	}
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
@@ -185,14 +200,12 @@ util_error_t i2c_sensor_write_reg(void* context, device_interface_t * interface,
 util_error_t i2c_sensor_read_reg_HAL(void* context, device_interface_t * interface, uint32_t addr, uint8_t * data, uint32_t len) {
 	i2c_sensor_context_t * ctx = (i2c_sensor_context_t *) context;
 	i2c_interface_context_t * if_ctx = (i2c_interface_context_t *) interface->context;
-	util_error_t error = ER_SUCCESS;
 	HAL_I2C_Mem_Read_IT(if_ctx->i2c, ctx->device_address, addr, sizeof(uint8_t), data, len);
-	if( xSemaphoreTake(if_ctx->sem, 0xffff) == pdTRUE ) {
-		return ER_SUCCESS;
+	if( xSemaphoreTake(if_ctx->sem, I2C_TIMEOUT) == pdTRUE ) {
+		return if_ctx->error;
 	} else {
 		return ER_TIMEOUT;
 	}
-	return error;
 }
 
 /**
@@ -208,14 +221,12 @@ util_error_t i2c_sensor_read_reg_HAL(void* context, device_interface_t * interfa
 util_error_t i2c_sensor_write_reg_HAL(void* context, device_interface_t * interface, uint32_t addr, uint8_t * data, uint32_t len) {
 	i2c_sensor_context_t * ctx = (i2c_sensor_context_t *) context;
 	i2c_interface_context_t * if_ctx = (i2c_interface_context_t *) interface->context;
-	util_error_t error = ER_SUCCESS;
 	HAL_I2C_Mem_Write_IT(if_ctx->i2c, ctx->device_address, addr, sizeof(uint8_t), data, len);
-	if( xSemaphoreTake(if_ctx->sem, 0xffff) == pdTRUE ) {
-		return ER_SUCCESS;
+	if( xSemaphoreTake(if_ctx->sem, I2C_TIMEOUT) == pdTRUE ) {
+		return if_ctx->error;
 	} else {
 		return ER_TIMEOUT;
 	}
-	return error;
 }
 
 

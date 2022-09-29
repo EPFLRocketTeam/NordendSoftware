@@ -199,6 +199,8 @@ void IPCC_channel1_callback(IPCC_HandleTypeDef * hipcc,
 
   /* USER CODE BEGIN PRE_MAILBOX_CHANNEL1_CALLBACK */
 
+	UNUSED(ChannelDir);
+
   /* USER CODE END  PRE_MAILBOX_CHANNEL1_CALLBACK */
 
   if (msg_received_ch1 != MBOX_NO_MSG)
@@ -221,6 +223,8 @@ void IPCC_channel2_callback(IPCC_HandleTypeDef * hipcc,
 {
 
   /* USER CODE BEGIN PRE_MAILBOX_CHANNEL2_CALLBACK */
+
+	UNUSED(ChannelDir);
 
   /* USER CODE END  PRE_MAILBOX_CHANNEL2_CALLBACK */
 

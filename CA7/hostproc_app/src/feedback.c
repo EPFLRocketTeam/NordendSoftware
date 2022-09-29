@@ -17,6 +17,8 @@ void * feedback_entry(void * ptr) {
     //first message for setup
     const char * msg = "hello";
     serial_send(&feedback_device, msg, 6);
+
+    printf("setup feedback channel\n");
     //handle new file creation
     //First check exitance of file -> then increment names until file does not exist
     //maybe use the mkdir and check error code.
@@ -30,11 +32,11 @@ void * feedback_entry(void * ptr) {
             serial_recv(&feedback_device, msg_buffer, &length);
 
             fwrite(msg_buffer, sizeof(char), length, fp);
-
+#ifdef VERBOSE
             fflush(stdout);
             fwrite(msg_buffer, sizeof(char), length, stdout);
             fflush(stdout);
-
+#endif
             free(msg_buffer);
         }
         sleep(1);

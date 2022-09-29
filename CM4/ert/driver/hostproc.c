@@ -98,9 +98,11 @@ static hostproc_interface_context_t hostproc_data_interface_context = {
  */
 static VIRT_UART_HandleTypeDef host_UART3;
 static device_interface_t hostproc_cmd_interface;
+__attribute__((unused))
 static hostproc_interface_context_t hostproc_cmd_interface_context = {
 		.uart = &host_UART3
 };
+
 
 
 static device_interface_t * hostproc_interfaces[] = {
@@ -118,8 +120,6 @@ static uint32_t hostproc_interfaces_count =
 /**********************
  *	PROTOTYPES
  **********************/
-
-void host_UART_RX(VIRT_UART_HandleTypeDef *huart);
 
 util_error_t host_send(void* context, uint8_t* data, uint32_t len);
 util_error_t host_recv(void* context, uint8_t* data, uint32_t* len);
@@ -145,12 +145,6 @@ device_interface_t * hostproc_get_cmd_interface(void) {
 }
 
 
-//DATA HAS ARRIVED from Hostproc
-HAL_IPCC_RxCallback(IPCC_HandleTypeDef *hipcc, uint32_t ChannelIndex, IPCC_CHANNELDirTypeDef ChannelDir) {
-	//handle data arrived -> depending on channel trigger callback or semaphore.
-}
-
-
 
 /**
  * @brief Virtual uart reception callback, called from the rpmsg polling function.
@@ -172,6 +166,10 @@ void host_UART_RX(VIRT_UART_HandleTypeDef *huart) {
 
 util_error_t host_send(void* context, uint8_t* data, uint32_t len) {
 	hostproc_interface_context_t * interface_context = (hostproc_interface_context_t *) context;
+	if(!interface_context->rx_once) {
+		OPENAMP_check_for_message();
+	}
+	//need to check again because rx might have been received in the meantime.
 	if(interface_context->rx_once) {
 		VIRT_UART_Transmit(interface_context->uart, data, len);
 	}
@@ -217,12 +215,27 @@ util_error_t hostproc_init(void) {
 	hostproc_uart_init(&hostproc_feedback_interface, &hostproc_feedback_interface_context);
 	hostproc_uart_init(&hostproc_sync_interface, &hostproc_sync_interface_context);
 	hostproc_uart_init(&hostproc_data_interface, &hostproc_data_interface_context);
-	hostproc_uart_init(&hostproc_cmd_interface, &hostproc_cmd_interface_context);
+	//hostproc_uart_init(&hostproc_cmd_interface, &hostproc_cmd_interface_context);
+
+
+	//hostproc guard
+	//wait for hostprocessor to be alive
+
+
 
 
 	return ER_SUCCESS;
 
 }
+
+
+
+/*
+ *
+ */
+
+
+
 
 
 

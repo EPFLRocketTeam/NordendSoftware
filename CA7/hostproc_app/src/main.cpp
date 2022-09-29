@@ -31,6 +31,9 @@
 int main(void) {
     //spawn feedback thread
 
+	printf("Host Processor App\n");
+	printf("Iacopo Sprenger\n");
+
     pthread_t feedback_thread;
     pthread_t kalman_thread;
 
@@ -43,6 +46,7 @@ int main(void) {
 
     //wait for threads to finish
     pthread_join(feedback_thread, NULL);
+    pthread_join(kalman_thread, NULL);
 
 
 }

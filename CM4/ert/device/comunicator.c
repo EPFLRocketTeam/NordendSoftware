@@ -1,5 +1,5 @@
 /**
- * @file 		comunicator.cpp
+ * @file 		comunicator.c
  * @brief 		serial msv2 communicator
  *
  * @date 		12.08.2022
@@ -72,6 +72,27 @@ util_error_t comunicator_init(	comunicator_t * com,
 	com->cb = cb;
 	com->interface = channel;
 	comunicators[comunicator_count++] = com;
+	//register callback
+
+	return ER_SUCCESS;
+}
+
+util_error_t communicator_handler(device_interface_t * channel, void * _com) {
+	UNUSED(channel);
+	comunicator_t * com = (comunicator_t *) _com;
+	return comunicator_recv(com);
+}
+
+/**
+ * @brief 	initialize communicator device
+ * @detail
+ */
+util_error_t comunicator_init_lone(	comunicator_t * com,
+									device_interface_t * channel,
+									void (*cb)(uint8_t, uint16_t, uint8_t *)) {
+	msv2_init(&com->msv2);
+	com->cb = cb;
+	com->interface = channel;
 	return ER_SUCCESS;
 }
 
@@ -94,7 +115,6 @@ util_error_t comunicator_recv(comunicator_t * com) {
 			return ER_SUCCESS;
 		}
 	}
-
 }
 
 util_error_t comunicator_send(	comunicator_t * com,
@@ -102,30 +122,44 @@ util_error_t comunicator_send(	comunicator_t * com,
 								uint16_t len,
 								uint8_t * data) {
 
-	msv2_create_frame(&com->msv2, opcode, len/2, data);
+	uint16_t bin_len = msv2_create_frame(&com->msv2, opcode, len/2, data);
 	util_error_t error = device_interface_send(	com->interface,
 												com->msv2.tx.data,
-												com->msv2.tx.data_len);
+												bin_len);
 	return error;
+}
+
+
+util_error_t comunicator_handle_data(void* if_ctx, void* dem_ctx) {
+	UNUSED(dem_ctx);
+	for(uint16_t i = 0; i < comunicator_count; i++) {
+		if(comunicators[i]->interface->context == if_ctx) {
+			return comunicator_recv(comunicators[i]);
+		}
+	}
+	return ER_SUCCESS;
 }
 
 /**
  * @brief 	comunicator data handling thread
  * @brief	For now only works with serial -> interrupts data rdy comes
  * 			from the serial driver.
- * 			only one thread -> later maybe one thread per communicator!
+ * 			only one thread -> later maybe one thread per comunicator!
  */
-void comunicator_thread(__attribute__((unused)) void * com) {
 
-		for(;;) {
-			if(serial_data_ready() == ER_SUCCESS) {
-				//iterate over all interfaces in deamon
-				for(uint16_t i = 0; i < comunicator_count; i++) {
-					comunicator_recv(comunicators[i]);
-				}
+/*
+void comunicator_thread(__attribute__((unused)) void * arg) {
+
+	for(;;) {
+		if(serial_data_ready() == ER_SUCCESS) {
+			//iterate over all interfaces in deamon
+			for(uint16_t i = 0; i < comunicator_count; i++) {
+				comunicator_recv(comunicators[i]);
 			}
 		}
 	}
+}
+*/
 
 
 

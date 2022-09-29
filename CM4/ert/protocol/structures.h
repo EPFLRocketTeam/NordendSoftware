@@ -38,16 +38,14 @@ typedef struct transfer_sync {
 
 
 
-typedef enum transfer_data_type {
-    TRANSFER_DATA_ACC,
-    TRANSFER_DATA_BARO,
-    TRANSFER_DATA_GNSS
-}transfer_data_type_t;
+// data transfer opcodes for sync
+#define TRANSFER_DATA_ACC 0x00
+#define TRANSFER_DATA_BARO 0x01
+#define TRANSFER_DATA_GNSS 0x02
 
 //we only send vertical data
 // -> low latency for kalman filter
 typedef struct transfer_data {
-    transfer_data_type_t type;
     int32_t data;
     uint32_t time;
 }transfer_data_t;

@@ -26,17 +26,28 @@
 
 #define WH_TRUE		1
 #define WH_FALSE 	0
-#define A			0
-#define B			1
-
-#define WH_COMPUTER	A
+#define WH_A			0
+#define WH_B			1
 
 
-#define WH_HAS_SENSORS	WH_TRUE
-#define WH_HAS_FEEDBACK WH_TRUE
-#define WH_HAS_RADIO	WH_FALSE
-#define WH_HAS_GNSS		WH_FALSE
-#define WH_HAS_KRTEK	WH_FALSE
+/**
+ * COMPUTER TYPE HERE !!
+ */
+#define WH_COMPUTER	WH_B
+
+#if WH_COMPUTER == WH_A
+	#define WH_HAS_SENSORS	WH_TRUE
+	#define WH_HAS_FEEDBACK WH_FALSE
+	#define WH_HAS_RADIO	WH_TRUE
+	#define WH_HAS_GNSS		WH_FALSE
+	#define WH_HAS_KRTEK	WH_TRUE
+#else
+	#define WH_HAS_SENSORS	WH_TRUE
+	#define WH_HAS_FEEDBACK WH_TRUE
+	#define WH_HAS_RADIO	WH_FALSE
+	#define WH_HAS_GNSS		WH_TRUE
+	#define WH_HAS_KRTEK	WH_FALSE
+#endif
 
 
 #define WH_USE_BUZZER	WH_FALSE
