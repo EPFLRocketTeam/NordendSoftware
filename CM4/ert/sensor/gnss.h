@@ -23,22 +23,22 @@
  **********************/
 
 #define ACCU_SIZE 128
-#define GNSS_GPGGA_TIME 1
-#define GNSS_GPGGA_LATITUDE 2
-#define GNSS_GPGGA_NS 3
-#define GNSS_GPGGA_LONGITUDE 4
-#define GNSS_GPGGA_EW 5
-#define GNSS_GPGGA_HDOP 8
-#define GNSS_GPGGA_ALTITUDE 9
-#define GNSS_GPGGA_ALT_UNIT 10
+#define GNSS_GGA_TIME 1
+#define GNSS_GGA_LATITUDE 2
+#define GNSS_GGA_NS 3
+#define GNSS_GGA_LONGITUDE 4
+#define GNSS_GGA_EW 5
+#define GNSS_GGA_HDOP 8
+#define GNSS_GGA_ALTITUDE 9
+#define GNSS_GGA_ALT_UNIT 10
 #define GNSS_FEET_CONVERSION 0.3048f
 
 
-#define GNSS_GPRMC_TIME 1
-#define GNSS_GPRMC_LATITUDE 3
-#define GNSS_GPRMC_NS 4
-#define GNSS_GPRMC_LONGITUDE 5
-#define GNSS_GPRMC_EW 6
+#define GNSS_RMC_TIME 1
+#define GNSS_RMC_LATITUDE 3
+#define GNSS_RMC_NS 4
+#define GNSS_RMC_LONGITUDE 5
+#define GNSS_RMC_EW 6
 
 /**********************
  *  MACROS
@@ -67,15 +67,10 @@ typedef struct gnss_data {
 }gnss_data_t;
 
 typedef enum gnss_trame_type {
-    GPGGA,
-    GPRMC,
+    GGA,
+    RMC,
     OTHER
 }gnss_trame_type_t;
-
-typedef enum gnss_return {
-	GNSS_PROGRESS = 0,
-	GNSS_SUCCESS = 1
-}gnss_return_t;
 
 typedef struct gnss_context {
     gnss_trame_type_t type;
@@ -83,7 +78,7 @@ typedef struct gnss_context {
     uint16_t accu_count;
     uint16_t word_count;
     gnss_data_t data;
-    gnss_return_t stat;
+    uint8_t done;
 } gnss_context_t;
 
 
@@ -102,9 +97,9 @@ typedef struct gnss_context {
 extern "C"{
 #endif
 
-gnss_return_t gnss_decode_gpgga(gnss_context_t * decoder);
-gnss_return_t gnss_decode_gprmc(gnss_context_t * decoder);
-gnss_return_t gnss_handle_fragment(gnss_context_t * decoder, uint8_t c);
+void gnss_decode_gga(gnss_context_t * decoder);
+void gnss_decode_rmc(gnss_context_t * decoder);
+void gnss_handle_fragment(gnss_context_t * decoder, uint8_t c);
 
 util_error_t gnss_init(void);
 

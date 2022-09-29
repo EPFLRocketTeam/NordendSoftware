@@ -55,122 +55,120 @@ static uint16_t checkpoint;
  *	DECLARATIONS
  **********************/
 
-gnss_return_t gnss_decode_gpgga(gnss_context_t * decoder) {
+void gnss_decode_gga(gnss_context_t * decoder) {
 
     switch (decoder->word_count) {
 
-        case GNSS_GPGGA_LATITUDE:
+        case GNSS_GGA_LATITUDE:
             decoder->data.latitude = strtof((char *) decoder->accumulator, NULL);
             break;
 
-        case GNSS_GPGGA_LONGITUDE:
+        case GNSS_GGA_LONGITUDE:
             decoder->data.longitude = strtof((char *) decoder->accumulator, NULL);
             break;
 
-        case GNSS_GPGGA_NS:
+        case GNSS_GGA_NS:
             if (decoder->accumulator[0] == 'S') {
                 decoder->data.latitude = decoder->data.latitude * (-1);
             }
             break;
 
-        case GNSS_GPGGA_EW:
+        case GNSS_GGA_EW:
             if (decoder->accumulator[0] == 'W') {
                 decoder->data.longitude = decoder->data.longitude * (-1);
             }
             break;
 
-        case GNSS_GPGGA_ALTITUDE:
+        case GNSS_GGA_ALTITUDE:
             decoder->data.altitude = strtof((char *) decoder->accumulator, NULL);
             break;
 
-        case GNSS_GPGGA_ALT_UNIT:
+        case GNSS_GGA_ALT_UNIT:
             if (decoder->accumulator[0] == 'F') {
                 decoder->data.altitude = decoder->data.altitude * GNSS_FEET_CONVERSION;
             }
-            decoder->stat = GNSS_SUCCESS;
+            decoder->done = 1;
             break;
 
-        case GNSS_GPGGA_TIME:
+        case GNSS_GGA_TIME:
             decoder->data.time = strtof((char *) decoder->accumulator, NULL);
             break;
 
-        case GNSS_GPGGA_HDOP:
+        case GNSS_GGA_HDOP:
             decoder->data.hdop = strtof((char *) decoder->accumulator, NULL);
             break;
     }
-    return GNSS_PROGRESS;
 }
 
-gnss_return_t gnss_decode_gprmc(gnss_context_t * decoder) {
+void gnss_decode_rmc(gnss_context_t * decoder) {
 
     switch (decoder->word_count) {
 
-        case GNSS_GPRMC_LATITUDE:
+        case GNSS_RMC_LATITUDE:
         	//debug_log("GNSS: LAT\n");
             decoder->data.latitude = strtof((char *) decoder->accumulator, NULL);
             break;
 
-        case GNSS_GPRMC_LONGITUDE:
+        case GNSS_RMC_LONGITUDE:
         	//debug_log("GNSS: LON\n");
             decoder->data.longitude = strtof((char *) decoder->accumulator, NULL);
             break;
 
-        case GNSS_GPRMC_NS:
+        case GNSS_RMC_NS:
             if (decoder->accumulator[0] == 'S') {
                 decoder->data.latitude = decoder->data.latitude * (-1);
             }
             break;
 
-        case GNSS_GPRMC_EW:
+        case GNSS_RMC_EW:
             if (decoder->accumulator[0] == 'W') {
                 decoder->data.longitude = decoder->data.longitude * (-1);
             }
-            decoder->stat = GNSS_SUCCESS;
+            decoder->done = 1;
             break;
 
-        case GNSS_GPRMC_TIME:
+        case GNSS_RMC_TIME:
             decoder->data.time = strtof((char *) decoder->accumulator, NULL);
             decoder->data.altitude = 0;
             decoder->data.hdop = 0;
             break;
     }
-    return GNSS_PROGRESS;
 }
 
 
-gnss_return_t gnss_handle_fragment(gnss_context_t * decoder, volatile uint8_t c) {
+void gnss_handle_fragment(gnss_context_t * decoder, volatile uint8_t c) {
 
 	//debug_log("gnss handle frag: %c\n", c);
 
     switch (c) {
 
         case '$':
-            decoder->accu_count = 0 ;
-            decoder->word_count = 0 ;
-            decoder->stat = GNSS_PROGRESS;
+            decoder->accu_count = 0;
+            decoder->word_count = 0;
+            decoder->done = 0;
             break;
 
         case ',':
             decoder->accumulator[decoder->accu_count] = '\0';
-            //debug_log("gnss next: %s\n", decoder->accumulator);
             if(decoder->word_count == 0) {
-                if (strcmp((char*)decoder->accumulator, "GPGGA") == 0) {
-                	//debug_log("decoder: GPGGA\n");
-                    decoder->type = GPGGA;
+            	debug_log("gnss next: %s\n", decoder->accumulator);
+                if (strcmp((char*)decoder->accumulator, "GNGGA") == 0) {
+                	debug_log("decoder: GGA\n");
+                    decoder->type = GGA;
                 }
-                else if (strcmp((char*)decoder->accumulator, "GPRMC") == 0) {
-                	//debug_log("decoder: GPRMC\n");
-                    decoder->type = GPRMC;
+                else if (strcmp((char*)decoder->accumulator, "GNRMC") == 0) {
+                	debug_log("decoder: RMC\n");
+                    decoder->type = RMC;
                 } else {
                     decoder->type = OTHER;
                 }
             } else {
                 switch (decoder->type) {
-                    case GPGGA:
-                        gnss_decode_gpgga(decoder);
+                    case GGA:
+                        gnss_decode_gga(decoder);
                         break;
-                    case GPRMC:
-                        gnss_decode_gprmc(decoder);
+                    case RMC:
+                        gnss_decode_rmc(decoder);
                         break;
                     default:
                         break;
@@ -181,13 +179,11 @@ gnss_return_t gnss_handle_fragment(gnss_context_t * decoder, volatile uint8_t c)
             break;
 
         default:
-        	decoder->stat = GNSS_PROGRESS;
             decoder->accumulator[decoder->accu_count] = c;
             decoder->accu_count++;
             break;
     }
     //debug_log("ret from gnss: %d\n", decoder->stat);
-    return decoder->stat;
 }
 
 
@@ -195,7 +191,6 @@ gnss_return_t gnss_handle_fragment(gnss_context_t * decoder, volatile uint8_t c)
 
 util_error_t gnss_handle_data(device_interface_t * gnss_interface, void * context) {
 	UNUSED(context);
-	led_set(0);
 	uint32_t len = 1;
 	util_error_t error;
 	for(;;) {
@@ -207,9 +202,12 @@ util_error_t gnss_handle_data(device_interface_t * gnss_interface, void * contex
 		}
 		if(len == 1) {
 			led_checkpoint(checkpoint);
-			if(gnss_handle_fragment(&gnss_decoder, data) == GNSS_SUCCESS) {
+			gnss_handle_fragment(&gnss_decoder, data);
+			if(gnss_decoder.done) {
+				debug_log("done!\n");
 				debug_log("GNSS: %lu\n", (uint32_t)gnss_decoder.data.altitude);
 				od_write_GNSS(&gnss_decoder.data);
+				gnss_decoder.done = 0;
 			}
 		} else {
 			return ER_SUCCESS;

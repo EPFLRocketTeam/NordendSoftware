@@ -206,7 +206,6 @@ void IPCC_channel1_callback(IPCC_HandleTypeDef * hipcc,
   if (msg_received_ch1 != MBOX_NO_MSG)
     OPENAMP_log_dbg("IPCC_channel1_callback: previous IRQ not treated (status = %d)\r\n", msg_received_ch1);
 
-
   msg_received_ch1 = MBOX_BUF_FREE;
 
   /* Inform A7 that we have received the 'buff free' msg */
@@ -231,7 +230,6 @@ void IPCC_channel2_callback(IPCC_HandleTypeDef * hipcc,
 
   if (msg_received_ch2 != MBOX_NO_MSG)
     OPENAMP_log_dbg("IPCC_channel2_callback: previous IRQ not treated (status = %d)\r\n", msg_received_ch2);
-
 
   msg_received_ch2 = MBOX_NEW_MSG;
 

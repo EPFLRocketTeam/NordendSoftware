@@ -277,7 +277,6 @@ void serial_thread(__attribute__((unused)) void * arg) {
 			for(uint16_t i = 0; i < serial_interfaces_count; i++) {
 				serial_interface_context_t * ctx = (serial_interface_context_t *) serial_interfaces[i]->context;
 				if(ctx->serial_handler) {
-					led_set(3);
 					ctx->serial_handler(serial_interfaces[i], ctx->handler_context);
 				}
 			}

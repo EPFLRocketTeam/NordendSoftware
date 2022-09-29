@@ -114,7 +114,6 @@ int main(void)
   MX_ADC1_Init();
   MX_DAC1_Init();
   MX_FDCAN1_Init();
-  MX_FDCAN2_Init();
   MX_I2C1_Init();
   MX_I2C2_Init();
   MX_I2C5_Init();
