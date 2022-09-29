@@ -65,13 +65,6 @@ static uint16_t checkpoint_tx;
 static uint16_t checkpoint_rx;
 
 
-device_interface_t fdcan2_interface;
-
-can_interface_context_t fdcan2_context = {
-	.fdcan = &hfdcan2,
-	.board_id = 1
-};
-
 static SemaphoreHandle_t can_rx_sem;
 static StaticSemaphore_t can_rx_sem_buffer;
 
