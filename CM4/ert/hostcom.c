@@ -44,6 +44,7 @@
 
 
 static comunicator_t data_com;
+static comunicator_t sync_com;
 
 
 /**********************
@@ -93,6 +94,13 @@ void hostcom_handle_data(uint8_t opcode, uint16_t len, uint8_t * data) {
 	//handle kalman inbound data!!
 }
 
+void hostcom_handle_sync(uint8_t opcode, uint16_t len, uint8_t * data) {
+	UNUSED(opcode);
+	UNUSED(len);
+	UNUSED(data);
+	//handle sync inbound data!!
+}
+
 
 
 /**
@@ -110,11 +118,13 @@ void hostcom_thread(__attribute__((unused)) void * arg) {
 
 
 	comunicator_init_lone(&data_com, hostproc_get_data_interface(), hostcom_handle_data);
+	comunicator_init_lone(&sync_com, hostproc_get_sync_interface(), hostcom_handle_sync);
 
 
 	for(;;) {
 
 		comunicator_recv(&data_com);
+		comunicator_recv(&sync_com);
 
 		//send and receive sync frames
 

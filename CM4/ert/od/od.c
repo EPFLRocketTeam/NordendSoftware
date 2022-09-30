@@ -198,6 +198,9 @@ void od_update_task(__attribute__((unused)) void *argument) {
 #endif
 
 
+        //send data to the main proc HERE
+
+
         // Update field atomically
         int32_t lock = osKernelLock();
 

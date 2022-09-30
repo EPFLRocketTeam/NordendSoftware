@@ -159,6 +159,26 @@
 &pinctrl {
 	u-boot,dm-pre-reloc;
 
+	fdcan2_pins_mx: fdcan2_mx-0 {
+		pins1 {
+			pinmux = <STM32_PINMUX('B', 12, AF9)>; /* FDCAN2_RX */
+			bias-disable;
+		};
+		pins2 {
+			pinmux = <STM32_PINMUX('B', 13, AF9)>; /* FDCAN2_TX */
+			bias-disable;
+			drive-push-pull;
+			slew-rate = <0>;
+		};
+	};
+
+	fdcan2_sleep_pins_mx: fdcan2_sleep_mx-0 {
+		pins {
+			pinmux = <STM32_PINMUX('B', 12, ANALOG)>, /* FDCAN2_RX */
+					 <STM32_PINMUX('B', 13, ANALOG)>; /* FDCAN2_TX */
+		};
+	};
+
 	i2c4_pins_mx: i2c4_mx-0 {
 		u-boot,dm-pre-reloc;
 		pins {
@@ -201,13 +221,6 @@
 		pins {
 			pinmux = <STM32_PINMUX('A', 11, RSVD)>, /* FDCAN1_RX */
 					 <STM32_PINMUX('A', 12, RSVD)>; /* FDCAN1_TX */
-		};
-	};
-
-	m4_fdcan2_pins_mx: m4_fdcan2_mx-0 {
-		pins {
-			pinmux = <STM32_PINMUX('B', 12, RSVD)>, /* FDCAN2_RX */
-					 <STM32_PINMUX('B', 13, RSVD)>; /* FDCAN2_TX */
 		};
 	};
 
@@ -619,6 +632,16 @@
 	/* USER CODE END iwdg2 */
 };
 
+&m_can2{
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&fdcan2_pins_mx>;
+	pinctrl-1 = <&fdcan2_sleep_pins_mx>;
+	status = "okay";
+
+	/* USER CODE BEGIN m_can2 */
+	/* USER CODE END m_can2 */
+};
+
 &m4_adc{
 	pinctrl-names = "default";
 	pinctrl-0 = <&m4_adc_pins_mx>;
@@ -678,15 +701,6 @@
 
 	/* USER CODE BEGIN m4_m_can1 */
 	/* USER CODE END m4_m_can1 */
-};
-
-&m4_m_can2{
-	pinctrl-names = "default";
-	pinctrl-0 = <&m4_fdcan2_pins_mx>;
-	status = "okay";
-
-	/* USER CODE BEGIN m4_m_can2 */
-	/* USER CODE END m4_m_can2 */
 };
 
 &m4_spi1{

@@ -33,7 +33,7 @@
 /**
  * COMPUTER TYPE HERE !!
  */
-#define WH_COMPUTER	WH_B
+#define WH_COMPUTER	WH_A
 
 #if WH_COMPUTER == WH_A
 	#define WH_HAS_SENSORS	WH_TRUE
