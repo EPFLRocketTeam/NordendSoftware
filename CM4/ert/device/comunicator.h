@@ -70,6 +70,8 @@ util_error_t comunicator_send(comunicator_t * com, uint8_t opcode, uint16_t len,
 
 util_error_t comunicator_recv(comunicator_t * com);
 
+util_error_t communicator_handler(device_interface_t * channel, void * _com);
+
 util_error_t comunicator_handle_data(void* if_ctx, void* dem_ctx);
 
 //void comunicator_thread(__attribute__((unused)) void * com);

@@ -78,13 +78,18 @@ void miaou_thread(__attribute__((unused)) void * arg) {
 
 	comunicator_init(&miaou_comunicator, miaou_interface, miaou_handler);
 
+	serial_register_handler(miaou_interface, communicator_handler, &miaou_comunicator);
+
 	uint16_t checkpoint = led_add_checkpoint(led_orange);
+
+	int32_t packet_number = 0;
 
 	for(;;) {
 
 		led_checkpoint(checkpoint);
 
-		miaou_packet.preamble = 'I';
+		miaou_packet.prefix = '*';
+		miaou_packet.suffix = '/';
 
 		accelerometer_data_t acc_data;
 		od_read_ACC_I2C_A(&acc_data);
@@ -100,6 +105,13 @@ void miaou_thread(__attribute__((unused)) void * arg) {
 		miaou_packet.gnss_lat = gnss_data.latitude;
 		miaou_packet.gnss_lon = gnss_data.longitude;
 		miaou_packet.gnss_alt = gnss_data.altitude;
+
+		transfer_data_res_t kalman_data;
+		od_read_KALMAN_DATA_A(&kalman_data);
+		miaou_packet.kalman_z = kalman_data.alt;
+		miaou_packet.kalman_v = kalman_data.vel;
+
+		miaou_packet.packet_nbr = packet_number++;
 
 		comunicator_send(	&miaou_comunicator,
 							radio_packet_opcode,

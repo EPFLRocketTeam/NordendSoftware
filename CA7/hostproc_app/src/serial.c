@@ -72,6 +72,7 @@ void comunicator_recv(comunicator_t * com) {
 				com->cb(com->msv2.rx.opcode, com->msv2.rx.data_len*2, com->msv2.rx.data);
 			}
 		}
+		usleep(1000);
 	}
 }
 

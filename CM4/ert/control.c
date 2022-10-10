@@ -17,6 +17,10 @@
 #include <gpio.h>
 #include <usart.h>
 
+#include <adc.h>
+
+#include <od/od.h>
+
 
 #include <cmsis_os.h>
 
@@ -188,11 +192,34 @@ void control_thread(__attribute__((unused)) void * arg) {
 
 	for(;;) {
 
+		//read battery
+		HAL_ADC_Start(&hadc1);
+
+		HAL_ADC_PollForConversion(&hadc1, 10);
+
+		uint32_t bat1 = HAL_ADC_GetValue(&hadc1);
+
+		//convert to millivolt
+
+		od_write_BATTERY_A(&bat1);
+
+		HAL_ADC_Start(&hadc1);
+
+		HAL_ADC_PollForConversion(&hadc1, 10);
+
+		uint32_t bat2 = HAL_ADC_GetValue(&hadc1);
+
+		//convert to millivolt
+
+		od_write_BATTERY_A(&bat2);
+
+
+
 
 
 
 		led_checkpoint(checkpoint);
-		debug_log("Control loop | state: %d\n", control.state);
+		//debug_log("Control loop | state: %d\n", control.state);
 
 
         control_fcn[control.state]();

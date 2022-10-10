@@ -14,3 +14,9 @@ echo -n $FW_NAME > /sys/class/remoteproc/remoteproc0/firmware
 
 # start remoteproc
 echo -n start > /sys/class/remoteproc/remoteproc0/state
+
+sleep 1
+
+/home/root/hostproc_app &
+
+

@@ -21,6 +21,7 @@
 #include <od/od.h>
 #include <feedback/debug.h>
 #include <feedback/led.h>
+#include <hostcom.h>
 
 /**********************
  *	CONSTANTS
@@ -151,13 +152,13 @@ void gnss_handle_fragment(gnss_context_t * decoder, volatile uint8_t c) {
         case ',':
             decoder->accumulator[decoder->accu_count] = '\0';
             if(decoder->word_count == 0) {
-            	debug_log("gnss next: %s\n", decoder->accumulator);
+            	//debug_log("gnss next: %s\n", decoder->accumulator);
                 if (strcmp((char*)decoder->accumulator, "GNGGA") == 0) {
-                	debug_log("decoder: GGA\n");
+                	//debug_log("decoder: GGA\n");
                     decoder->type = GGA;
                 }
                 else if (strcmp((char*)decoder->accumulator, "GNRMC") == 0) {
-                	debug_log("decoder: RMC\n");
+                	//debug_log("decoder: RMC\n");
                     decoder->type = RMC;
                 } else {
                     decoder->type = OTHER;
@@ -205,7 +206,11 @@ util_error_t gnss_handle_data(device_interface_t * gnss_interface, void * contex
 			gnss_handle_fragment(&gnss_decoder, data);
 			if(gnss_decoder.done) {
 				debug_log("done!\n");
-				debug_log("GNSS: %lu\n", (uint32_t)gnss_decoder.data.altitude);
+				debug_log("GNSS: %lu | %f, %f\n", (uint32_t)gnss_decoder.data.altitude,
+							gnss_decoder.data.latitude, gnss_decoder.data.longitude);
+				if(gnss_decoder.data.altitude != 0) {
+					hostcom_data_gnss_send(HAL_GetTick(), (int32_t)gnss_decoder.data.altitude);
+				}
 				od_write_GNSS(&gnss_decoder.data);
 				gnss_decoder.done = 0;
 			}

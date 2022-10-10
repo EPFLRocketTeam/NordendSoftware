@@ -13,6 +13,11 @@
 #include "od.h"
 #include <cmsis_os2.h>
 #include <FreeRTOS.h>
+#include <device/comunicator.h>
+#include <hostcom.h>
+#include <driver/serial.h>
+#include <feedback/debug.h>
+#include <protocol/structures.h>
 
 #include <string.h>
 #include <assert.h>
@@ -73,9 +78,11 @@ ALLOCATE_OD_ENTRY(BARO_I2C_A, 8, barometer_data_t);
 ALLOCATE_OD_ENTRY(BARO_SPI_A, 9, barometer_data_t);
 ALLOCATE_OD_ENTRY(BARO_I2C_B, 10, barometer_data_t);
 ALLOCATE_OD_ENTRY(BARO_SPI_B, 11, barometer_data_t);
-ALLOCATE_OD_ENTRY(GNSS, 12, gnss_data_t);
-ALLOCATE_OD_ENTRY(BATTERY_A, 13, uint32_t);
-ALLOCATE_OD_ENTRY(BATTERY_B, 14, uint32_t);
+ALLOCATE_OD_ENTRY(KALMAN_DATA_A, 12, transfer_data_res_t);
+ALLOCATE_OD_ENTRY(KALMAN_DATA_B, 13, transfer_data_res_t);
+ALLOCATE_OD_ENTRY(GNSS, 14, gnss_data_t);
+ALLOCATE_OD_ENTRY(BATTERY_A, 15, uint32_t);
+ALLOCATE_OD_ENTRY(BATTERY_B, 16, uint32_t);
 
 
 /**
@@ -94,6 +101,8 @@ static const od_entry_t od_entries[OD_MAX_DATAID] = {
 	LINK_OD_ENTRY(BARO_SPI_A),
 	LINK_OD_ENTRY(BARO_I2C_B),
 	LINK_OD_ENTRY(BARO_SPI_B),
+	LINK_OD_ENTRY(KALMAN_DATA_A),
+	LINK_OD_ENTRY(KALMAN_DATA_B),
 	LINK_OD_ENTRY(GNSS),
 	LINK_OD_ENTRY(BATTERY_A),
 	LINK_OD_ENTRY(BATTERY_B)
@@ -102,12 +111,17 @@ static const od_entry_t od_entries[OD_MAX_DATAID] = {
 /**
  * Synchronization primitives
  */
-osMessageQueueId_t out_q;
-osMessageQueueId_t in_q;
+static osMessageQueueId_t out_q;
+static osMessageQueueId_t in_q;
+
+
+static comunicator_t od_can_comunicator;
+static comunicator_t * od_hostcom_comunicator;
 
 /**********************
  *	DECLARATIONS
  **********************/
+
 
 
 
@@ -135,8 +149,33 @@ void od_init() {
 			.mq_size = sizeof(in_mem)
 	};
 	in_q = osMessageQueueNew(OD_MSGQ_SIZE, sizeof(od_frame_t), &in_attr);
+
+	comunicator_init(&od_can_comunicator, serial_get_s3_interface(), od_sync_handler);
+	serial_register_handler(serial_get_s3_interface(), communicator_handler, &od_can_comunicator);
+
 }
 
+
+void od_sync_handler(uint8_t opcode, uint16_t len, uint8_t * data) {
+
+	debug_log("received: %d\n", opcode);
+
+	if(opcode <= BATTERY_B) { //check against last entry to see validity
+		//valid data
+		if(len == od_entries[opcode].size) {
+			debug_log("processed: %d\n", opcode);
+			int32_t lock = osKernelLock();
+			od_frame_t inbound;
+			inbound.data_id = od_entries[opcode].data_id;
+			inbound.size = od_entries[opcode].size;
+			memcpy(inbound.data, data, inbound.size);
+			osKernelRestoreLock(lock);
+
+			osMessageQueuePut(in_q, &inbound, 0U, 100);
+
+		}
+	}
+}
 
 
 void od_handle_can_frame(uint8_t src, od_frame_t *frame) {
@@ -198,7 +237,7 @@ void od_update_task(__attribute__((unused)) void *argument) {
 #endif
 
 
-        //send data to the main proc HERE
+        debug_log("added to OD: %d\n", to_receive.data_id);
 
 
         // Update field atomically
@@ -209,6 +248,33 @@ void od_update_task(__attribute__((unused)) void *argument) {
 
         osKernelRestoreLock(lock);
     }
+}
+
+
+
+
+void od_broadcast_task(__attribute__((unused)) void *argument) {
+
+	od_hostcom_comunicator = hostcom_get_sync_comunicator();
+
+	while(1) {
+		od_frame_t to_send;
+
+		od_pop_from_out_q(&to_send);
+		//also store the data locally
+		od_push_to_in_q(&to_send);
+
+		debug_log("sending_frame: %d\n", to_send.data_id);
+
+		//TODO: comunicator data could be generated only once!!
+
+		comunicator_send(od_hostcom_comunicator, to_send.data_id, to_send.size, to_send.data);
+		comunicator_send(&od_can_comunicator, to_send.data_id, to_send.size, to_send.data);
+
+		debug_log("frame sent!: %d\n", to_send.data_id);
+
+
+	}
 }
 
 /* END */

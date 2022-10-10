@@ -17,6 +17,8 @@
 #include <device/device.h>
 #include <driver/hostproc.h>
 #include <device/comunicator.h>
+#include <od/od.h>
+#include <wildhorn.h>
 
 /**********************
  *	CONSTANTS
@@ -87,18 +89,33 @@ void hostcom_data_gnss_send(uint32_t timestamp, int32_t alt) {
 }
 
 
-void hostcom_handle_data(uint8_t opcode, uint16_t len, uint8_t * data) {
-	UNUSED(opcode);
-	UNUSED(len);
-	UNUSED(data);
+void hostcom_handle_data(uint8_t opcode, uint16_t len, uint8_t * _data) {
+	if(opcode == TRANSFER_DATA_RES) {
+		if(len == sizeof(transfer_data_res_t)) {
+			transfer_data_res_t data;
+			memcpy(&data, _data, sizeof(transfer_data_res_t));
+#if WH_COMPUTER == WH_A
+			od_write_KALMAN_DATA_A(&data);
+#else
+			od_write_KALMAN_DATA_A(&data);
+#endif
+		}
+	}
 	//handle kalman inbound data!!
 }
+
+
 
 void hostcom_handle_sync(uint8_t opcode, uint16_t len, uint8_t * data) {
 	UNUSED(opcode);
 	UNUSED(len);
 	UNUSED(data);
 	//handle sync inbound data!!
+}
+
+
+comunicator_t * hostcom_get_sync_comunicator() {
+	return &sync_com;
 }
 
 
@@ -118,7 +135,7 @@ void hostcom_thread(__attribute__((unused)) void * arg) {
 
 
 	comunicator_init_lone(&data_com, hostproc_get_data_interface(), hostcom_handle_data);
-	comunicator_init_lone(&sync_com, hostproc_get_sync_interface(), hostcom_handle_sync);
+	comunicator_init_lone(&sync_com, hostproc_get_sync_interface(), od_sync_handler);
 
 
 	for(;;) {
