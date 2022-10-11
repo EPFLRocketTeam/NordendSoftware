@@ -15,6 +15,7 @@
 typedef struct accelerometer_data {
 	int16_t raw[ACC_AXIS_COUNT];
 	int16_t	processed[ACC_AXIS_COUNT];
+	uint32_t timestamp;
 }accelerometer_data_t;
 
 #define GYRO_AXIS_COUNT 3
@@ -22,37 +23,42 @@ typedef struct accelerometer_data {
 typedef struct gyroscope_data {
 	int16_t raw[GYRO_AXIS_COUNT];
 	int16_t	processed[GYRO_AXIS_COUNT];
+	uint32_t timestamp;
 }gyroscope_data_t;
 
 typedef struct barometer_data {
 	int32_t pressure;
 	int32_t temperature;
 	int32_t altitude;
+	uint32_t timestamp;
 }barometer_data_t;
 
 typedef struct gnss_data {
     float longitude;
     float latitude;
     float altitude;
+    float speed;
     float time;
     float hdop;
 }gnss_data_t;
 
-#define ACC_I2C_A 	0 // accelerometer_data_t
-#define ACC_SPI_A	1 // accelerometer_data_t
-#define ACC_I2C_B	2 // accelerometer_data_t
-#define ACC_SPI_B	3 // accelerometer_data_t
-#define GYRO_I2C_A	4 // gyroscope_data_t
-#define GYRO_SPI_A	5 // gyroscope_data_t
-#define GYRO_I2C_B	6 // gyroscope_data_t
-#define GYRO_SPI_B	7 // gyroscope_data_t
-#define BARO_I2C_A	8 // barometer_data_t
-#define BARO_SPI_A	9 // barometer_data_t
-#define BARO_I2C_B	10// barometer_data_t
-#define BARO_SPI_B	11// barometer_data_t
-#define GNSS 		12// gnss_data_t
-#define BATTERY_A	13// uint32_t
-#define BATTERY_B	14// uint32_t
+#define ACC_I2C_A 	0       // accelerometer_data_t
+#define ACC_SPI_A	1       // accelerometer_data_t
+#define ACC_I2C_B	2       // accelerometer_data_t
+#define ACC_SPI_B	3       // accelerometer_data_t
+#define GYRO_I2C_A	4       // gyroscope_data_t
+#define GYRO_SPI_A	5       // gyroscope_data_t
+#define GYRO_I2C_B	6       // gyroscope_data_t
+#define GYRO_SPI_B	7       // gyroscope_data_t
+#define BARO_I2C_A	8       // barometer_data_t
+#define BARO_SPI_A	9 		// barometer_data_t
+#define BARO_I2C_B	10		// barometer_data_t
+#define BARO_SPI_B	11		// barometer_data_t
+#define KALMAN_DATA_A 12	//transfer_data_res_t);
+#define KALMAN_DATA_B 13    //transfer_data_res_t);
+#define GNSS 		14		// gnss_data_t
+#define BATTERY_A	15		// uint32_t
+#define BATTERY_B	16		// uint32_t
 
 
 
@@ -78,7 +84,8 @@ void sync_handle_acc(uint8_t opcode, uint16_t len, uint8_t * _data) {
 				data.raw[2],
 				data.processed[0],
 				data.processed[1],
-				data.processed[2]);
+				data.processed[2],
+				data.timestamp);
 	}
 }
 
@@ -100,7 +107,8 @@ void sync_handle_gyro(uint8_t opcode, uint16_t len, uint8_t * _data) {
 				data.raw[2],
 				data.processed[0],
 				data.processed[1],
-				data.processed[2]);
+				data.processed[2],
+				data.timestamp);
 	}
 }
 
@@ -119,7 +127,8 @@ void sync_handle_baro(uint8_t opcode, uint16_t len, uint8_t * _data) {
 		fprintf(fp, "%d,%d,%d\n",
 				data.temperature,
 				data.pressure,
-				data.altitude);
+				data.altitude,
+				data.timestamp);
 	}
 }
 
@@ -133,6 +142,7 @@ void sync_handle_gnss(uint8_t opcode, uint16_t len, uint8_t * _data) {
 				data.hdop,
 				data.latitude,
 				data.longitude,
+				data.speed,
 				data.time);
 	}
 }
@@ -156,7 +166,7 @@ void sync_handle_bat(uint8_t opcode, uint16_t len, uint8_t * _data) {
 
 void sync_handle_data(uint8_t opcode, uint16_t len, uint8_t * _data) {
 
-	printf("handling: %d | %d\n", opcode, len);
+	//printf("handling: %d | %d\n", opcode, len);
 	switch(opcode) {
 	case	ACC_I2C_A 	:
 	case	ACC_I2C_B	:
@@ -208,7 +218,7 @@ void * sync_entry(void * ptr) {
     static char fname[64];
     static uint16_t num = 0;
     do{
-    	snprintf(fname, 64, "av_sync%d.log", num);
+    	snprintf(fname, 64, "/home/root/av_sync%d.log", num);
     	num++;
     }while((access(fname, F_OK) == 0));
     fp = fopen(fname, "w+");

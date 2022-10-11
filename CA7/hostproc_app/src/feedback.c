@@ -28,7 +28,7 @@ void * feedback_entry(void * ptr) {
     static char fname[64];
     static uint16_t num = 0;
     do{
-    	snprintf(fname, 64, "av_fbak%d.log", num);
+    	snprintf(fname, 64, "/home/root/av_fbak%d.log", num);
     	num++;
     }while((access(fname, F_OK) == 0));
     FILE * fp = fopen(fname, "w+");

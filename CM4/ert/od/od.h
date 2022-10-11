@@ -70,6 +70,7 @@ extern "C"{
 #endif
 
 void od_sync_handler(uint8_t opcode, uint16_t len, uint8_t * data);
+void od_can_handler(uint8_t opcode, uint16_t len, uint8_t * data);
 
 void od_init();
 void od_update_task(void *argument);

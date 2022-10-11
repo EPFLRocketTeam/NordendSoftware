@@ -211,7 +211,7 @@ void control_thread(__attribute__((unused)) void * arg) {
 
 		//convert to millivolt
 
-		od_write_BATTERY_A(&bat2);
+		od_write_BATTERY_B(&bat2);
 
 
 

@@ -150,7 +150,7 @@ void od_init() {
 	};
 	in_q = osMessageQueueNew(OD_MSGQ_SIZE, sizeof(od_frame_t), &in_attr);
 
-	comunicator_init(&od_can_comunicator, serial_get_s3_interface(), od_sync_handler);
+	comunicator_init(&od_can_comunicator, serial_get_s3_interface(), od_can_handler);
 	serial_register_handler(serial_get_s3_interface(), communicator_handler, &od_can_comunicator);
 
 }
@@ -161,6 +161,38 @@ void od_sync_handler(uint8_t opcode, uint16_t len, uint8_t * data) {
 	debug_log("received: %d\n", opcode);
 
 	if(opcode <= BATTERY_B) { //check against last entry to see validity
+		//valid data
+		if(len == od_entries[opcode].size) {
+			debug_log("processed: %d\n", opcode);
+			int32_t lock = osKernelLock();
+			od_frame_t inbound;
+			inbound.data_id = od_entries[opcode].data_id;
+			inbound.size = od_entries[opcode].size;
+			memcpy(inbound.data, data, inbound.size);
+			osKernelRestoreLock(lock);
+
+			osMessageQueuePut(in_q, &inbound, 0U, 100);
+
+		}
+	}
+}
+
+void od_can_handler(uint8_t opcode, uint16_t len, uint8_t * data) {
+
+	debug_log("receivedCAN: %d\n", opcode);
+
+	if(opcode <= BATTERY_B) { //check against last entry to see validity
+
+		if(opcode == GNSS) {
+			gnss_data_t _data;
+			memcpy(&_data, data, sizeof(gnss_data_t));
+			hostcom_data_gnss_send(HAL_GetTick(), (int32_t) _data.altitude);
+			static uint8_t first = 1;
+			if(first) {
+				barometer_set_alt(_data.altitude);
+				first = 0;
+			}
+		}
 		//valid data
 		if(len == od_entries[opcode].size) {
 			debug_log("processed: %d\n", opcode);

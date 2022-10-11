@@ -31,13 +31,13 @@
 #define sigma_z_baro 	10.0f
 #define sigma_z_acc 	25.0f
 
-#define sigma_a		1.0f
-#define sigma_p0	0.01f
+#define sigma_a		5.0f
+#define sigma_p0	0.1f
 #define sigma_k		1e-9f
 
 
 
-#define KALMAN_FRAME "ID;Z;V;A;P0;M;Z0;sZ;sV;sA;sP0;sM;sZ0;TIME"
+#define KALMAN_FRAME "Z;V;A;P0;M;Z0;sZ;sV;sA;sP0;sM;sZ0;TIME"
 
 
 /*
@@ -87,7 +87,7 @@ typedef struct kalman_rocket_state{
 
 void kalman_setup(kalman_rocket_state_t * state) {
 
-    state->X_tilde << 400.0f, 0.0f, 0.0f, 96.2*1000, M/(R*T), 400.0;
+    state->X_tilde << 120.0f, 0.0f, 0.0f, 98210, M/(R*T), 120.0;
 
     state->P_tilde.diagonal() << 25.0, 0.1, 0.1, 25.0, 1e-12, 25.0;
 
@@ -239,12 +239,12 @@ void kalman_handle_data(uint8_t opcode, uint16_t len, uint8_t * _data) {
 				kalman_update_acc(&state, acc);
 				break;
 			case TRANSFER_DATA_BARO:
-				pres = data.data*10.0;  //baro in 0.1Pa
+				pres = data.data*1.0;  //baro in Pa
 				//printf("baro data: %f\n", pres);
 				kalman_update_baro(&state, pres);
 				break;
 			case TRANSFER_DATA_GNSS:
-				alt = data.data/1000.0; //alt in mm
+				alt = data.data; //alt in m
 				//printf("alt data: %f\n", alt);
 				kalman_update_gnss(&state, alt);
 				break;
@@ -253,20 +253,15 @@ void kalman_handle_data(uint8_t opcode, uint16_t len, uint8_t * _data) {
 				break;
 		}
 
-		if(first_time) {
-			state.X_hat(3, 0) = pres;
-			state.X_hat(5, 0) = state.X_hat(0, 0);
-			first_time = 0;
-		}else{
-			kalman_send_data(&com, &state);
-		}
+		kalman_send_data(&com, &state);
 
 		//save data to file
-		fprintf(fp, "%lu;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;lu\n",
-				data_count++, state.X_hat(0, 0), state.X_hat(1, 0), state.X_hat(2, 0),
-				state.X_hat(3, 0), state.X_hat(4, 0), state.X_hat(5, 0),
-				state.P_hat(0, 0), state.P_hat(1, 1), state.P_hat(2, 2),
-				state.P_hat(3, 3), state.P_hat(4, 4), state.P_hat(5, 5), state.last_time);
+		fprintf(fp, "%f;%f;%f;", state.X_hat(0, 0), state.X_hat(1, 0), state.X_hat(2, 0));
+		fprintf(fp, "%f;%f;%f;", state.X_hat(3, 0), state.X_hat(4, 0), state.X_hat(5, 0));
+		fprintf(fp, "%f;%f;%f;", state.P_hat(0, 0), state.P_hat(1, 1), state.P_hat(2, 2));
+		fprintf(fp, "%f;%f;%f;%lu\n", state.P_hat(3, 3), state.P_hat(4, 4), state.P_hat(5, 5), state.last_time);
+
+
 
 
 
@@ -303,10 +298,10 @@ void * kalman_entry(void *) {
     static char fname[64];
 	static uint16_t num = 0;
 	do{
-		snprintf(fname, 64, "av_kal%d.log", num);
+		snprintf(fname, 64, "/home/root/av_kal%d.log", num);
 		num++;
 	}while((access(fname, F_OK) == 0));
-	FILE * fp = fopen(fname, "w+");
+	fp = fopen(fname, "w+");
 
 	fprintf(fp, KALMAN_FRAME"\n");
 

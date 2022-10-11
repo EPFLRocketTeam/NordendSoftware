@@ -46,6 +46,8 @@ typedef enum accelerometer_axis {
 typedef struct accelerometer_data {
 	int16_t raw[ACC_AXIS_COUNT];
 	int16_t	processed[ACC_AXIS_COUNT];
+	uint32_t timestamp;
+
 }accelerometer_data_t;
 
 
