@@ -37,7 +37,7 @@
 
 typedef struct barometer_data {
 	int32_t pressure;
-	int32_t temperature;
+	int16_t temperature;
 	float altitude;
 	uint32_t timestamp;
 }barometer_data_t;

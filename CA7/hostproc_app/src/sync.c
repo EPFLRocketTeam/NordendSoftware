@@ -78,7 +78,7 @@ void sync_handle_acc(uint8_t opcode, uint16_t len, uint8_t * _data) {
 			fprintf(fp, "ACC_I2C_B,");
 			break;
 		}
-		fprintf(fp, "%d,%d,%d,%d,%d,%d\n",
+		fprintf(fp, "%d,%d,%d,%d,%d,%d,%d\n",
 				data.raw[0],
 				data.raw[1],
 				data.raw[2],
@@ -101,7 +101,7 @@ void sync_handle_gyro(uint8_t opcode, uint16_t len, uint8_t * _data) {
 			fprintf(fp, "GYRO_I2C_B,");
 			break;
 		}
-		fprintf(fp, "%d,%d,%d,%d,%d,%d\n",
+		fprintf(fp, "%d,%d,%d,%d,%d,%d,%d\n",
 				data.raw[0],
 				data.raw[1],
 				data.raw[2],
@@ -124,7 +124,7 @@ void sync_handle_baro(uint8_t opcode, uint16_t len, uint8_t * _data) {
 			fprintf(fp, "BARO_I2C_B,");
 			break;
 		}
-		fprintf(fp, "%d,%d,%d\n",
+		fprintf(fp, "%d,%d,%d,%d\n",
 				data.temperature,
 				data.pressure,
 				data.altitude,
@@ -137,7 +137,7 @@ void sync_handle_gnss(uint8_t opcode, uint16_t len, uint8_t * _data) {
 		gnss_data_t data;
 		memcpy(&data, _data, sizeof(gnss_data_t));
 		//gnss_data_t * data = (gnss_data_t *) _data;
-		fprintf(fp, "GNSS,%f,%f,%f,%f,%f\n",
+		fprintf(fp, "GNSS,%f,%f,%f,%f,%f,%f\n",
 				data.altitude,
 				data.hdop,
 				data.latitude,

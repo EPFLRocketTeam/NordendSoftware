@@ -28,16 +28,15 @@
 #define T		298.15f
 
 #define sigma_z_gps		5.0f
-#define sigma_z_baro 	10.0f
+#define sigma_z_baro 	5.0f
 #define sigma_z_acc 	25.0f
 
-#define sigma_a		5.0f
+#define sigma_a		1.0f
 #define sigma_p0	0.1f
 #define sigma_k		1e-9f
 
 
 
-#define KALMAN_FRAME "Z;V;A;P0;M;Z0;sZ;sV;sA;sP0;sM;sZ0;TIME"
 
 
 /*
@@ -85,11 +84,23 @@ typedef struct kalman_rocket_state{
 }kalman_rocket_state_t;
 
 
-void kalman_setup(kalman_rocket_state_t * state) {
 
-    state->X_tilde << 120.0f, 0.0f, 0.0f, 98210, M/(R*T), 120.0;
+#define KALMAN_FRAME "Z;V;A;P0;M;Z0;sZ;sV;sA;sP0;sM;sZ0;TIME"
 
-    state->P_tilde.diagonal() << 25.0, 0.1, 0.1, 25.0, 1e-12, 25.0;
+
+
+static kalman_rocket_state_t state;
+
+static FILE * fp;
+
+static comunicator_t com;
+
+
+void kalman_setup(kalman_rocket_state_t * state, float alt0, float p0) {
+
+    state->X_tilde << alt0, 0.0f, 0.0f, p0, M/(R*T), alt0;
+
+    state->P_tilde.diagonal() << 25.0, 0.25, 0.25, 25.0, 1e-12, 25.0;
 
     state->X_hat << state->X_tilde;
 
@@ -117,7 +128,13 @@ void kalman_setup(kalman_rocket_state_t * state) {
                     0,  0,  1,
                     0,  0,  0;
 
-    state->last_time = 0; //init to first value
+    //state->last_time = 0; //init to first value
+
+	//save data to file
+	fprintf(fp, "%f;%f;%f;", state->X_hat(0, 0), state->X_hat(1, 0), state->X_hat(2, 0));
+	fprintf(fp, "%f;%f;%f;", state->X_hat(3, 0), state->X_hat(4, 0), state->X_hat(5, 0));
+	fprintf(fp, "%f;%f;%f;", state->P_hat(0, 0), state->P_hat(1, 1), state->P_hat(2, 2));
+	fprintf(fp, "%f;%f;%f;%u;%c;0\n", state->P_hat(3, 3), state->P_hat(4, 4), state->P_hat(5, 5), state->last_time, 'S');
 }
 
 //Constant acceleration model
@@ -190,11 +207,6 @@ void kalman_update_acc(kalman_rocket_state_t * state, float a) {
 
 
 
-static kalman_rocket_state_t state;
-
-static FILE * fp;
-
-static comunicator_t com;
 
 
 
@@ -203,7 +215,7 @@ void kalman_send_data(comunicator_t * com, kalman_rocket_state * state) {
 
 
 	transfer_data_res_t data;
-	data.alt = (int32_t) (state->X_hat(0, 0) - state->X_hat(5, 0));
+	data.alt = (int32_t) (state->X_hat(0, 0));
 	data.vel = (int32_t) (state->X_hat(1, 0));
 
 
@@ -214,7 +226,9 @@ void kalman_send_data(comunicator_t * com, kalman_rocket_state * state) {
 
 void kalman_handle_data(uint8_t opcode, uint16_t len, uint8_t * _data) {
 
-	static uint8_t first_time = 1;
+	static uint8_t first_time = 10;
+	static float p0 = 92000.0f;
+	static float alt0 = 120.0f;
 
 	if(len = sizeof(transfer_data_t)) {
 		static uint32_t data_count = 0;
@@ -224,6 +238,7 @@ void kalman_handle_data(uint8_t opcode, uint16_t len, uint8_t * _data) {
 				data.data, opcode, data.time);
 		if(state.last_time == 0) {
 			state.last_time = data.time;
+			kalman_setup(&state, alt0, p0);
 			return;
 		}
 		uint32_t dt = data.time - state.last_time;
@@ -232,21 +247,34 @@ void kalman_handle_data(uint8_t opcode, uint16_t len, uint8_t * _data) {
 		printf("delta time: %f\n", delta_t);
 		kalman_predict(&state, delta_t);
 		float acc, pres, alt;
+		char last_val;
 		switch(opcode) {
 			case TRANSFER_DATA_ACC:
 				acc = data.data / 10000.0; //0.1millig
 				//printf("acc data: %f\n", acc);
-				kalman_update_acc(&state, acc);
+				//kalman_update_acc(&state, acc);
 				break;
 			case TRANSFER_DATA_BARO:
+				last_val = 'B';
 				pres = data.data*1.0;  //baro in Pa
 				//printf("baro data: %f\n", pres);
+				if(first_time) {
+					p0 = pres;
+				}
 				kalman_update_baro(&state, pres);
 				break;
 			case TRANSFER_DATA_GNSS:
+				last_val = 'G';
 				alt = data.data; //alt in m
-				//printf("alt data: %f\n", alt);
-				kalman_update_gnss(&state, alt);
+				if(alt != 0) { //avoid zero alt from RMC packets
+					if(first_time) {
+						alt0 = alt;
+						first_time-=1;
+						kalman_setup(&state, alt0, p0);
+					}
+					//printf("alt data: %f\n", alt);
+					kalman_update_gnss(&state, alt);
+				}
 				break;
 			default:
 				//printf("data error\n");
@@ -259,7 +287,7 @@ void kalman_handle_data(uint8_t opcode, uint16_t len, uint8_t * _data) {
 		fprintf(fp, "%f;%f;%f;", state.X_hat(0, 0), state.X_hat(1, 0), state.X_hat(2, 0));
 		fprintf(fp, "%f;%f;%f;", state.X_hat(3, 0), state.X_hat(4, 0), state.X_hat(5, 0));
 		fprintf(fp, "%f;%f;%f;", state.P_hat(0, 0), state.P_hat(1, 1), state.P_hat(2, 2));
-		fprintf(fp, "%f;%f;%f;%lu\n", state.P_hat(3, 3), state.P_hat(4, 4), state.P_hat(5, 5), state.last_time);
+		fprintf(fp, "%f;%f;%f;%u;%c;%d\n", state.P_hat(3, 3), state.P_hat(4, 4), state.P_hat(5, 5), state.last_time, last_val, data.data);
 
 
 
@@ -287,7 +315,7 @@ void * kalman_entry(void *) {
 
     static transfer_data_t data;
 
-    kalman_setup(&state);
+
     serial_setup(&data_device, "/dev/ttyRPMSG2");
 
     uint8_t msg[] = "start";
@@ -306,6 +334,8 @@ void * kalman_entry(void *) {
 	fprintf(fp, KALMAN_FRAME"\n");
 
     state.last_time = 0;
+
+    //kalman_setup(&state);
 
 
 

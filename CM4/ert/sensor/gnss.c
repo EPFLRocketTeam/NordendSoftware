@@ -23,6 +23,7 @@
 #include <feedback/led.h>
 #include <hostcom.h>
 #include <sensor/barometer.h>
+#include <math.h>
 /**********************
  *	CONSTANTS
  **********************/
@@ -50,6 +51,10 @@
 static gnss_context_t gnss_decoder = {0};
 
 static uint16_t checkpoint;
+
+static float last_alt = 100;
+
+#define WEIRD_THRESH 100
 
 
 /**********************
@@ -230,11 +235,14 @@ util_error_t gnss_handle_data(device_interface_t * gnss_interface, void * contex
 				debug_log("GNSS: %lu | %g, %g\n", (uint32_t)gnss_decoder.data.altitude,
 							gnss_decoder.data.latitude, gnss_decoder.data.longitude);
 				if(gnss_decoder.data.altitude != 0) {
-					hostcom_data_gnss_send(HAL_GetTick(), (int32_t)gnss_decoder.data.altitude);
-					static uint8_t first = 1;
-					if(first) {
-						barometer_set_alt(gnss_decoder.data.altitude);
-						first = 0;
+					if(fabs(gnss_decoder.data.altitude - last_alt) < WEIRD_THRESH) {
+						last_alt = gnss_decoder.data.altitude;
+						hostcom_data_gnss_send(HAL_GetTick(), (int32_t)gnss_decoder.data.altitude);
+						static uint8_t first = 1;
+						if(first) {
+							barometer_set_alt(gnss_decoder.data.altitude);
+							first = 0;
+						}
 					}
 				}
 				od_write_GNSS(&gnss_decoder.data);

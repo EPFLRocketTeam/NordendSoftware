@@ -128,7 +128,7 @@ util_error_t barometer_read(device_t * baro, barometer_meta_t * meta) {
 void barometer_convert(barometer_meta_t * meta, barometer_data_t * data) {
 
 	data->pressure = meta->baro_pressure*10.0;
-	data->temperature = meta->baro_temp/1000;
+	data->temperature = meta->baro_temp / 100.0f;
 	static int32_t pressure1;
 	if(baro_first) {
 		meta->initial_pressure = (float)data->pressure * powf(1.0f - (baro_initial_altitude/44330.0f), -5.2548f);
