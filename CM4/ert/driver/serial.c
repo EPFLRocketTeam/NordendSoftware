@@ -172,6 +172,7 @@ util_error_t serial_init(void)
 	error |= serial_interface_init(&s1_interface, &s1_interface_context);
 
 	//feedback or krtek
+	//**CAN** REPLACEMENT
 	error |= serial_interface_init(&s3_interface, &s3_interface_context);
 
 

@@ -21,7 +21,9 @@
 #include <od/od.h>
 #include <feedback/debug.h>
 #include <feedback/led.h>
-
+#include <hostcom.h>
+#include <sensor/barometer.h>
+#include <math.h>
 /**********************
  *	CONSTANTS
  **********************/
@@ -50,21 +52,42 @@ static gnss_context_t gnss_decoder = {0};
 
 static uint16_t checkpoint;
 
+static float last_alt = 100;
+
+#define WEIRD_THRESH 100
+
 
 /**********************
  *	DECLARATIONS
  **********************/
+
+
+float read_lat(char * string){
+	float min = strtof(string+2, NULL);
+	string[2] = '\0';
+	float deg = strtof(string, NULL);
+
+	return deg + min/60.0f;
+}
+
+float read_lon(char * string){
+	float min = strtof(string+3, NULL);
+	string[3] = '\0';
+	float deg = strtof(string, NULL);
+
+	return deg + min/60.0f;
+}
 
 void gnss_decode_gga(gnss_context_t * decoder) {
 
     switch (decoder->word_count) {
 
         case GNSS_GGA_LATITUDE:
-            decoder->data.latitude = strtof((char *) decoder->accumulator, NULL);
+            decoder->data.latitude = read_lat((char *) decoder->accumulator);
             break;
 
         case GNSS_GGA_LONGITUDE:
-            decoder->data.longitude = strtof((char *) decoder->accumulator, NULL);
+            decoder->data.longitude = read_lon((char *) decoder->accumulator);
             break;
 
         case GNSS_GGA_NS:
@@ -106,12 +129,12 @@ void gnss_decode_rmc(gnss_context_t * decoder) {
 
         case GNSS_RMC_LATITUDE:
         	//debug_log("GNSS: LAT\n");
-            decoder->data.latitude = strtof((char *) decoder->accumulator, NULL);
+            decoder->data.latitude = read_lat((char *) decoder->accumulator);
             break;
 
         case GNSS_RMC_LONGITUDE:
         	//debug_log("GNSS: LON\n");
-            decoder->data.longitude = strtof((char *) decoder->accumulator, NULL);
+            decoder->data.longitude = read_lon((char *) decoder->accumulator);
             break;
 
         case GNSS_RMC_NS:
@@ -119,6 +142,10 @@ void gnss_decode_rmc(gnss_context_t * decoder) {
                 decoder->data.latitude = decoder->data.latitude * (-1);
             }
             break;
+
+        case GNSS_RMC_SPEED:
+               decoder->data.speed = strtof((char *) decoder->accumulator, NULL)*0.514;
+               break;
 
         case GNSS_RMC_EW:
             if (decoder->accumulator[0] == 'W') {
@@ -151,13 +178,13 @@ void gnss_handle_fragment(gnss_context_t * decoder, volatile uint8_t c) {
         case ',':
             decoder->accumulator[decoder->accu_count] = '\0';
             if(decoder->word_count == 0) {
-            	debug_log("gnss next: %s\n", decoder->accumulator);
+            	//debug_log("gnss next: %s\n", decoder->accumulator);
                 if (strcmp((char*)decoder->accumulator, "GNGGA") == 0) {
-                	debug_log("decoder: GGA\n");
+                	//debug_log("decoder: GGA\n");
                     decoder->type = GGA;
                 }
                 else if (strcmp((char*)decoder->accumulator, "GNRMC") == 0) {
-                	debug_log("decoder: RMC\n");
+                	//debug_log("decoder: RMC\n");
                     decoder->type = RMC;
                 } else {
                     decoder->type = OTHER;
@@ -205,7 +232,19 @@ util_error_t gnss_handle_data(device_interface_t * gnss_interface, void * contex
 			gnss_handle_fragment(&gnss_decoder, data);
 			if(gnss_decoder.done) {
 				debug_log("done!\n");
-				debug_log("GNSS: %lu\n", (uint32_t)gnss_decoder.data.altitude);
+				debug_log("GNSS: %lu | %g, %g\n", (uint32_t)gnss_decoder.data.altitude,
+							gnss_decoder.data.latitude, gnss_decoder.data.longitude);
+				if(gnss_decoder.data.altitude != 0) {
+					if(fabs(gnss_decoder.data.altitude - last_alt) < WEIRD_THRESH) {
+						last_alt = gnss_decoder.data.altitude;
+						hostcom_data_gnss_send(HAL_GetTick(), (int32_t)gnss_decoder.data.altitude);
+						static uint8_t first = 1;
+						if(first) {
+							barometer_set_alt(gnss_decoder.data.altitude);
+							first = 0;
+						}
+					}
+				}
 				od_write_GNSS(&gnss_decoder.data);
 				gnss_decoder.done = 0;
 			}

@@ -16,6 +16,7 @@
  **********************/
 
 #include <stdint.h>
+#include <device/comunicator.h>
 
 /**********************
  *  CONSTANTS
@@ -51,6 +52,8 @@ void hostcom_data_acc_send(uint32_t timestamp, int32_t acc);
 void hostcom_data_baro_send(uint32_t timestamp, int32_t pres);
 
 void hostcom_data_gnss_send(uint32_t timestamp, int32_t alt);
+
+comunicator_t * hostcom_get_sync_comunicator();
 
 
 void hostcom_thread(void * arg);

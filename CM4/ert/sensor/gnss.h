@@ -39,6 +39,7 @@
 #define GNSS_RMC_NS 4
 #define GNSS_RMC_LONGITUDE 5
 #define GNSS_RMC_EW 6
+#define GNSS_RMC_SPEED 7
 
 /**********************
  *  MACROS
@@ -62,6 +63,7 @@ typedef struct gnss_data {
     float longitude;
     float latitude;
     float altitude;
+    float speed;
     float time;
     float hdop;
 }gnss_data_t;

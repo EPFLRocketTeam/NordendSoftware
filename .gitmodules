@@ -31,6 +31,3 @@
 [submodule "CM4/doc/doxygen-awesome-css"]
 	path = CM4/doc/doxygen-awesome-css
 	url = https://github.com/jothepro/doxygen-awesome-css.git
-[submodule "RocketOS"]
-	path = RocketOS
-	url = git@github.com:iac26/RocketOS.git

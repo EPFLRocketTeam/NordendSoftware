@@ -38,6 +38,7 @@
 typedef struct gyroscope_data {
 	int16_t raw[GYRO_AXIS_COUNT];
 	int16_t	processed[GYRO_AXIS_COUNT];
+	uint32_t timestamp;
 }gyroscope_data_t;
 
 

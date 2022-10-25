@@ -95,10 +95,12 @@ if [[ -z "$REMOTE_SSH" ]]; then
 		#KERMIT_CONFIG=$KERMIT_CONFIG_FAST
 		#echo "speed up"
 
-		kermit $KERMIT_CONFIG -s patch.py ~/
-		kermit $KERMIT_CONFIG -s patcher.py ~/
-		kermit $KERMIT_CONFIG -s start_fw.sh ~/
-		kermit $KERMIT_CONFIG -s stop_fw.sh ~/
+		#kermit $KERMIT_CONFIG -s patch.py ~/
+		#kermit $KERMIT_CONFIG -s patcher.py ~/
+		#kermit $KERMIT_CONFIG -s start_fw.sh ~/
+		#kermit $KERMIT_CONFIG -s stop_fw.sh ~/
+		kermit $KERMIT_CONFIG -C " remote  kill -9 \$( pidof hostproc_app ), exit"
+		kermit $KERMIT_CONFIG -s ../../CA7/hostproc_app/hostproc_app ~/
 		kermit $KERMIT_CONFIG -s rc.local ~/
 		kermit $KERMIT_CONFIG -C " remote host mv rc.local /etc/rc.local, exit"
 		kermit $KERMIT_CONFIG -C " remote host chmod +x /etc/rc.local, exit"
@@ -176,10 +178,12 @@ else
 	else
 		echo "firmware mismatch, full refresh required"
 
-		scp patch.py $SSH_TARGET:~/
-		scp patcher.py $SSH_TARGET:~/
-		scp start_fw.sh $SSH_TARGET:~/
-		scp stop_fw.sh $SSH_TARGET:~/
+		#scp patch.py $SSH_TARGET:~/
+		#scp patcher.py $SSH_TARGET:~/
+		#scp start_fw.sh $SSH_TARGET:~/
+		#scp stop_fw.sh $SSH_TARGET:~/
+		ssh $SSH_TARGET " kill -9 \$( pidof hostproc_app )"
+		scp ../../CA7/hostproc_app/hostproc_app $SSH_TARGET:~/
 		scp rc.local $SSH_TARGET:/etc/rc.local
 		ssh $SSH_TARGET "chmod +x /etc/rc.local"
 		echo "tools sent"

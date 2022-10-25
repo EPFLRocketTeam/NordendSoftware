@@ -37,8 +37,9 @@
 
 typedef struct barometer_data {
 	int32_t pressure;
-	int32_t temperature;
-	int32_t altitude;
+	int16_t temperature;
+	float altitude;
+	uint32_t timestamp;
 }barometer_data_t;
 
 typedef struct barometer_meta {
@@ -46,10 +47,12 @@ typedef struct barometer_meta {
    uint32_t baro_d1;
    uint32_t baro_d2;
    int32_t baro_dt;
-   int32_t baro_temp;
+   uint32_t baro_temp;
    int64_t baro_offset;
    int64_t baro_sensitivity;
    int32_t baro_pressure;
+   int32_t initial_pressure;
+   float initial_altitude;
 }barometer_meta_t;
 
 
@@ -73,6 +76,7 @@ util_error_t barometer_convert_pres(device_t * baro);
 util_error_t barometer_read_pres(device_t * baro, barometer_meta_t * meta);
 void barometer_convert(barometer_meta_t * meta, barometer_data_t * data);
 util_error_t barometer_init(device_t * baro, barometer_meta_t * meta);
+void barometer_set_alt(float alt);
 
 #ifdef __cplusplus
 } // extern "C"

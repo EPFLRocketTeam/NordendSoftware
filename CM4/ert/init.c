@@ -84,7 +84,8 @@
  *	VARIABLES
  **********************/
 
-static TaskHandle_t od_handle = NULL;
+static TaskHandle_t od_update_handle = NULL;
+static TaskHandle_t od_broadcast_handle = NULL;
 static TaskHandle_t control_handle = NULL;
 static TaskHandle_t led_rgb_handle = NULL;
 static TaskHandle_t sensor_i2c_handle = NULL;
@@ -121,7 +122,8 @@ void init(void) {
 	// initialize object dictionary
 	od_init();
 
-	can_init(WH_COMPUTER);
+	// NOT USED DUE TO BUGS!!!!
+	//can_init(WH_COMPUTER);
 
 #if WH_HAS_FEEDBACK == WH_TRUE
 #if WH_USE_BUZZER == WH_TRUE
@@ -138,24 +140,26 @@ void init(void) {
 #endif
 
 
-	INIT_THREAD_CREATE(od_handle, od, od_update_task, NULL, OD_SZ, OD_PRIO);
+	INIT_THREAD_CREATE(od_update_handle, od_update, od_update_task, NULL, OD_SZ, OD_PRIO);
+
+	INIT_THREAD_CREATE(od_broadcast_handle, od_broadcast, od_broadcast_task, NULL, OD_SZ, OD_PRIO);
 
 	INIT_THREAD_CREATE(led_rgb_handle, led_rgb, led_rgb_thread, NULL, LED_RGB_SZ, LED_RGB_PRIO);
 
 
-#if WH_HAS_KRTEK
+//always start the control thread
 	INIT_THREAD_CREATE(control_handle, control, control_thread, NULL, CONTROL_SZ, CONTROL_PRIO);
-#else
-	UNUSED(control_handle);
-#endif
+
 
 	INIT_THREAD_CREATE(serial_handle, serial, serial_thread, NULL, SERIAL_SZ, SERIAL_PRIO);
 
 	INIT_THREAD_CREATE(hostcom_handle, hostcom, hostcom_thread, NULL, HOSTCOM_SZ, HOSTCOM_PRIO);
 
-	INIT_THREAD_CREATE(can_rx_handle, can_rx, can_receive_thread, NULL, CAN_TX_SZ, CAN_TX_PRIO);
-
-	INIT_THREAD_CREATE(can_tx_handle, can_tx, can_transmit_thread, NULL, CAN_RX_SZ, CAN_RX_PRIO);
+	// NOT USED DUE TO BUGS!!!!
+	//INIT_THREAD_CREATE(can_rx_handle, can_rx, can_receive_thread, NULL, CAN_TX_SZ, CAN_TX_PRIO);
+	UNUSED(can_rx_handle);
+	//INIT_THREAD_CREATE(can_tx_handle, can_tx, can_transmit_thread, NULL, CAN_RX_SZ, CAN_RX_PRIO);
+	UNUSED(can_tx_handle);
 
 #if WH_HAS_RADIO
 	INIT_THREAD_CREATE(miaou_handle, miaou, miaou_thread, NULL, MIAOU_SZ, MIAOU_PRIO);

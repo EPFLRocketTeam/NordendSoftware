@@ -12,6 +12,8 @@
 
 #include <sensor/barometer.h>
 #include <util.h>
+#include <feedback/debug.h>
+#include <math.h>
 
 /**********************
  *	CONSTANTS
@@ -43,6 +45,9 @@
  *	VARIABLES
  **********************/
 
+
+static float baro_initial_altitude = 100.0f;
+static uint8_t baro_first = 100;
 
 
 /**********************
@@ -121,9 +126,25 @@ util_error_t barometer_read(device_t * baro, barometer_meta_t * meta) {
 }
 
 void barometer_convert(barometer_meta_t * meta, barometer_data_t * data) {
-	data->pressure = meta->baro_pressure;
-	data->temperature = meta->baro_temp;
-	//data->altitude = ((t0+21575.0)/100.0)/A*(pow(((float)p)/((float)p0), -A*R/G0) - 1);
+
+	data->pressure = meta->baro_pressure*10.0;
+	data->temperature = meta->baro_temp / 100.0f;
+	static int32_t pressure1;
+	if(baro_first) {
+		meta->initial_pressure = (float)data->pressure * powf(1.0f - (baro_initial_altitude/44330.0f), -5.2548f);
+		baro_first -= 1;
+		pressure1 = data->pressure;
+
+	}
+	debug_log("pressure: %ld / %ld\n", meta->initial_pressure, pressure1);
+	data->altitude = 44330.0f * (1.0f - powf((float)data->pressure / (float)meta->initial_pressure, 0.1903)) - baro_initial_altitude;
+	data->timestamp = HAL_GetTick();
+}
+
+
+void barometer_set_alt(float alt) {
+	baro_first = 1;
+	baro_initial_altitude = alt;
 }
 
 /**
