@@ -32,4 +32,5 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     i2c-tools \
     python3-numpy \
     python3-pyserial \
+    gstreamer \
     "
