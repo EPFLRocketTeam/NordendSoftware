@@ -21,6 +21,7 @@
 #include <sensor/accelerometer.h>
 #include <sensor/gyroscope.h>
 #include <sensor/barometer.h>
+#include <sensor/engine_pressure.h>
 #include <od/od.h>
 #include <driver/hostproc.h>
 #include <hostcom.h>
@@ -52,6 +53,7 @@
 static device_t * i2c_acc;
 static device_t * i2c_gyro;
 static device_t * i2c_baro;
+static device_t * i2c_engine_press;
 
 
 static uint8_t i2c_calib;
@@ -62,6 +64,7 @@ static accelerometer_data_t i2c_acc_data;
 static gyroscope_data_t i2c_gyro_data;
 static barometer_data_t i2c_baro_data;
 static barometer_meta_t i2c_baro_meta;
+static double i2c_engine_press_data;
 
 
 
@@ -93,6 +96,7 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	i2c_acc = i2c_sensor_get_accelerometer();
 	i2c_gyro = i2c_sensor_get_gyroscope();
 	i2c_baro = i2c_sensor_get_barometer();
+	i2c_engine_pressure = i2c_sensor_get_engine_pressure();
 
 
 
@@ -100,6 +104,8 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	util_error_t acc_err = accelerometer_init(i2c_acc);
 	util_error_t gyro_err = gyroscope_init(i2c_gyro);
 	util_error_t baro_err = barometer_init(i2c_baro, &i2c_baro_meta);
+	util_error_t engine_pressure_err = engine_pressure_init(i2c_engine_press);
+
 	uint16_t checkpoint_acc;
 	if(acc_err == ER_SUCCESS) {
 		checkpoint_acc = led_add_checkpoint(led_green);
@@ -169,6 +175,10 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 			}
 
 			//store everything
+
+			if(engine_pressure_err == ER_SUCCESS) {
+				engine_pressure_read(i2c_engine_press, i2c_engine_press_data);
+			}
 
 
 
