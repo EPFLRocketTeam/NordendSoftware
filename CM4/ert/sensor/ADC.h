@@ -35,6 +35,7 @@
  *  TYPEDEFS
  **********************/
 
+typedef uint16_t adc_data_t
 
 /**********************
  *  VARIABLES
@@ -49,8 +50,9 @@
 extern "C"{
 #endif
 
-util_error_t adc_read_data(device_t * acc, accelerometer_data_t * data);
-util_error_t adc_init(device_t * acc);
+util_error_t adc_read_data(device_t * adc, adc_data_t * data);
+util_error_t adc_select_channel(device_t * adc, bool channel);
+util_error_t adc_init(device_t * adc);
 
 #ifdef __cplusplus
 } // extern "C"
