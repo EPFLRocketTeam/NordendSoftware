@@ -77,13 +77,14 @@ static barometer_meta_t i2c_baro_meta;
 
 
 /**
- * @brief 	i2c sensor aqcuisition thread
+ * @brief 	i2c sensor acquisition thread
  * @details	this thread will acquire data from all the sensors connected on the
  * 			i2c bus. The data will then be dispatched for delivery.
  */
 void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	static TickType_t last_wake_time;
 	static const TickType_t period = pdMS_TO_TICKS(I2C_SENSOR_HEART_BEAT);
+	// Barometer delay of 5ms (2 Hz sample rate)
 	static const TickType_t baro_delay = pdMS_TO_TICKS(10);
 	last_wake_time = xTaskGetTickCount();
 
@@ -96,11 +97,12 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 
 
 
-	//init
+	// Initialize each sensor
 	util_error_t acc_err = accelerometer_init(i2c_acc);
 	util_error_t gyro_err = gyroscope_init(i2c_gyro);
 	util_error_t baro_err = barometer_init(i2c_baro, &i2c_baro_meta);
 	uint16_t checkpoint_acc;
+
 	if(acc_err == ER_SUCCESS) {
 		checkpoint_acc = led_add_checkpoint(led_green);
 	} else {
@@ -122,7 +124,7 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	//manual calibration only:
 	i2c_calib = 0;
 
-	//mainloop
+	// main loop
 	for(;;) {
 		led_checkpoint(checkpoint);
 		led_checkpoint(checkpoint_baro);
@@ -131,10 +133,8 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 
 
 		if(1) {
-			if(baro_err == ER_SUCCESS) {
-				//baro start temp
-				barometer_convert_temp(i2c_baro);
-				//TickType_t baro_temp_time = xTaskGetTickCount();
+			if (baro_err == ER_SUCCESS) {
+				barometer_read(i2c_baro, &i2c_baro_data, &i2c_baro_meta);
 			}
 
 			if(acc_err == ER_SUCCESS) {
@@ -144,14 +144,8 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 				//hostcom_data_acc_send(HAL_GetTick(), i2c_acc_data.processed[ACC_Z]);
 			}
 
-			vTaskDelay(baro_delay);
-
-			if(baro_err == ER_SUCCESS) {
-				//baro read & start pres
-				barometer_read_temp(i2c_baro, &i2c_baro_meta);
-				barometer_convert_pres(i2c_baro);
-				//TickType_t baro_pres_time = xTaskGetTickCount();
-			}
+			// No longer needed
+//			vTaskDelay(baro_delay);
 
 			if(gyro_err == ER_SUCCESS) {
 				//gyro read or acc read second time
@@ -159,7 +153,8 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 				gyroscope_process_data(&i2c_gyro_data, 10000);
 			}
 
-			vTaskDelay(baro_delay);
+			// No longer needed
+//			vTaskDelay(baro_delay);
 
 			if(baro_err == ER_SUCCESS) {
 				//baro read
@@ -169,11 +164,6 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 			}
 
 			//store everything
-
-
-
-
-
 
 #if WH_COMPUTER == A
 			od_write_ACC_I2C_A(&i2c_acc_data);
