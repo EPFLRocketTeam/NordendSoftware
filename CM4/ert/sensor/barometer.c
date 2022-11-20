@@ -129,21 +129,7 @@ static int16_t create_i16(uint8_t msb, uint8_t lsb) {
 	return (int16_t) create_u16(msb, lsb);
 }
 
-// --------------
-
-/**
- * Computes the calibration coefficient as according
- * to section 8.4 of the datasheet. Mathematically this is equivalent to nvm_data/(2^div).
- * @param nvm_data the binary/signed data received from the device.
- * @param div the power of 2 to divide by.
- * @return nvm_data/(2^div).
- */
-static float compute_coefficient(int32_t nvm_data, int32_t div) {
-	// TODO this can be replaced with ldexpf
-	int divider = div < 0 ? 1 >> -div : 1 << div;
-
-	return (float) nvm_data / (float) divider;
-}
+// --------- End of helper functions ----------
 
 /**
  * Calculates the altitude (in m) in terms of the given value.
@@ -151,9 +137,9 @@ static float compute_coefficient(int32_t nvm_data, int32_t div) {
  * @return the corresponding altitude, in meters.
  */
 static float calculate_altitude(float pressure, barometer_meta_t *meta) {
-	// TODO specify in documentation that barometer_calib_data_t expects a pressure_sea_level value in pascals
+	// TODO specify in documentation that barometer_meta_t_t expects a pressure_sea_level value in pascals
 	float p0 =
-			meta->pressure_sea_level == NULL ?
+			meta->pressure_sea_level == 0 ?
 					PRESSURE_AT_SEA_LEVEL : meta->pressure_sea_level;
 
 	return 44330.0f * (1.0f - powf(pressure / p0, 0.1903));
@@ -165,10 +151,75 @@ static float calculate_altitude(float pressure, barometer_meta_t *meta) {
  * Uses the initial altitude supplied by the object dictionary
  * to calculate the pressure at sea level
  */
-static float calculate_initial_pressure(float pressure, barometer_meta_t *meta) {
+static void calculate_initial_pressure(float pressure, barometer_meta_t *meta) {
 		meta->pressure_sea_level = pressure
 				* powf(1.0f - (baro_initial_altitude / 44330.0f), -5.2548f);
 		baro_init_measure -= 1;
+}
+
+/**
+ * @brief Calculates the compensated temperature.
+ * @param uncomp_temp
+ * @param calib_data
+ * @return the temperature.
+ */
+static float barometer_compensate_temperature(uint32_t uncomp_temp,
+		barometer_meta_t *calib_data) {
+	float partial_data1;
+	float partial_data2;
+	partial_data1 = (float) (uncomp_temp - calib_data->par_t1);
+	partial_data2 = (float) (partial_data1 * calib_data->par_t2);
+	/* Update the compensated temperature in calib structure since this is
+	 * needed for pressure calculation */
+	calib_data->t_lin = partial_data2
+			+ (partial_data1 * partial_data1) * calib_data->par_t3;
+	/* Returns compensated temperature */
+	return calib_data->t_lin;
+}
+
+/**
+ * @brief Calculates the compensated pressure.
+ * @param uncomp_press
+ * @param calib_data
+ * @return the pressure.
+ */
+static float barometer_compensate_pressure(uint32_t uncomp_press,
+		barometer_meta_t *calib_data) {
+	/* Variable to store the compensated pressure */
+	float comp_press;
+	/* Temporary variables used for compensation */
+	float partial_data1;
+	float partial_data2;
+	float partial_data3;
+	float partial_data4;
+	float partial_out1;
+	float partial_out2;
+
+	/* Calibration data */
+	partial_data1 = calib_data->par_p6 * calib_data->t_lin;
+	partial_data2 = calib_data->par_p7
+			* (calib_data->t_lin * calib_data->t_lin);
+	partial_data3 = calib_data->par_p8
+			* (calib_data->t_lin * calib_data->t_lin * calib_data->t_lin);
+	partial_out1 = calib_data->par_p5 + partial_data1 + partial_data2
+			+ partial_data3;
+	partial_data1 = calib_data->par_p2 * calib_data->t_lin;
+	partial_data2 = calib_data->par_p3
+			* (calib_data->t_lin * calib_data->t_lin);
+	partial_data3 = calib_data->par_p4
+			* (calib_data->t_lin * calib_data->t_lin * calib_data->t_lin);
+	partial_out2 = (float) uncomp_press
+			* (calib_data->par_p1 + partial_data1 + partial_data2
+					+ partial_data3);
+	partial_data1 = (float) uncomp_press * (float) uncomp_press;
+	partial_data2 = calib_data->par_p9
+			+ calib_data->par_p10 * calib_data->t_lin;
+	partial_data3 = partial_data1 * partial_data2;
+	partial_data4 = partial_data3
+			+ ((float) uncomp_press * (float) uncomp_press
+					* (float) uncomp_press) * calib_data->par_p11;
+	comp_press = partial_out1 + partial_out2 + partial_data4;
+	return comp_press;
 }
 
 /**
@@ -239,26 +290,26 @@ util_error_t barometer_init(device_t *baro, barometer_meta_t *meta) {
 
 	// Load data into meta for future data treatment, see datasheet sections 3.11 and 8.4
 	// TODO - maybe it's better to send multiple reads ?
-	meta->par_t1 = compute_coefficient(create_u16(data[1], data[0]), -8);
-	meta->par_t2 = compute_coefficient(create_u16(data[3], data[2]), 30);
-	meta->par_t3 = compute_coefficient((int8_t) data[4], 48);
-	meta->par_p1 = compute_coefficient(create_i16(data[6], data[5]), 20);
-	meta->par_p2 = compute_coefficient(create_i16(data[8], data[7]), 29);
-	meta->par_p3 = compute_coefficient((int8_t) data[9], 32);
-	meta->par_p4 = compute_coefficient((int8_t) data[10], 37);
-	meta->par_p5 = compute_coefficient(create_u16(data[12], data[11]), -3);
-	meta->par_p6 = compute_coefficient(create_u16(data[14], data[13]), 6);
-	meta->par_p7 = compute_coefficient((int8_t) data[15], 8);
-	meta->par_p8 = compute_coefficient((int8_t) data[16], 15);
-	meta->par_p9 = compute_coefficient(create_i16(data[19], data[18]), 48);
-	meta->par_p7 = compute_coefficient((int8_t) data[20], 48);
-	meta->par_p8 = compute_coefficient((int8_t) data[21], 65);
+	meta->par_t1 = ldexpf(create_u16(data[1], data[0]), 8);
+	meta->par_t2 = ldexpf(create_u16(data[3], data[2]), -30);
+	meta->par_t3 = ldexpf((int8_t) data[4], -48);
+	meta->par_p1 = ldexpf(create_i16(data[6], data[5]), -20);
+	meta->par_p2 = ldexpf(create_i16(data[8], data[7]), -29);
+	meta->par_p3 = ldexpf((int8_t) data[9], -32);
+	meta->par_p4 = ldexpf((int8_t) data[10], -37);
+	meta->par_p5 = ldexpf(create_u16(data[12], data[11]), 3);
+	meta->par_p6 = ldexpf(create_u16(data[14], data[13]), -6);
+	meta->par_p7 = ldexpf((int8_t) data[15], -8);
+	meta->par_p8 = ldexpf((int8_t) data[16], -15);
+	meta->par_p9 = ldexpf(create_i16(data[19], data[18]), -48);
+	meta->par_p7 = ldexpf((int8_t) data[20], -48);
+	meta->par_p8 = ldexpf((int8_t) data[21], -65);
 
 	// Set the IIR filter coefficient to 2
 	util_error_t errIIR = device_write_u8(baro, CONFIG, 0x02);
 
-	// Set the prescaler for sampling to 0 (=> 100 Hz sampling) for now
-	// TODO change this to 0 later on when the modifications will have been decided in sensor.c
+	// Set the prescaler factor for sampling to 2 (0x01) (=> 100 Hz sampling) for now
+	// TODO change this to 1 (0x00) later on when the modifications will have been decided in sensor.c
 	util_error_t errODR = device_write_u8(baro, ODR_SEL, 0x01);
 
 	// Set pressure oversampling to x2, temp to x1 (no oversampling)
@@ -270,5 +321,7 @@ util_error_t barometer_init(device_t *baro, barometer_meta_t *meta) {
 	// Return total error status
 	return errCalib | errIIR | errODR | errOSR | errActivation;
 }
+
+
 
 /* END */
