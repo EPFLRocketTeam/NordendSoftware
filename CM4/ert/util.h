@@ -9,7 +9,6 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-
 //#define UTIL_ALLOW_LIST
 
 /**********************
@@ -23,7 +22,6 @@
 /**********************
  *  CONSTANTS
  **********************/
-
 
 /**********************
  *  MACROS
@@ -60,23 +58,23 @@
  **********************/
 
 /**
- * @brief Unified error codes for the whole WildhornAV project.
+ * @brief Unified error codes for the whole Nordend project.
  * @note  The error codes can be ORed together to create more complex errors.
  */
 typedef enum util_error {
 	/** Operation completed successfully */
-    ER_SUCCESS = 0,
+	ER_SUCCESS = 0,
 	/** Error due to lack of readiness */
-    ER_DATA_NOT_RDY = 1<<1,
+	ER_DATA_NOT_RDY = 1 << 1,
 	/** Error due to a generic failure */
-    ER_FAILURE = 1<<2,
+	ER_FAILURE = 1 << 2,
 	/** Error due to a range issue */
-    ER_OUT_OF_RANGE = 1<<3,
+	ER_OUT_OF_RANGE = 1 << 3,
 	/** Error due to a timeout */
-	ER_TIMEOUT = 1<<4,
-	/** Error due to a ressource issue */
-	ER_RESSOURCE_ERROR = 1<<5
-}util_error_t;
+	ER_TIMEOUT = 1 << 4,
+	/** Error due to a resource issue */
+	ER_RESOURCE_ERROR = 1 << 5
+} util_error_t;
 
 #ifdef UTIL_ALLOW_LIST
 
@@ -87,41 +85,54 @@ typedef struct util_list {
 #endif
 
 //buffers
-typedef struct util_buffer_u8{
+
+/**
+ * @struct util_buffer_u8
+ * @brief Buffer of 8 bit unsigned integers
+ *
+ */
+typedef struct util_buffer_u8 {
+	uint16_t current_write_index;
+	uint16_t current_read_index;
+	uint16_t bfr_len;
+	uint8_t *buffer;
+} util_buffer_u8_t;
+
+/**
+ * @struct util_buffer_u16
+ * @brief Buffer of 16 bit unsigned integers
+ *
+ */
+typedef struct util_buffer_u16 {
 	uint16_t c_ix;
 	uint16_t l_ix;
 	uint16_t bfr_len;
-	uint8_t * buffer;
-}util_buffer_u8_t;
+	uint16_t *buffer;
+} util_buffer_u16_t;
 
-typedef struct util_buffer_u16{
+/**
+ * @struct util_buffer_i16
+ * @brief Buffer of 16 bit signed integers
+ *
+ */
+typedef struct util_buffer_i16 {
 	uint16_t c_ix;
 	uint16_t l_ix;
 	uint16_t bfr_len;
-	uint16_t * buffer;
-}util_buffer_u16_t;
-
-typedef struct util_buffer_i16{
-	uint16_t c_ix;
-	uint16_t l_ix;
-	uint16_t bfr_len;
-	int16_t * buffer;
-}util_buffer_i16_t;
-
+	int16_t *buffer;
+} util_buffer_i16_t;
 
 /**********************
  *  VARIABLES
  **********************/
-
 
 /**********************
  *  PROTOTYPES
  **********************/
 
 #ifdef __cplusplus
-extern "C"{
+extern "C" {
 #endif
-
 
 #ifdef UTIL_ALLOW_LIST
 /** head must be of util_list_t type with the next field as the head
@@ -156,137 +167,174 @@ static inline void util_list_remove(util_list_t** head, util_list_t* node)
 
 #endif
 
-/* data encoding and decoding */
+/**
+ * @enum util_endianness
+ * @brief Determines whether the data buffer input is
+ * little endian (data[0] is MSB) or big endian (data[0] is LSB)
+ *
+ */
+typedef enum util_endianness {
+	/**
+	 * @brief Represents a little endian data format
+	 *
+	 */
+	UTIL_LITTLE_ENDIAN = 0,/**< UTIL_LITTLE_ENDIAN */
+	/**
+	 * @brief Represents a big endian format
+	 *
+	 */
+	UTIL_BIG_ENDIAN = 1 /**< UTIL_BIG_ENDIAN */
+} util_endianness_t;
 
-static inline void util_encode_u8(uint8_t * data, uint8_t value) {
-    data[0] = value;
+/**
+ * @fn void util_encode_u8(uint8_t*, uint8_t)
+ * @brief Encodes
+ *
+ * @param data
+ * @param value
+ */
+static inline void util_encode_u8(uint8_t *data, uint8_t value) {
+	data[0] = value;
 }
 
-static inline void util_encode_u16(uint8_t * data, uint16_t value) {
-    data[0] = value;
-    data[1] = value>>8;
+static inline void util_encode_u16(uint8_t *data, uint16_t value) {
+	data[0] = value;
+	data[1] = value >> 8;
 }
 
-static inline void util_encode_u32(uint8_t * data, uint32_t value) {
-    data[0] = value;
-    data[1] = value>>8;
-    data[2] = value>>16;
-    data[3] = value>>24;
+static inline void util_encode_u32(uint8_t *data, uint32_t value) {
+	data[0] = value;
+	data[1] = value >> 8;
+	data[2] = value >> 16;
+	data[3] = value >> 24;
 }
 
-static inline void util_encode_i8(uint8_t * data, int8_t value) {
-    data[0] = value;
+static inline void util_encode_i8(uint8_t *data, int8_t value) {
+	data[0] = value;
 }
 
-static inline void util_encode_i16(uint8_t * data, int16_t value) {
-    data[0] = value;
-    data[1] = value>>8;
+static inline void util_encode_i16(uint8_t *data, int16_t value) {
+	data[0] = value;
+	data[1] = value >> 8;
 }
 
-static inline void util_encode_i32(uint8_t * data, int32_t value) {
-    data[0] = value;
-    data[1] = value>>8;
-    data[2] = value>>16;
-    data[3] = value>>24;
+static inline void util_encode_i32(uint8_t *data, int32_t value) {
+	data[0] = value;
+	data[1] = value >> 8;
+	data[2] = value >> 16;
+	data[3] = value >> 24;
 }
 
-static inline uint8_t util_decode_u8(uint8_t * data) {
-    return data[0];
+static inline uint8_t util_decode_u8(uint8_t *data) {
+	return data[0];
 }
 
-static inline uint16_t util_decode_u16(uint8_t * data) {
-    return (uint16_t) data[0] | data[1] << 8;
+static inline uint16_t util_decode_u16(uint8_t *data) {
+	return (uint16_t) data[0] | data[1] << 8;
 }
 
-static inline uint32_t util_decode_u32(uint8_t * data) {
-    return (uint32_t) data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
+static inline uint32_t util_decode_u24(uint8_t *data) {
+	return (uint32_t) data[0] | data[1] << 8 | data[2] << 16;
 }
 
-static inline int8_t util_decode_i8(uint8_t * data) {
-    return data[0];
+static inline uint32_t util_decode_u32(uint8_t *data) {
+	return (uint32_t) data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
 }
 
-static inline int16_t util_decode_i16(uint8_t * data) {
-    return (int16_t) data[0] | data[1] << 8;
+static inline int8_t util_decode_i8(uint8_t *data) {
+	return data[0];
 }
 
-static inline int32_t util_decode_i32(uint8_t * data) {
-    return (int32_t) data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
+static inline int16_t util_decode_i16(uint8_t *data) {
+	return (int16_t) data[0] | data[1] << 8;
 }
 
+static inline int32_t util_decode_i32(uint8_t *data) {
+	return (int32_t) data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
+}
 
 //U8 BUFFER
-static inline void util_buffer_u8_init(util_buffer_u8_t * bfr, uint8_t * buffer, uint16_t bfr_len) {
-	bfr->c_ix = 0;
-	bfr->l_ix = 0;
+static inline void util_buffer_u8_init(util_buffer_u8_t *bfr, uint8_t *buffer,
+		uint16_t bfr_len) {
+	bfr->current_write_index = 0;
+	bfr->current_read_index = 0;
 	bfr->bfr_len = bfr_len;
 	bfr->buffer = buffer;
 }
 
-static inline void util_buffer_u8_add(util_buffer_u8_t * bfr, uint8_t d) {
-	bfr->buffer[bfr->c_ix++] = d;
-	if(bfr->c_ix == bfr->bfr_len) bfr->c_ix = 0;
+static inline void util_buffer_u8_add(util_buffer_u8_t *bfr, uint8_t d) {
+	bfr->buffer[bfr->current_write_index++] = d;
+	if (bfr->current_write_index == bfr->bfr_len)
+		bfr->current_write_index = 0;
 }
 
-static inline uint8_t util_buffer_u8_get(util_buffer_u8_t * bfr) {
-	uint8_t tmp = bfr->buffer[bfr->l_ix++];
-	if(bfr->l_ix == bfr->bfr_len) bfr->l_ix=0;
+static inline uint8_t util_buffer_u8_get(util_buffer_u8_t *bfr) {
+	uint8_t tmp = bfr->buffer[bfr->current_read_index++];
+	if (bfr->current_read_index == bfr->bfr_len)
+		bfr->current_read_index = 0;
 	return tmp;
 }
 //Access from ix-th element back in history from the last insert
-static inline uint8_t util_buffer_u8_access(util_buffer_u8_t * bfr, int16_t ix) {
-	ix = bfr->c_ix - ix - 1;
-	while(ix < 0) ix += bfr->bfr_len;
+static inline uint8_t util_buffer_u8_access(util_buffer_u8_t *bfr, int16_t ix) {
+	ix = bfr->current_write_index - ix - 1;
+	while (ix < 0)
+		ix += bfr->bfr_len;
 	return bfr->buffer[ix];
 }
 
-static inline uint8_t util_buffer_u8_isempty(util_buffer_u8_t * bfr) {
-	return bfr->l_ix == bfr->c_ix;
+static inline uint8_t util_buffer_u8_isempty(util_buffer_u8_t *bfr) {
+	return bfr->current_read_index == bfr->current_write_index;
 }
 
 //U16 BUFFER
-static inline void util_buffer_u16_init(util_buffer_u16_t * bfr, uint16_t * buffer, uint16_t bfr_len) {
+static inline void util_buffer_u16_init(util_buffer_u16_t *bfr,
+		uint16_t *buffer, uint16_t bfr_len) {
 	bfr->c_ix = 0;
 	bfr->l_ix = 0;
 	bfr->bfr_len = bfr_len;
 	bfr->buffer = buffer;
 }
 
-static inline void util_buffer_u16_add(util_buffer_u16_t * bfr, uint16_t d) {
+static inline void util_buffer_u16_add(util_buffer_u16_t *bfr, uint16_t d) {
 	bfr->buffer[bfr->c_ix++] = d;
-	if(bfr->c_ix == bfr->bfr_len) bfr->c_ix = 0;
+	if (bfr->c_ix == bfr->bfr_len)
+		bfr->c_ix = 0;
 }
 
-static inline uint16_t util_buffer_u16_get(util_buffer_u16_t * bfr) {
+static inline uint16_t util_buffer_u16_get(util_buffer_u16_t *bfr) {
 	uint16_t tmp = bfr->buffer[bfr->l_ix++];
-	if(bfr->l_ix == bfr->bfr_len) bfr->l_ix=0;
+	if (bfr->l_ix == bfr->bfr_len)
+		bfr->l_ix = 0;
 	return tmp;
 }
 
-static inline uint8_t util_buffer_u16_isempty(util_buffer_u16_t * bfr) {
+static inline uint8_t util_buffer_u16_isempty(util_buffer_u16_t *bfr) {
 	return bfr->l_ix == bfr->c_ix;
 }
 
 //I16 BUFFER
-static inline void util_buffer_i16_init(util_buffer_i16_t * bfr, int16_t * buffer, uint16_t bfr_len) {
+static inline void util_buffer_i16_init(util_buffer_i16_t *bfr, int16_t *buffer,
+		uint16_t bfr_len) {
 	bfr->c_ix = 0;
 	bfr->l_ix = 0;
 	bfr->bfr_len = bfr_len;
 	bfr->buffer = buffer;
 }
 
-static inline void util_buffer_i16_add(util_buffer_i16_t * bfr, int16_t d) {
+static inline void util_buffer_i16_add(util_buffer_i16_t *bfr, int16_t d) {
 	bfr->buffer[bfr->c_ix++] = d;
-	if(bfr->c_ix == bfr->bfr_len) bfr->c_ix = 0;
+	if (bfr->c_ix == bfr->bfr_len)
+		bfr->c_ix = 0;
 }
 
-static inline int16_t util_buffer_i16_get(util_buffer_i16_t * bfr) {
+static inline int16_t util_buffer_i16_get(util_buffer_i16_t *bfr) {
 	int16_t tmp = bfr->buffer[bfr->l_ix++];
-	if(bfr->l_ix == bfr->bfr_len) bfr->l_ix=0;
+	if (bfr->l_ix == bfr->bfr_len)
+		bfr->l_ix = 0;
 	return tmp;
 }
 
-static inline uint8_t util_buffer_i16_isempty(util_buffer_i16_t * bfr) {
+static inline uint8_t util_buffer_i16_isempty(util_buffer_i16_t *bfr) {
 	return bfr->l_ix == bfr->c_ix;
 }
 
@@ -323,9 +371,7 @@ static inline uint8_t util_buffer_##name##_isempty(UTIL_BUFFER_##name##_t * bfr)
 	return bfr->l_ix == bfr->c_ix;                                                                   			\
 }
 
-
 #define util_abs(a)	((a)<0?-(a):(a))
-
 
 #ifdef __cplusplus
 } // extern "C"

@@ -128,7 +128,7 @@ util_error_t can_recv(void * context, uint8_t * data, uint32_t * len) {
 	UNUSED(context);
 	UNUSED(data);
 	UNUSED(len);
-	return ER_RESSOURCE_ERROR;
+	return ER_RESOURCE_ERROR;
 }
 
 
@@ -164,7 +164,7 @@ util_error_t can_send(void * context, uint8_t * data, uint32_t len) {
 
 	uint32_t freeLevel = HAL_FDCAN_GetTxFifoFreeLevel(can->fdcan);
 	if(freeLevel <= 0)
-		return ER_RESSOURCE_ERROR;
+		return ER_RESOURCE_ERROR;
 
 	// send frame
 	FDCAN_TxHeaderTypeDef txHeader = {
@@ -187,7 +187,7 @@ util_error_t can_send(void * context, uint8_t * data, uint32_t len) {
 util_error_t can_interface_init(device_interface_t * can_if, can_interface_context_t * can_ctx) {
 
 	if(can_interfaces_count >= CAN_MAX_INTERFACES) {
-		return ER_RESSOURCE_ERROR;
+		return ER_RESOURCE_ERROR;
 	}
 
 	// Configure clock unit --> route kernel clock directly to CAN core

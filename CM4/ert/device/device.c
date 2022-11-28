@@ -204,7 +204,7 @@ util_error_t device_interface_send(device_interface_t * interface, uint8_t * dat
 	if(interface->send) {
 		return interface->send(interface->context, data, len);
 	} else {
-		return ER_RESSOURCE_ERROR;
+		return ER_RESOURCE_ERROR;
 	}
 }
 
@@ -221,7 +221,7 @@ util_error_t device_interface_recv(device_interface_t * interface, uint8_t * dat
 	if(interface->send) {
 		return interface->recv(interface->context, data, len);
 	} else {
-		return ER_RESSOURCE_ERROR;
+		return ER_RESOURCE_ERROR;
 	}
 }
 

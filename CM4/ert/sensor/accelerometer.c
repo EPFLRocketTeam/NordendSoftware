@@ -72,7 +72,7 @@
 util_error_t accelerometer_calibrate(device_t * acc, accelerometer_data_t * data) {
 	UNUSED(acc);
 	UNUSED(data);
-	return ER_RESSOURCE_ERROR;
+	return ER_RESOURCE_ERROR;
 }
 
 void accelerometer_process_data(accelerometer_data_t * data, uint16_t range) {
@@ -103,7 +103,7 @@ util_error_t accelerometer_init(device_t * acc) {
 	error |= device_read_u8(acc, WHO_AM_I, &data);
 
 	if(data != WHO_AM_I_MAGIC) {
-		return error | ER_RESSOURCE_ERROR;
+		return error | ER_RESOURCE_ERROR;
 	}
 
 	//initialize sensor

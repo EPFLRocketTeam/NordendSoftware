@@ -187,7 +187,7 @@ util_error_t serial_init(void)
 util_error_t serial_interface_init(	device_interface_t * serial_if,
 									serial_interface_context_t * serial_ctx) {
 	if(serial_interfaces_count >= SERIAL_MAX_INTERFACES) {
-		return ER_RESSOURCE_ERROR;
+		return ER_RESOURCE_ERROR;
 	}
 	util_error_t error = ER_SUCCESS;
 	error |= device_interface_create(	serial_if,
@@ -238,7 +238,7 @@ util_error_t serial_setup_reception(serial_interface_context_t * interface_conte
 	if(HAL_UART_Receive_IT(	interface_context->uart,
 							&interface_context->rx_fragment,
 							1) != HAL_OK) {
-		return ER_RESSOURCE_ERROR;
+		return ER_RESOURCE_ERROR;
 	}
 	return ER_SUCCESS;
 
@@ -249,7 +249,7 @@ util_error_t serial_send(void * context, uint8_t* data, uint32_t len)
 	serial_interface_context_t * interface_context = (serial_interface_context_t *) context;
 
 	if(HAL_UART_Transmit_IT(interface_context->uart, data, len) != HAL_OK) {
-		return ER_RESSOURCE_ERROR;
+		return ER_RESOURCE_ERROR;
 	}
 
 	return ER_SUCCESS;

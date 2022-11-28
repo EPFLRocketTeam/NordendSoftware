@@ -133,7 +133,7 @@ void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {
 		i2c_interface_context_t * if_ctx = (i2c_interface_context_t *) i2c_interfaces[i]->context;
 		if(if_ctx->i2c == hi2c) {
 			xSemaphoreGiveFromISR(if_ctx->sem, &xHigherPriorityTaskWoken);
-			if_ctx->error = ER_RESSOURCE_ERROR;
+			if_ctx->error = ER_RESOURCE_ERROR;
 		}
 	}
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);

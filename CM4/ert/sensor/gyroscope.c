@@ -87,7 +87,7 @@ util_error_t gyroscope_read_data(device_t * gyro, gyroscope_data_t * data) {
 
 
 
-	return ER_RESSOURCE_ERROR;
+	return ER_RESOURCE_ERROR;
 }
 /**
  * @brief Initialize gyroscopes
@@ -98,7 +98,7 @@ util_error_t gyroscope_init(device_t * gyro) {
 	device_read_u8(gyro, WHO_AM_I, &data);
 
 	if(data != WHO_AM_I_MAGIC) {
-		return ER_RESSOURCE_ERROR;
+		return ER_RESOURCE_ERROR;
 	}
 
 	//initialize sensor
