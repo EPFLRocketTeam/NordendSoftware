@@ -84,6 +84,24 @@ typedef struct util_list {
 
 #endif
 
+/**
+ * @enum util_endianness
+ * @brief Determines whether the data buffer input is
+ * little endian (data[0] is LSB) or big endian (data[0] is MSB)
+ *
+ */
+typedef enum util_endianness {
+	/**
+	 * @brief Represents a little endian data format, i.e. bytes are read as LSB first.
+	 *
+	 */
+	UTIL_LITTLE_ENDIAN = 0,/**< UTIL_LITTLE_ENDIAN */
+	/**
+	 * @brief Represents a big endian format, i.e. bytes are read as MSB first.
+	 *
+	 */
+	UTIL_BIG_ENDIAN = 1 /**< UTIL_BIG_ENDIAN */
+} util_endianness_t;
 //buffers
 
 /**
@@ -96,6 +114,7 @@ typedef struct util_buffer_u8 {
 	uint16_t current_read_index;
 	uint16_t bfr_len;
 	uint8_t *buffer;
+	util_endianness_t endianness;
 } util_buffer_u8_t;
 
 /**
@@ -104,10 +123,11 @@ typedef struct util_buffer_u8 {
  *
  */
 typedef struct util_buffer_u16 {
-	uint16_t c_ix;
-	uint16_t l_ix;
+	uint16_t current_write_index;
+	uint16_t current_read_index;
 	uint16_t bfr_len;
 	uint16_t *buffer;
+	util_endianness_t endianness;
 } util_buffer_u16_t;
 
 /**
@@ -116,8 +136,8 @@ typedef struct util_buffer_u16 {
  *
  */
 typedef struct util_buffer_i16 {
-	uint16_t c_ix;
-	uint16_t l_ix;
+	uint16_t current_write_index;
+	uint16_t current_read_index;
 	uint16_t bfr_len;
 	int16_t *buffer;
 } util_buffer_i16_t;
@@ -167,24 +187,6 @@ static inline void util_list_remove(util_list_t** head, util_list_t* node)
 
 #endif
 
-/**
- * @enum util_endianness
- * @brief Determines whether the data buffer input is
- * little endian (data[0] is MSB) or big endian (data[0] is LSB)
- *
- */
-typedef enum util_endianness {
-	/**
-	 * @brief Represents a little endian data format
-	 *
-	 */
-	UTIL_LITTLE_ENDIAN = 0,/**< UTIL_LITTLE_ENDIAN */
-	/**
-	 * @brief Represents a big endian format
-	 *
-	 */
-	UTIL_BIG_ENDIAN = 1 /**< UTIL_BIG_ENDIAN */
-} util_endianness_t;
 
 /**
  * @fn void util_encode_u8(uint8_t*, uint8_t)
@@ -254,6 +256,8 @@ static inline int32_t util_decode_i32(uint8_t *data) {
 }
 
 //U8 BUFFER
+
+
 static inline void util_buffer_u8_init(util_buffer_u8_t *bfr, uint8_t *buffer,
 		uint16_t bfr_len) {
 	bfr->current_write_index = 0;
@@ -262,18 +266,131 @@ static inline void util_buffer_u8_init(util_buffer_u8_t *bfr, uint8_t *buffer,
 	bfr->buffer = buffer;
 }
 
-static inline void util_buffer_u8_add(util_buffer_u8_t *bfr, uint8_t d) {
-	bfr->buffer[bfr->current_write_index++] = d;
-	if (bfr->current_write_index == bfr->bfr_len)
+/**
+ * @fn void util_buffer_check_write
+ * @brief Checks if the write index of the buffer is correct, otherwise will set it to 0 (beginning).
+ *
+ * @param bfr The buffer to check.
+ */
+void util_buffer_check_write(util_buffer_u8_t *bfr) {
+	if (bfr->current_write_index >= bfr->bfr_len)
 		bfr->current_write_index = 0;
 }
 
-static inline uint8_t util_buffer_u8_get(util_buffer_u8_t *bfr) {
-	uint8_t tmp = bfr->buffer[bfr->current_read_index++];
+/**
+ * @fn void util_buffer_check_read(util_buffer_u8_t*)
+ * @brief Checks if the read index of the buffer is correct, otherwise will set it to 0 (beginning).
+ *
+ * @param bfr The buffer to check.
+ */
+void util_buffer_check_read(util_buffer_u8_t *bfr) {
 	if (bfr->current_read_index == bfr->bfr_len)
 		bfr->current_read_index = 0;
+}
+
+static inline void util_buffer_u8_add(util_buffer_u8_t *bfr, uint8_t d) {
+	bfr->buffer[bfr->current_write_index++] = d;
+	util_buffer_check_write(bfr);
+}
+
+
+static inline uint8_t util_buffer_u8_get(util_buffer_u8_t *bfr) {
+	uint8_t tmp = bfr->buffer[bfr->current_read_index++];
+	util_buffer_check_read(bfr);
 	return tmp;
 }
+
+/**
+ * @fn uint16_t util_buffer_u8_get_u16(util_buffer_u8_t*)
+ * @brief Gets the next unsigned 16-bit integer from the buffer.
+ *
+ * @param bfr The buffer to read from.
+ * @return an unsigned 16-bit integer decoded with respect to the buffer's endianness.
+ */
+static inline uint16_t util_buffer_u8_get_u16(util_buffer_u8_t *bfr) {
+	uint8_t data[2];
+
+	for (int i = 0; i < 2; i++) {
+		data[i] = bfr->buffer[bfr->current_read_index++];
+		util_buffer_check_read(bfr);
+	}
+
+	return util_decode_u16(data); // TODO implement endianness !
+}
+
+/*!
+ * @fn uint16_t util_buffer_u8_get_i16(util_buffer_u8_t*)
+ * @brief Gets the next signed 16-bit integer from the buffer.
+ *
+ * @param bfr The buffer to read from.
+ * @return a signed 16-bit integer decoded with respect to the buffer's endianness.
+ */
+static inline int16_t util_buffer_u8_get_i16(util_buffer_u8_t *bfr) {
+	uint8_t data[2];
+
+	for (int i = 0; i < 2; i++) {
+		data[i] = bfr->buffer[bfr->current_read_index++];
+		util_buffer_check_read(bfr);
+	}
+
+
+	return util_decode_i16(data);
+}
+
+/**
+ * @fn uint32_t util_buffer_u8_get_u24(util_buffer_u8_t*)
+ * @brief Gets the next signed 24-bit integer (as 32-bit int) from the buffer.
+ *
+ * @param bfr The buffer to read from.
+ * @return an unsigned 24-bit integer decoded with respect to the buffer's endianness.
+ */
+static inline uint32_t util_buffer_u8_get_u24(util_buffer_u8_t *bfr) {
+	uint8_t data[3];
+
+	for (int i = 0; i < 3; i++) {
+		data[i] = bfr->buffer[bfr->current_read_index++];
+		util_buffer_check_read(bfr);
+	}
+
+	return util_decode_u24(data);
+}
+
+/**
+ * @fn uint32_t util_buffer_u8_get_u32(util_buffer_u8_t*)
+ * @brief Gets the next unsigned 32-bit integer from the buffer.
+ *
+ * @param bfr The buffer to read from.
+ * @return an unsigned 32-bit integer decoded with respect to the buffer's endianness.
+ */
+static inline uint32_t util_buffer_u8_get_u32(util_buffer_u8_t *bfr) {
+	uint8_t data[4];
+
+	for (int i = 0; i < 4; i++) {
+		data[i] = bfr->buffer[bfr->current_read_index++];
+		util_buffer_check_read(bfr);
+	}
+
+	return util_decode_u32(data);
+}
+
+/**
+ * @fn int32_t util_buffer_u8_get_i32(util_buffer_u8_t*)
+ * @brief Gets the next signed 32-bit integer from the buffer.
+ *
+ * @param bfr The buffer to read from.
+ * @return a signed 32-bit integer decoded with respect to the buffer's endianness.
+ */
+static inline int32_t util_buffer_u8_get_i32(util_buffer_u8_t *bfr) {
+	uint8_t data[4];
+
+	for (int i = 0; i < 4; i++) {
+		data[i] = bfr->buffer[bfr->current_read_index++];
+		util_buffer_check_read(bfr);
+	}
+
+	return util_decode_i32(data);
+}
+
 //Access from ix-th element back in history from the last insert
 static inline uint8_t util_buffer_u8_access(util_buffer_u8_t *bfr, int16_t ix) {
 	ix = bfr->current_write_index - ix - 1;
@@ -289,53 +406,53 @@ static inline uint8_t util_buffer_u8_isempty(util_buffer_u8_t *bfr) {
 //U16 BUFFER
 static inline void util_buffer_u16_init(util_buffer_u16_t *bfr,
 		uint16_t *buffer, uint16_t bfr_len) {
-	bfr->c_ix = 0;
-	bfr->l_ix = 0;
+	bfr->current_write_index = 0;
+	bfr->current_read_index = 0;
 	bfr->bfr_len = bfr_len;
 	bfr->buffer = buffer;
 }
 
 static inline void util_buffer_u16_add(util_buffer_u16_t *bfr, uint16_t d) {
-	bfr->buffer[bfr->c_ix++] = d;
-	if (bfr->c_ix == bfr->bfr_len)
-		bfr->c_ix = 0;
+	bfr->buffer[bfr->current_write_index++] = d;
+	if (bfr->current_write_index == bfr->bfr_len)
+		bfr->current_write_index = 0;
 }
 
 static inline uint16_t util_buffer_u16_get(util_buffer_u16_t *bfr) {
-	uint16_t tmp = bfr->buffer[bfr->l_ix++];
-	if (bfr->l_ix == bfr->bfr_len)
-		bfr->l_ix = 0;
+	uint16_t tmp = bfr->buffer[bfr->current_read_index++];
+	if (bfr->current_read_index == bfr->bfr_len)
+		bfr->current_read_index = 0;
 	return tmp;
 }
 
 static inline uint8_t util_buffer_u16_isempty(util_buffer_u16_t *bfr) {
-	return bfr->l_ix == bfr->c_ix;
+	return bfr->current_read_index == bfr->current_write_index;
 }
 
 //I16 BUFFER
 static inline void util_buffer_i16_init(util_buffer_i16_t *bfr, int16_t *buffer,
 		uint16_t bfr_len) {
-	bfr->c_ix = 0;
-	bfr->l_ix = 0;
+	bfr->current_write_index = 0;
+	bfr->current_read_index = 0;
 	bfr->bfr_len = bfr_len;
 	bfr->buffer = buffer;
 }
 
 static inline void util_buffer_i16_add(util_buffer_i16_t *bfr, int16_t d) {
-	bfr->buffer[bfr->c_ix++] = d;
-	if (bfr->c_ix == bfr->bfr_len)
-		bfr->c_ix = 0;
+	bfr->buffer[bfr->current_write_index++] = d;
+	if (bfr->current_write_index == bfr->bfr_len)
+		bfr->current_write_index = 0;
 }
 
 static inline int16_t util_buffer_i16_get(util_buffer_i16_t *bfr) {
-	int16_t tmp = bfr->buffer[bfr->l_ix++];
-	if (bfr->l_ix == bfr->bfr_len)
-		bfr->l_ix = 0;
+	int16_t tmp = bfr->buffer[bfr->current_read_index++];
+	if (bfr->current_read_index == bfr->bfr_len)
+		bfr->current_read_index = 0;
 	return tmp;
 }
 
 static inline uint8_t util_buffer_i16_isempty(util_buffer_i16_t *bfr) {
-	return bfr->l_ix == bfr->c_ix;
+	return bfr->current_read_index == bfr->current_write_index;
 }
 
 /* circular buffer */
