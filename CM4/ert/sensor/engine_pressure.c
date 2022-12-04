@@ -20,13 +20,14 @@
 #define MIN_PRESSURE 0
 #define MAX_PRESSURE 10
 
-//in V must change values
-#define MIN_VOLTAGE 1
-#define MAX_VOLTAGE 1
+//in mA
+#define MIN_CURRENT 4
+#define MAX_CURRENT 20
 
-#define DIFFERENTIAL_MODE false
+//in Ohm
+#define DIFFERENTIAL_RESISTOR 100
 
-static double const VREF = 0;
+static double const VREF = 2.048;
 static double LIN_RATIO = 0;
 
 util_error_t engine_sensor_convert_pres(double * data);
@@ -35,7 +36,8 @@ util_error_t engine_pressure_init(device_t * eng_pres){
     util_error_t error = ER_SUCCESS;
     LIN_RATIO = 
     error |= adc_init(eng_pres);
-    LIN_RATIO = (double)((MAX_PRESSURE-MIN_PRESSURE)/(MAX_VOLTAGE-MIN_VOLTAGE));
+    LIN_RATIO = (double)((MAX_PRESSURE-MIN_PRESSURE)/(
+        (DIFFERENTIAL_RESISTOR*MAX_CURRENT)-(DIFFERENTIAL_RESISTOR*MIN_CURRENT)));
     return error;
 }
 

@@ -25,6 +25,9 @@
 #include <driver/hostproc.h>
 #include <init.h>
 #include <sensor.h>
+
+#include <propulsion_sensor.h>
+
 #include <od/od.h>
 #include <device/comunicator.h>
 #include <hostcom.h>
@@ -62,6 +65,9 @@
 #define SENSOR_SZ	DEFAULT_SZ
 #define SENSOR_PRIO		(1)
 
+#define PROP_SENSOR_SZ	DEFAULT_SZ
+#define PROP_SENSOR_PRIO		(1)
+
 #define CAN_RX_SZ	DEFAULT_SZ
 #define CAN_RX_PRIO		(1)
 
@@ -94,6 +100,9 @@ static TaskHandle_t hostcom_handle = NULL;
 static TaskHandle_t miaou_handle = NULL;
 static TaskHandle_t can_rx_handle = NULL;
 static TaskHandle_t can_tx_handle = NULL;
+static TaskHAndle_t propulsion_sensor_i2c_handle = NULL;
+
+
 
 /**********************
  *	PROTOTYPES
@@ -176,6 +185,12 @@ void init(void) {
 	//INIT_THREAD_CREATE(sensor_spi_handle, sensor_spi, sensor_spi_thread, NULL, SENSOR_SZ, SENSOR_PRIO);
 #else
 	UNUSED(sensor_i2c_handle);
+#endif
+
+#if WH_HAS_PROP_SENSORS
+	INIT_THREAD_CREATE(propulsion_sensor_i2c_handle, sensor_i2c, sensor_i2c_thread, NULL, PROP_SENSOR_SZ, PROP_SENSOR_PRIO);
+#else
+	UNUSED(propulsion_sensor_i2c_handle);
 #endif
 
 

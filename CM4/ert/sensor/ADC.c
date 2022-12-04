@@ -1,9 +1,9 @@
-/*  Title		: engine_pressure.c
- *  Filename	: engine_pressure.c
+/*  Title		: ADC.c
+ *  Filename	: ADC.c
  *	Author		: Thilo Chalas, Luciano Calcoen
  *	Date		: 17.11.2022
  *	Version		: 0.1
- *	Description	: Engine nozzle pressure sensor setup and acquisition
+ *	Description	: ADC setup and voltage acquisition
  */
 
 /**********************
@@ -18,7 +18,7 @@
  *	CONSTANTS
  **********************/
 
-#define ADC_RESOLUTION_BITS 16
+#define ADC_RESOLUTION_BITS 12
 #define ADC_OUTPUT_BYTES 3
 
 //ADC PGA GAIN BITS (2 LSB bits)

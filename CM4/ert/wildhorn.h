@@ -9,7 +9,7 @@
 #ifndef WILDHORN_H
 #define WILDHORN_H
 
-
+/*MUST BE CHANGE IN 2023*/
 
 /**********************
  *  INCLUDES
@@ -41,12 +41,14 @@
 	#define WH_HAS_RADIO	WH_TRUE
 	#define WH_HAS_GNSS		WH_FALSE
 	#define WH_HAS_KRTEK	WH_TRUE
+	#define WH_HAS_PROP_SENSORS WH_FALSE
 #else
 	#define WH_HAS_SENSORS	WH_TRUE
 	#define WH_HAS_FEEDBACK WH_TRUE
 	#define WH_HAS_RADIO	WH_FALSE
 	#define WH_HAS_GNSS		WH_TRUE
 	#define WH_HAS_KRTEK	WH_FALSE
+	#define WH_HAS_PROP_SENSORS WH_TRUE
 #endif
 
 

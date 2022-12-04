@@ -93,9 +93,9 @@ util_error_t accelerometer_read_data(device_t * acc, accelerometer_data_t * data
 	util_error_t error = ER_SUCCESS;
 	uint8_t tmp[6];
 	error |= device_read(acc, DATAX0, tmp, 6);
-	data->raw[ACC_X] = tmp[0] | (tmp[1]<<8);
-	data->raw[ACC_Y] = tmp[2] | (tmp[3]<<8);
-	data->raw[ACC_Z] = tmp[4] | (tmp[5]<<8);
+	data->raw[ACC_X] = tmp[1] | (tmp[0]<<8);
+	data->raw[ACC_Y] = tmp[3] | (tmp[2]<<8);
+	data->raw[ACC_Z] = tmp[5] | (tmp[4]<<8);
 	data->timestamp = HAL_GetTick();
 
 	return error;
