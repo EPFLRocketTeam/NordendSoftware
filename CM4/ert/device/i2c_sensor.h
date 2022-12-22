@@ -58,6 +58,7 @@ extern "C"{
 device_t * i2c_sensor_get_accelerometer(void);
 device_t * i2c_sensor_get_gyroscope(void);
 device_t * i2c_sensor_get_barometer(void);
+device_t * i2c_sensor_get_engine_pressure(void);
 
 util_error_t i2c_sensor_init(void);
 

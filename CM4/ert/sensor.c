@@ -97,7 +97,7 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	i2c_acc = i2c_sensor_get_accelerometer();
 	i2c_gyro = i2c_sensor_get_gyroscope();
 	i2c_baro = i2c_sensor_get_barometer();
-	i2c_engine_pressure = i2c_sensor_get_engine_pressure();
+
 
 
 
@@ -176,10 +176,6 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 			}
 
 			//store everything
-
-			if(engine_pressure_err == ER_SUCCESS) {
-				engine_pressure_read(i2c_engine_press, i2c_engine_press_data);
-			}
 
 
 

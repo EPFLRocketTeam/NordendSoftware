@@ -20,7 +20,6 @@
 
 #define ADC_RESOLUTION_BITS 12
 #define ADC_OUTPUT_BYTES 3
-
 //ADC PGA GAIN BITS (2 LSB bits)
 #define PGA_GAIN 0b00000000
 /**********************
@@ -38,9 +37,10 @@
 
 static uint8_t adc_setup = 0b10010000 | PGA_GAIN;
 static uint8_t adc_output[ADC_OUTPUT_BYTES];
-static bool prev_channel = 0;
+static uint8_t prev_channel = 0;
 const double adc_voltage_range  = 4.096;
-const double adc_lsb_volt = adc_voltage_range / (2**ADC_RESOLUTION_BITS);
+const uint32_t ADCmaxvalue = 1<<ADC_RESOLUTION_BITS;
+const double adc_lsb_volt = (adc_voltage_range / ADCmaxvalue);
 /**********************
  *	PROTOTYPES
  **********************/
@@ -58,7 +58,7 @@ const double adc_lsb_volt = adc_voltage_range / (2**ADC_RESOLUTION_BITS);
  * @return double 
  */
 
-double convert_adc_to_volt(int16_t & adc_value){
+double convert_adc_to_volt(int16_t adc_value){
     return adc_value * adc_lsb_volt / PGA_GAIN;
 }
 
@@ -71,18 +71,18 @@ double convert_adc_to_volt(int16_t & adc_value){
  * @return util_error_t 
  */
 
-util_error_t adc_read_data(device_t * adc, double * voltage, bool channel){
+util_error_t adc_read_voltage(device_t * adc, double * voltage, uint8_t channel){
     util_error_t error = ER_SUCCESS;
     //Select the proper ADC channel
     if (prev_channel != channel){
         uint8_t adc_channel = adc_setup | (channel ? 0b00100000 : 0b00000000);
         error |= device_interface_send(adc->interface, &adc_channel, 1);
-        bool dataready = false;
+        uint8_t dataready = 0;
         //Wait for the next conversion to be ready
         while (!dataready){
             error |= device_interface_recv(adc->interface, adc_output , ADC_OUTPUT_BYTES);
             if (adc_output[2] == (adc_channel & 0b01111111)){
-                dataready = true;
+                dataready = 1;
             }       
         }
     }
@@ -92,7 +92,7 @@ util_error_t adc_read_data(device_t * adc, double * voltage, bool channel){
     
     //Convert the value to a voltage
     int16_t adc_value = (adc_output[0]<<8 | adc_output[1]);
-    voltage = convert_adc_to_volt(adc_value);
+    *voltage = convert_adc_to_volt(adc_value);
 
     return error;
 }

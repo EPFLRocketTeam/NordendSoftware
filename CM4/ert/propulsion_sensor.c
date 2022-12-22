@@ -105,11 +105,11 @@ void prop_sensor_i2c_thread(__attribute__((unused)) void * arg) {
 		if(1) {
             if(engine_press_err == ER_SUCCESS) {
                 //read engine pressure
-				engine_pressure_read(i2c_engine_press, i2c_engine_press_data);
+				engine_pressure_read(i2c_engine_press, &i2c_engine_press_data);
 			}
 			//store everything
 
-/*to be determined as to wtf we're supposed to replace it with*/
+/*to be determined as to what we're supposed to replace it with*/
 			
 // #if WH_COMPUTER == A
 // 			od_write_ENGPRESS_I2C_A(&i2c_acc_data);

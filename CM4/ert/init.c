@@ -100,7 +100,7 @@ static TaskHandle_t hostcom_handle = NULL;
 static TaskHandle_t miaou_handle = NULL;
 static TaskHandle_t can_rx_handle = NULL;
 static TaskHandle_t can_tx_handle = NULL;
-static TaskHAndle_t propulsion_sensor_i2c_handle = NULL;
+static TaskHandle_t propulsion_sensor_i2c_handle = NULL;
 
 
 
@@ -188,7 +188,7 @@ void init(void) {
 #endif
 
 #if WH_HAS_PROP_SENSORS
-	INIT_THREAD_CREATE(propulsion_sensor_i2c_handle, sensor_i2c, sensor_i2c_thread, NULL, PROP_SENSOR_SZ, PROP_SENSOR_PRIO);
+	INIT_THREAD_CREATE(propulsion_sensor_i2c_handle, prop_sensor_i2c, prop_sensor_i2c_thread, NULL, PROP_SENSOR_SZ, PROP_SENSOR_PRIO);
 #else
 	UNUSED(propulsion_sensor_i2c_handle);
 #endif
