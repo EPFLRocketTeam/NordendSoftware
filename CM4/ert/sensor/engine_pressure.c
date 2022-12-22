@@ -16,6 +16,8 @@
  *  DEFINES
 */
 
+#define PRESS_SENS_ADC_CHANNEL 1
+
 //in MPa
 #define MIN_PRESSURE 0
 #define MAX_PRESSURE 10
@@ -27,14 +29,13 @@
 //in Ohm
 #define DIFFERENTIAL_RESISTOR 100
 
-static double const VREF = 2.048;
+//static double const VREF = 2.048;
 static double LIN_RATIO = 0;
 
-util_error_t engine_sensor_convert_pres(double * data);
+void engine_sensor_convert_pres(double * data);
 
 util_error_t engine_pressure_init(device_t * eng_pres){
     util_error_t error = ER_SUCCESS;
-    LIN_RATIO = 
     error |= adc_init(eng_pres);
     LIN_RATIO = (double)((MAX_PRESSURE-MIN_PRESSURE)/(
         (DIFFERENTIAL_RESISTOR*MAX_CURRENT)-(DIFFERENTIAL_RESISTOR*MIN_CURRENT)));
@@ -42,14 +43,13 @@ util_error_t engine_pressure_init(device_t * eng_pres){
 }
 
 /*to-do once we have the hardware values (Vref, Vmin, Vmax)*/
-util_error_t engine_sensor_convert_pres(double * data) {
+void engine_sensor_convert_pres(double * data) {
 	*data = LIN_RATIO * (*data);
-	return error;
 }
 
 util_error_t engine_pressure_read(device_t * eng_press, double * data) {
 	util_error_t error = ER_SUCCESS;
-    error |= adc_read_data(eng_press, data, VREF, DIFFERENTIAL_MODE);
+    error |= adc_read_voltage(eng_press, data, PRESS_SENS_ADC_CHANNEL);
     engine_sensor_convert_pres(data);
 	return error;
 }

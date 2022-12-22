@@ -35,7 +35,6 @@
  *  TYPEDEFS
  **********************/
 
-typedef uint16_t adc_data_t
 
 /**********************
  *  VARIABLES
@@ -50,8 +49,7 @@ typedef uint16_t adc_data_t
 extern "C"{
 #endif
 
-util_error_t adc_read_data(device_t * adc, adc_data_t * data);
-util_error_t adc_select_channel(device_t * adc, bool channel);
+util_error_t adc_read_voltage(device_t * adc, double * data, uint8_t channel);
 util_error_t adc_init(device_t * adc);
 
 #ifdef __cplusplus
