@@ -3,7 +3,7 @@
  *  Author      : Julian Marmier
  *  Date        : 14.12.2022
  *  Version     : 0.1
- *  Description : Pulse width modulation (PWM) driver
+ *  Description : Pulse width modulation (PWM) driver for PWM clocks (TIM2…7 and TIM12…14 only)
  */
 
 #ifndef DRIVER_PWM_H
@@ -16,11 +16,11 @@
 
 #include <stdint.h>
 #include "tim.h"
+#include "util.h"
 
 /**********************
  *  CONSTANTS
  **********************/
-
 
 /**********************
  *  MACROS
@@ -31,13 +31,28 @@
  *  TYPEDEFS
  **********************/
 
-typedef struct pwm_init_structure {
-	TIM_HandleTypeDef htim;			/*!< One of htim1…htim8 */
-	uint32_t alternate_function;
-	uint16_t gpio_pin;				/*!< GPIO pins associated with the timer channels. @see */
-	GPIO_TypeDef gpio_bank; 		/*!< One of GPIOA...K */
-	uint8_t channels; 				/*!< number of timer channels to use */
-} pwm_init_structure_t;
+/**
+ * Timers that are available for use.
+ * Should reflect the current board pin configuration.
+ */
+typedef enum PWM_Timer {
+	PWM_TIM3,
+	PWM_TIM4,
+	PWM_TIM5
+} PWM_Timer_t;
+
+typedef enum PWM_Channel_Selection {
+	PWM_SELECT_CH1 = 0b1,
+	PWM_SELECT_CH2 = 0b10,
+	PWM_SELECT_CH3 = 0b100,
+	PWM_SELECT_CH4 = 0b1000
+} PWM_Channel_Selection_t;
+
+typedef struct pwm_data {
+	TIM_HandleTypeDef htim;			/*!< One of htim2…htim7 */
+	float usec;						/*!< The current microseconds */
+	uint8_t channels; 				/*!< One-hot encoding to represent which channels to activate for this particular instance. */
+} pwm_data_t;
 
 /**********************
  *  VARIABLES
@@ -52,8 +67,14 @@ typedef struct pwm_init_structure {
 extern "C"{
 #endif
 
-util_error_t pwm_init(pwm_init_structure_t * data);
-util_error_t setMicroseconds(float us);
+util_error_t pwm_init(pwm_data_t * data, PWM_Timer_t timer, uint8_t channel_sel);
+util_error_t pwm_init_arr(pwm_data_t * data, PWM_Timer_t timer, uint8_t channel_sel, uint32_t arr_val);
+
+util_error_t pwm_set_microseconds(pwm_data_t * data, uint32_t us, uint8_t channel_sel);
+uint32_t pwm_read_microseconds(pwm_data_t * data, uint8_t channel_index);
+
+util_error_t pwm_set_duty(pwm_data_t * data, uint32_t new_duty, uint8_t channel_sel);
+uint32_t read_duty(pwm_data_t * data, uint8_t channel_index);
 
 
 #ifdef __cplusplus
