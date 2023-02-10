@@ -5,12 +5,12 @@
  * @date 		20.01.2022
  * @author 		Iacopo Sprenger
  *
- * @ingroup 	control
+ * @ingroup 	engine_control
  * @{
  */
 
-#ifndef CONTROL_H
-#define CONTROL_H
+#ifndef ENGINE_CONTROL_H
+#define ENGINE_CONTROL_H
 
 
 
@@ -49,7 +49,7 @@ extern "C"{
 #endif
 
 
-void control_thread(void * arg);
+void engine_control_thread(void * arg);
 
 #ifdef __cplusplus
 } // extern "C"

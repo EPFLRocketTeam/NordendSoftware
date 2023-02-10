@@ -103,6 +103,7 @@ void led_rgb_init(void) {
 	//make sure GPIO are initialized correctly
 
 	GPIO_InitTypeDef GPIO_InitStruct;
+	//coucou:))
 
 	GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_6;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;

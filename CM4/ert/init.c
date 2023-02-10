@@ -21,12 +21,12 @@
 #include <driver/can.h>
 #include <device/i2c_sensor.h>
 #include <device/spi_sensor.h>
-#include <control.h>
 #include <driver/hostproc.h>
 #include <init.h>
 #include <sensor.h>
 #include <od/od.h>
 #include <device/comunicator.h>
+#include <engine_control.h>
 #include <hostcom.h>
 #include <miaou.h>
 #include <sensor/gnss.h>
@@ -86,7 +86,7 @@
 
 static TaskHandle_t od_update_handle = NULL;
 static TaskHandle_t od_broadcast_handle = NULL;
-static TaskHandle_t control_handle = NULL;
+static TaskHandle_t engine_control_handle = NULL;
 static TaskHandle_t led_rgb_handle = NULL;
 static TaskHandle_t sensor_i2c_handle = NULL;
 static TaskHandle_t serial_handle = NULL;
@@ -125,14 +125,14 @@ void init(void) {
 	// NOT USED DUE TO BUGS!!!!
 	//can_init(WH_COMPUTER);
 
-#if WH_HAS_FEEDBACK == WH_TRUE
-#if WH_USE_BUZZER == WH_TRUE
+#if ND_HAS_FEEDBACK == ND_TRUE
+#if ND_USE_BUZZER == ND_TRUE
 	buzzer_init();
 #endif
 	led_feedback_init();
 #endif
 
-#if WH_HAS_SENSORS == WH_TRUE
+#if ND_HAS_SENSORS == ND_TRUE
 	//spi_init();
 	i2c_init();
 	//spi_sensor_init();
@@ -148,7 +148,7 @@ void init(void) {
 
 
 //always start the control thread
-	INIT_THREAD_CREATE(control_handle, control, control_thread, NULL, CONTROL_SZ, CONTROL_PRIO);
+	INIT_THREAD_CREATE(engine_control_handle, engine_control, engine_control_thread, NULL, CONTROL_SZ, CONTROL_PRIO);
 
 
 	INIT_THREAD_CREATE(serial_handle, serial, serial_thread, NULL, SERIAL_SZ, SERIAL_PRIO);
@@ -161,17 +161,17 @@ void init(void) {
 	//INIT_THREAD_CREATE(can_tx_handle, can_tx, can_transmit_thread, NULL, CAN_RX_SZ, CAN_RX_PRIO);
 	UNUSED(can_tx_handle);
 
-#if WH_HAS_RADIO
+#if ND_HAS_RADIO
 	INIT_THREAD_CREATE(miaou_handle, miaou, miaou_thread, NULL, MIAOU_SZ, MIAOU_PRIO);
 #else
 	UNUSED(miaou_handle);
 #endif
 
-#if WH_HAS_GNSS
+#if ND_HAS_GNSS
 	gnss_init();
 #endif
 
-#if WH_HAS_SENSORS
+#if ND_HAS_SENSORS
 	INIT_THREAD_CREATE(sensor_i2c_handle, sensor_i2c, sensor_i2c_thread, NULL, SENSOR_SZ, SENSOR_PRIO);
 	//INIT_THREAD_CREATE(sensor_spi_handle, sensor_spi, sensor_spi_thread, NULL, SENSOR_SZ, SENSOR_PRIO);
 #else

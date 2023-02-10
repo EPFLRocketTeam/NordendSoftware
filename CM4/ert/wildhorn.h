@@ -24,33 +24,31 @@
 
 //present sockets
 
-#define WH_TRUE		1
-#define WH_FALSE 	0
-#define WH_A			0
-#define WH_B			1
+#define ND_TRUE		1
+#define ND_FALSE 	0
+#define ND_A			0
+#define ND_B			1
 
 
 /**
  * COMPUTER TYPE HERE !!
  */
-#define WH_COMPUTER	WH_B
+#define ND_COMPUTER	ND_B
 
-#if WH_COMPUTER == WH_A
-	#define WH_HAS_SENSORS	WH_TRUE
-	#define WH_HAS_FEEDBACK WH_FALSE
-	#define WH_HAS_RADIO	WH_TRUE
-	#define WH_HAS_GNSS		WH_FALSE
-	#define WH_HAS_KRTEK	WH_TRUE
+#if ND_COMPUTER == ND_A
+	#define ND_HAS_SENSORS			ND_TRUE
+	#define ND_HAS_RADIO			ND_TRUE
+	#define ND_HAS_PROPULSION		ND_FALSE
+	#define ND_HAS_KRTEK			ND_TRUE
 #else
-	#define WH_HAS_SENSORS	WH_TRUE
-	#define WH_HAS_FEEDBACK WH_TRUE
-	#define WH_HAS_RADIO	WH_FALSE
-	#define WH_HAS_GNSS		WH_TRUE
-	#define WH_HAS_KRTEK	WH_FALSE
+	#define ND_HAS_SENSORS			ND_TRUE
+	#define ND_HAS_RADIO			ND_TRUE
+	#define ND_HAS_PROPULSION		ND_TRUE
+	#define ND_HAS_KRTEK			ND_FALSE
 #endif
 
 
-#define WH_USE_BUZZER	WH_FALSE
+#define ND_USE_BUZZER	ND_FALSE
 
 
 /**********************

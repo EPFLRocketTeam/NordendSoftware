@@ -17,9 +17,6 @@
 
 #include <stdint.h>
 
-#include "sensor/accelerometer.h"
-#include "sensor/barometer.h"
-#include "sensor/gyroscope.h"
 #include "sensor/gnss.h"
 #include <protocol/structures.h>
 
@@ -82,21 +79,8 @@ void od_pop_from_in_q(od_frame_t *frame);
 void od_push_to_in_q(od_frame_t *frame);
 void od_pop_from_out_q(od_frame_t *frame);
 
-DECLARE_OD_ENTRY(ACC_I2C_A, accelerometer_data_t);
-DECLARE_OD_ENTRY(ACC_SPI_A, accelerometer_data_t);
-DECLARE_OD_ENTRY(ACC_I2C_B, accelerometer_data_t);
-DECLARE_OD_ENTRY(ACC_SPI_B, accelerometer_data_t);
-DECLARE_OD_ENTRY(GYRO_I2C_A, gyroscope_data_t);
-DECLARE_OD_ENTRY(GYRO_SPI_A, gyroscope_data_t);
-DECLARE_OD_ENTRY(GYRO_I2C_B, gyroscope_data_t);
-DECLARE_OD_ENTRY(GYRO_SPI_B, gyroscope_data_t);
-DECLARE_OD_ENTRY(BARO_I2C_A, barometer_data_t);
-DECLARE_OD_ENTRY(BARO_SPI_A, barometer_data_t);
-DECLARE_OD_ENTRY(BARO_I2C_B, barometer_data_t);
-DECLARE_OD_ENTRY(BARO_SPI_B, barometer_data_t);
 DECLARE_OD_ENTRY(KALMAN_DATA_A, transfer_data_res_t);
 DECLARE_OD_ENTRY(KALMAN_DATA_B, transfer_data_res_t);
-DECLARE_OD_ENTRY(BARO_SPI_B, barometer_data_t);
 DECLARE_OD_ENTRY(GNSS, gnss_data_t);
 DECLARE_OD_ENTRY(BATTERY_A, uint32_t);
 DECLARE_OD_ENTRY(BATTERY_B, uint32_t);

@@ -17,8 +17,6 @@
 #include <device/comunicator.h>
 #include <od/od.h>
 #include <RadioPacket/RadioPacket.h>
-#include <sensor/accelerometer.h>
-#include <sensor/barometer.h>
 #include <sensor/gnss.h>
 #include <driver/serial.h>
 #include <device/device.h>
@@ -90,17 +88,8 @@ void miaou_thread(__attribute__((unused)) void * arg) {
 
 		packet_number += 1;
 
-		miaou_packet.prefix = 'R'<<24 | 'F'<<16 | 'B'<<8 | 'G';
+	//	miaou_packet.prefix = 'R'<<24 | 'F'<<16 | 'B'<<8 | 'G';
 
-		accelerometer_data_t acc_data;
-		od_read_ACC_I2C_A(&acc_data);
-		miaou_packet.acc_z = acc_data.processed[ACC_X];
-
-		barometer_data_t baro_data;
-		od_read_BARO_I2C_A(&baro_data);
-		miaou_packet.baro_press = baro_data.pressure;
-		miaou_packet.baro_temp = baro_data.temperature;
-		miaou_packet.baro_alt = baro_data.altitude;
 
 		gnss_data_t gnss_data;
 		od_read_GNSS(&gnss_data);
