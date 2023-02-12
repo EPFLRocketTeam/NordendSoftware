@@ -44,6 +44,7 @@ typedef struct servo {
 	uint32_t pulsewidth; /*!< Current pulse width */
 	uint32_t min_pulse; /*!< Minimum pulse width, in microseconds */
 	uint32_t max_pulse; /*!< Maximum pulse width, in microseconds */
+	uint32_t origin; /*!< Offset for the origin, in microseconds. Usually 1500 us corresponds to 0 degrees */
 	float degrees_per_usec; /*!< Degrees per microsecond */
 
 	pwm_data_t * pwm_data; /*!< Attached PWM driver data structure */
@@ -68,7 +69,7 @@ extern "C"{
  * @brief Sets the rotation of the servo, in degrees.
  *
  * @param servo The associated servo instance.
- * @param newRotation
+ * @param newRotation The new rotation to set, in degrees.
  * @return ER_SUCCESS if everything went well.
  */
 util_error_t set_rotation(servo_t * servo, float newRotation);
@@ -82,22 +83,21 @@ util_error_t set_rotation(servo_t * servo, float newRotation);
  */
 float get_rotation(servo_t * servo);
 
-/**
- * @fn util_error_t pulse(servo_t*)
- * @brief Sends the current memorized pulse to the servo.
- * Should be called in a loop.
- *
- * @param servo The associated servo instance.
- * @return ER_SUCCESS if everything went well.
- */
-util_error_t pulse(servo_t * data);
 
 /**
- * @fn util_error_t init(servo_t*)
- * @brief Initializes the servo
+ * @fn util_error_t servo_init(servo_t*, pwm_data_t*, PWM_Channel_Selection_t, uint32_t, uint32_t, float)
+ * @brief Initializes the given servo instance according to the parameters.
  *
- * @param data
- * @return ER_SUCCESS if everything went well.
+ * @pre
+ * @post
+ * @param servo The servo instance to initialize
+ * @param pwm The PWM instance to attach to the servo instance. The PWM must be initialized using {@link pwm_init} from driver/pwm.
+ * @param pwm_channel The channel associated with the servo instance
+ * @param min_pulse The minimum allowed pulse that can be sent to the servo, in microseconds
+ * @param max_pulse The maximum allowed pulse that can be sent to the servo, in microseconds
+ * @param origin The origin offset (in microseconds), for computing the pulse width. Default should be 1500.
+ * @param degrees_per_usec The degrees-to-microsecond ratio of the servo, used for setting and getting rotation.
+ * @return
  */
 util_error_t servo_init(
 		servo_t * servo,
@@ -105,6 +105,7 @@ util_error_t servo_init(
 		PWM_Channel_Selection_t pwm_channel,
 		uint32_t min_pulse,
 		uint32_t max_pulse,
+		uint32_t origin,
 		float degrees_per_usec
 	);
 

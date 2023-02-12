@@ -156,7 +156,17 @@ static inline void util_list_remove(util_list_t** head, util_list_t* node)
 
 #endif
 
+/**
+ * @brief Clamps the value val within the range [min, max].
+ */
+static inline uint32_t clamp_u32(uint32_t min, uint32_t val, uint32_t max) {
+	if (val < min) return min;
+	else if (val > max) return max;
+	else return val;
+}
+
 /* data encoding and decoding */
+
 
 static inline void util_encode_u8(uint8_t * data, uint8_t value) {
     data[0] = value;

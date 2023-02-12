@@ -126,7 +126,6 @@ void led_rgb_init(void) {
 	HAL_TIM_PWM_Start(&LED_TIM, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(&LED_TIM, TIM_CHANNEL_3);
 }
-
 /**
  * @brief	Set RBG LED color using r, g, b values.
  *
