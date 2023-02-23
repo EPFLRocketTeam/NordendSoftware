@@ -41,6 +41,8 @@
  **********************/
 
 #define CONTROL_HEART_BEAT	200
+#define FINAL_COUNTDOWN 999 //must be changed by wanted value
+
 
 
 /**********************
@@ -54,6 +56,8 @@
 
 /**
  * @brief State of the control FSM
+ * 
+ * the description of the states don't make sense -> must be reviewed
  */
 typedef enum control_state {
 	/** Wait for arming or calibration */
@@ -76,7 +80,7 @@ typedef enum control_state {
 	CONTROL_THRUST = 8,
 	/** Main chute descent, wait for touchdown */
 	CONTROL_SHUTDOWN = 9,
-	/** Touchdown detected, end of the flight */
+	/** Touchdown detected, end of the flight */ //-> should be end of propulsion only
 	CONTROL_APOGEE = 10,
 	/** Ballistic flight detected */
 	CONTROL_DEPRESSURISATION = 11,
@@ -97,7 +101,7 @@ typedef struct control {
 /**********************
  *	VARIABLES
  **********************/
-
+//shoudn't it be static ?
 control_t control;
 
 /**********************
@@ -172,7 +176,7 @@ void (*control_fcn[])(void) = {
 
 /**
  * @brief 	Control thread entry point
- * @details This thread holds the main state machine of the WildhornAV software. It will be
+ * @details This thread holds the main state machine of the Nordend software. It will be
  * 			the main decision point for actions to be taken with respect to real world events.
  *
  *
@@ -185,7 +189,6 @@ void engine_control_thread(__attribute__((unused)) void * arg) {
 	last_wake_time = xTaskGetTickCount();
 
     control_idle_start();
-
 	uint16_t checkpoint = led_add_checkpoint(led_blue);
 	debug_log("Control start\n");
 
@@ -213,7 +216,7 @@ void engine_control_thread(__attribute__((unused)) void * arg) {
 //
 //		od_write_BATTERY_B(&bat2);
 
-
+		//how are radio instructions implemented ?
 
 
 
@@ -230,7 +233,7 @@ void engine_control_thread(__attribute__((unused)) void * arg) {
 
 
 /**
- * @brief	Idle state entry
+ * @brief	Idle state entry (aka Ground state)
  * @details This function resets the state machine into it's (default) Idle
  * 			state. The idle state is used as 'default' state before liftoff and after touchdown
  * 			It can also be accessed by the error and glide state.
@@ -246,7 +249,7 @@ void control_idle_start(void) {
  * 			command/action to happen.
  */
 void control_idle_run(void) {
-
+	/*does nothing, control_thread will loop until further instructions*/
 }
 
 /**
@@ -260,17 +263,22 @@ void control_calibration_start(void) {
 /**
  * @brief	Calibration state runtime
  * @details This state will wait for the calibration sequence to finish and jump
- * 			back to Idle.
+ * 			back to Idle or go to Error.
  */
 void control_calibration_run(void) {
-
+	uint8_t error_calibration = 0;//calibration()
+	if(error_calibration){
+		control_error_start();
+		return;
+	}
+	control_idle_start();
 }
 
 /**
  * @brief Venting state entry
  * @details This function will initiate the venting sequence.
  * 			This function can be called as many times as needed and is initiated by radio/remotely.
- * 			It could also be initiated by glide (tbd).
+ * 			It can also be initiated by glide.
  */
 void control_venting_start(void) {
 	control.state = CONTROL_VENTING;
@@ -279,11 +287,17 @@ void control_venting_start(void) {
 
 /**
  * @brief Venting state runtime
- * @details This state will wait for the venting sequence to finish and jump back to idle.
+ * @details This state will wait for the venting sequence to finish and jump back to its previous state.
  * 			This function will open/close the venting valves.
  */
 void control_venting_run(void) {
-
+	uint8_t error_venting = 0; //venting()
+	if(error_venting){
+		control_error_start();
+		return;
+	}
+	//must correct so that it goes back to glide if called from there
+	control_idle_start();
 }
 
 /**
@@ -299,11 +313,17 @@ void control_pressurisation_start(void) {
 
 /**
  * @brief Pressurisation state runtime
- * @details This state will wait for the pressurisation sequence to finish and jump back to idle.
+ * @details This state will wait for the pressurisation sequence to finish and jump back to its previous state.
  * 			This state will open/close the N20 pressurisation valve.
  */
 void control_pressurisation_run(void) {
-
+	uint8_t error_pressurisation = 0; //pressurisation()
+	if(error_pressurisation){
+		control_error_start();
+		return;
+	}
+	//must correct so that it goes back to glide if called from there
+	control_idle_start();
 }
 
 /**
@@ -321,7 +341,20 @@ void control_countdown_start(void) {
  * @details	This state will wait for the countown to end and will jump to ignition.
  */
 void control_countdown_run(void) {
-
+	uint8_t countdown = FINAL_COUNTDOWN;
+	do{
+		//delay
+		//check 
+		if(/*error_detected*/){
+			control_error_start();
+			return;
+		}else if(/*abort needed*/){
+			control_abort_start();
+			return;
+		}
+		countdown--;
+	}while(countdown);
+	control_ignition_start();
 }
 
 /**
@@ -341,6 +374,14 @@ void control_glide_start(void) {
  *			It will also wait until touchdown then return to idle.
  */
 void control_glide_run(void) {
+	if(/*depressurisation_needed()*/){
+		control_start_depressurisation_start();
+		return;
+	}
+	if(/* landing() */){	//-> landing() gives a 1 once it has landed, else 0
+		control_idle_start();
+		return;
+	};
 
 }
 
@@ -359,7 +400,16 @@ void control_ignition_start(void) {
  * 			This state will wait for ignition to end and will jump to powered.
  */
 void control_ignition_run(void) {
-
+	uint8_t error_ignition = 0; //ignition() -> will turn the igniter on (solenoids)
+	if(/*error_ignition == IGNITION_ABORT*/){
+		control_abort_start();
+		return;
+	}else if(/*error_ignition == IGNITION_ERROR*/){
+		//turn off solenoids()
+		control_error_start(); //or new function ?
+		return;
+	}
+	control_powered_start();
 }
 
 /**
@@ -373,11 +423,16 @@ void control_powered_start(void) {
 
 /**
  * @brief	powered state runtime
- * @details	This state will open the servos to their 'patially open' state.
+ * @details	This state will open the servos to their 'partially open' state.
  * 			After a delay, it will jump to the thrust state.
  */
 void control_powered_run(void) {
-
+	uint8_t error_powering = 0; //powering() -> partial open state of servos
+	if(error_powering){
+		control_abort_start();
+		return;
+	}
+	control_thrust_start();
 }
 
 /**
@@ -395,7 +450,12 @@ void control_thrust_start(void) {
  * 			After a delay, it will jump to the shutdown state.
  */
 void control_thrust_run(void) {
-
+	uint8_t error_thrust = 0; //thrust() -> full open state of servos
+	if(error_thrust){
+		control_abort_start();
+		return;
+	}
+	control_shutdown_start();
 }
 
 /**
@@ -411,9 +471,15 @@ void control_shutdown_start(void) {
  * @brief	Shutdown state runtime
  * @details	This function will stop the engine, depending on which algorithm is chosen (before or during the apogee, tbd).
  * 			After a delay, it will jump to the apogee state.
+ * 			Since we do not know if the engine has enough power to reach apogee without a full combustion, shutdown() is tbd
  */
 void control_shutdown_run(void) {
-
+	uint8_t error_shutdown = 0; //shutdown()
+	if(error_shutdown){
+		control_abort_start();
+		return;
+	}
+	control_apogee_start();
 }
 
 /**
@@ -431,7 +497,12 @@ void control_apogee_start(void) {
  * 			After the end of the sequence, it will jump to the depressurisation state.
  */
 void control_apogee_run(void) {
-
+	uint8_t error_start_fall = 0; //start_fall() -> venting
+	if(error_start_fall){
+		control_abort_start();
+		return;
+	}
+	control_depressurisation_start();
 }
 
 /**
@@ -449,7 +520,12 @@ void control_depressurisation_start(void) {
  * 			After the end of the sequence, it will jump to the glide state.
  */
 void control_depressurisation_run(void) {
-
+	uint8_t error_depressurisation = 0; //depressurisation() -> open valve
+	if(error_depressurisation){
+		control_abort_start();
+		return;
+	}
+	control_glide_start();
 }
 
 /**
@@ -472,7 +548,11 @@ void control_error_start(void) {
  * 			depending on the error to try to ix the problem.
  */
 void control_error_run(void) {
-
+	//memorize_what_went_wrong_for_next_time()
+	if(/* venting|pressurisation|countdown|ignition went wrong */){
+		control_calibration_start();
+	}
+	control_idle_start();
 }
 
 /**
@@ -494,6 +574,12 @@ void control_abort_start(void) {
  */
 void control_abort_run(void) {
 
+	uint8_t state_rocket = 0; //dead_or_not_too_dead()
+	if(state_rocket = 0 /*not too dead*/){
+		control_glide_start();
+		return;
+	}
+	control_idle_start(); /*dead*/
 }
 
 
