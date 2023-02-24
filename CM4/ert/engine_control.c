@@ -249,7 +249,13 @@ void control_idle_start(void) {
  * 			command/action to happen.
  */
 void control_idle_run(void) {
+	
+	//Check battery state, if charge disconnected scream!
+	
 	/*does nothing, control_thread will loop until further instructions*/
+
+
+
 }
 
 /**
@@ -267,6 +273,9 @@ void control_calibration_start(void) {
  */
 void control_calibration_run(void) {
 	uint8_t error_calibration = 0;//calibration()
+
+	//Run the calibration subroutines and log for errors
+
 	if(error_calibration){
 		control_error_start();
 		return;
@@ -282,16 +291,20 @@ void control_calibration_run(void) {
  */
 void control_venting_start(void) {
 	control.state = CONTROL_VENTING;
-
 }
 
 /**
  * @brief Venting state runtime
  * @details This state will wait for the venting sequence to finish and jump back to its previous state.
  * 			This function will open/close the venting valves.
+ * 			---->Should we be making an vent-open and vent-close state?
  */
 void control_venting_run(void) {
-	uint8_t error_venting = 0; //venting()
+	uint8_t error_venting = 0;
+
+	//Open or close the venting valves while logging for errors
+	//Venting valves are controlled by solenoids on 2 pins from 3,4,5,6 (needs crosscheck)
+
 	if(error_venting){
 		control_error_start();
 		return;
@@ -318,11 +331,15 @@ void control_pressurisation_start(void) {
  */
 void control_pressurisation_run(void) {
 	uint8_t error_pressurisation = 0; //pressurisation()
+
+	//Open/close the pressurisation valve while logging for errors
+	//Press valve controlled by solenoid on one of the 3-6 pins
+
 	if(error_pressurisation){
 		control_error_start();
 		return;
 	}
-	//must correct so that it goes back to glide if called from there
+	
 	control_idle_start();
 }
 
@@ -401,6 +418,12 @@ void control_ignition_start(void) {
  */
 void control_ignition_run(void) {
 	uint8_t error_ignition = 0; //ignition() -> will turn the igniter on (solenoids)
+
+	//Set ethanol and N2O servos (pins 13 and 14) to partially open
+	//Activate ignition
+
+	//Check if good engine start (pressure and temp?), if too many failed abort
+
 	if(/*error_ignition == IGNITION_ABORT*/){
 		control_abort_start();
 		return;
