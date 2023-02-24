@@ -1,13 +1,13 @@
-/*  Title		: I2C Acquisition
- *  Filename	: i2c_acq.h
- *	Author		: iacopo sprenger
- *	Date		: 13.07.2021
+/*  Title		: Propulsion I2C sensors acquisition
+ *  Filename	: propulsion_sensor.h
+ *	Author		: Thilo CHALAS, Luciano CALCOEN
+ *	Date		: 28.11.2022
  *	Version		: 0.1
- *	Description	: Thread grouping all the sensors on the same I2C bus.
+ *	Description	: Thread grouping all the propulsion sensors on the same I2C bus.
  */
 
-#ifndef I2C_SENS_ACQ_H
-#define I2C_SENS_ACQ_H
+#ifndef I2C_PROP_SENS_ACQ_H
+#define I2C_PROP_SENS_ACQ_H
 
 
 
@@ -45,7 +45,7 @@
 extern "C"{
 #endif
 
-void sensor_i2c_thread(__attribute__((unused)) void * arg);
+void prop_sensor_i2c_thread(__attribute__((unused)) void * arg);
 
 #ifdef __cplusplus
 } // extern "C"

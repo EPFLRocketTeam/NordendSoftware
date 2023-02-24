@@ -1,13 +1,13 @@
-/*  Title		: I2C Acquisition
- *  Filename	: i2c_acq.h
- *	Author		: iacopo sprenger
- *	Date		: 13.07.2021
+/*  Title		: ADC.h
+ *  Filename	: ADC.h
+ *	Author		: Thilo Chalas, Luciano Calcoen
+ *	Date		: 19.11.2022
  *	Version		: 0.1
- *	Description	: Thread grouping all the sensors on the same I2C bus.
+ *	Description	: ADC driver
  */
 
-#ifndef I2C_SENS_ACQ_H
-#define I2C_SENS_ACQ_H
+#ifndef ADC_H
+#define ADC_H
 
 
 
@@ -16,10 +16,14 @@
  **********************/
 
 #include <stdint.h>
+#include <util.h>
+#include <device/device.h>
 
 /**********************
  *  CONSTANTS
  **********************/
+
+
 
 
 /**********************
@@ -45,12 +49,13 @@
 extern "C"{
 #endif
 
-void sensor_i2c_thread(__attribute__((unused)) void * arg);
+util_error_t adc_read_voltage(device_t * adc, double * data, uint8_t channel);
+util_error_t adc_init(device_t * adc);
 
 #ifdef __cplusplus
 } // extern "C"
 #endif /* __cplusplus */
 
-#endif /* I2C_ACQ_H */
+#endif /* ACCELEROMETER_H */
 
 /* END */

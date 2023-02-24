@@ -9,7 +9,7 @@
 #ifndef WILDHORN_H
 #define WILDHORN_H
 
-
+/*MUST BE CHANGE IN 2023*/
 
 /**********************
  *  INCLUDES
@@ -38,14 +38,17 @@
 #if ND_COMPUTER == ND_A
 	#define ND_HAS_SENSORS			ND_TRUE
 	#define ND_HAS_RADIO			ND_TRUE
+	#define ND_HAS_FEEDBACK 		ND_FALSE
 	#define ND_HAS_PROPULSION		ND_FALSE
 	#define ND_HAS_KRTEK			ND_TRUE
+	#define ND_HAS_PROP_SENSORS 	ND_FALSE
 #else
 	#define ND_HAS_SENSORS			ND_TRUE
 	#define ND_HAS_RADIO			ND_TRUE
+	#define ND_HAS_FEEDBACK 		ND_TRUE
 	#define ND_HAS_PROPULSION		ND_TRUE
 	#define ND_HAS_KRTEK			ND_FALSE
-#endif
+	#define ND_HAS_PROP_SENSORS 	ND_TRUE
 
 
 #define ND_USE_BUZZER	ND_FALSE

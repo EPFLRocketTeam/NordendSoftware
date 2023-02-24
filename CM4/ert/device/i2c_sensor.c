@@ -44,6 +44,24 @@
 
 
 
+
+static device_t i2c_accelerometer_device;
+static device_t i2c_gyroscope_device;
+static device_t i2c_barometer_device;
+static device_t i2c_engine_pressure_device;
+
+static i2c_sensor_context_t i2c_accelerometer_device_context = {
+		.device_address = 0x30
+};
+
+static i2c_sensor_context_t i2c_gyroscope_device_context = {
+		.device_address = 0xD0
+};
+
+static i2c_sensor_context_t i2c_barometer_device_context = {
+		.device_address = 0xee
+};
+
 /**********************
  *	PROTOTYPES
  **********************/
@@ -57,6 +75,22 @@ util_error_t i2c_sensor_write_reg_HAL(void* context, device_interface_t * interf
 /**********************
  *	DECLARATIONS
  **********************/
+
+device_t * i2c_sensor_get_accelerometer(void) {
+	return &i2c_accelerometer_device;
+}
+
+device_t * i2c_sensor_get_gyroscope(void) {
+	return &i2c_gyroscope_device;
+}
+
+device_t * i2c_sensor_get_barometer(void) {
+	return &i2c_barometer_device;
+}
+
+device_t * i2c_sensor_get_engine_pressure(void) {
+	return &i2c_engine_pressure_device;
+}
 
 util_error_t i2c_sensor_init(void) {
 
