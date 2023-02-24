@@ -19,13 +19,10 @@
 #include <cmsis_os.h>
 
 #include <device/i2c_sensor.h>
-<<<<<<< HEAD
-=======
 #include <sensor/accelerometer.h>
 #include <sensor/gyroscope.h>
 #include <sensor/barometer.h>
 #include <sensor/engine_pressure.h>
->>>>>>> Thilo_Chalas
 #include <od/od.h>
 #include <driver/hostproc.h>
 #include <hostcom.h>
@@ -54,8 +51,6 @@
  **********************/
 
 
-<<<<<<< HEAD
-=======
 static device_t * i2c_acc;
 static device_t * i2c_gyro;
 static device_t * i2c_baro;
@@ -74,7 +69,6 @@ static double i2c_engine_press_data;
 
 
 
->>>>>>> Thilo_Chalas
 /**********************
  *	PROTOTYPES
  **********************/
@@ -92,103 +86,6 @@ static double i2c_engine_press_data;
  * 			i2c bus. The data will then be dispatched for delivery.
  */
 void sensor_i2c_thread(__attribute__((unused)) void * arg) {
-<<<<<<< HEAD
-//	static TickType_t last_wake_time;
-//	static const TickType_t period = pdMS_TO_TICKS(I2C_SENSOR_HEART_BEAT);
-//	static const TickType_t baro_delay = pdMS_TO_TICKS(10);
-//	last_wake_time = xTaskGetTickCount();
-//
-//	uint16_t checkpoint = led_add_checkpoint(led_green);
-//	debug_log("Sensor i2c start\n");
-//	//get devices
-//
-//
-//	//init
-//
-//	//manual calibration only:
-//	i2c_calib = 0;
-//
-//	//mainloop
-//	for(;;) {
-//		led_checkpoint(checkpoint);
-//		led_checkpoint(checkpoint_baro);
-//		led_checkpoint(checkpoint_acc);
-//
-//
-//		if(1) {
-//			if(baro_err == ER_SUCCESS) {
-//				//baro start temp
-//				barometer_convert_temp(i2c_baro);
-//				//TickType_t baro_temp_time = xTaskGetTickCount();
-//			}
-//
-//			if(acc_err == ER_SUCCESS) {
-//				//acc read
-//				accelerometer_read_data(i2c_acc, &i2c_acc_data);
-//				accelerometer_process_data(&i2c_acc_data, 10000);
-//				//hostcom_data_acc_send(HAL_GetTick(), i2c_acc_data.processed[ACC_Z]);
-//			}
-//
-//			vTaskDelay(baro_delay);
-//
-//			if(baro_err == ER_SUCCESS) {
-//				//baro read & start pres
-//				barometer_read_temp(i2c_baro, &i2c_baro_meta);
-//				barometer_convert_pres(i2c_baro);
-//				//TickType_t baro_pres_time = xTaskGetTickCount();
-//			}
-//
-//			vTaskDelay(baro_delay);
-//
-//			if(baro_err == ER_SUCCESS) {
-//				//baro read
-//				barometer_read_pres(i2c_baro, &i2c_baro_meta);
-//				barometer_convert(&i2c_baro_meta, &i2c_baro_data);
-//				hostcom_data_baro_send(HAL_GetTick(), i2c_baro_data.pressure);
-//			}
-//
-//			//store everything
-//
-//
-//
-//
-//
-//
-//#if WH_COMPUTER == A
-//			od_write_ACC_I2C_A(&i2c_acc_data);
-//			od_write_BARO_I2C_A(&i2c_baro_data);
-//#else
-//			od_write_ACC_I2C_B(&i2c_acc_data);
-//			od_write_BARO_I2C_B(&i2c_baro_data);
-//#endif
-//
-//
-//		} else { /* Calibration */
-//			//calibration steps
-//
-//			//normally not necessary...
-//
-//
-//		}
-//
-//
-//
-//
-//
-//		//send data to hostproc for verif
-//
-//
-////		debug_log(	"time: %ld\nacc: %d, %d, %d\npress: %ld, temp: %ld\n",
-////					HAL_GetTick(),
-////					i2c_acc_data.processed[0], i2c_acc_data.processed[1],
-////					i2c_acc_data.processed[2], i2c_baro_data.pressure,
-////					i2c_baro_data.temperature);
-//
-//
-//		vTaskDelayUntil( &last_wake_time, period );
-//
-//	}
-=======
 	static TickType_t last_wake_time;
 	static const TickType_t period = pdMS_TO_TICKS(I2C_SENSOR_HEART_BEAT);
 	static const TickType_t baro_delay = pdMS_TO_TICKS(10);
@@ -321,7 +218,6 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 		vTaskDelayUntil( &last_wake_time, period );
 
 	}
->>>>>>> Thilo_Chalas
 
 }
 

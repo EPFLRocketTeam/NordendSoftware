@@ -35,7 +35,6 @@
 #include <abstraction/gpio.h>
 #include <engine_control.h>
 
-
 /**********************
  *	CONSTANTS
  **********************/
@@ -309,7 +308,10 @@ void control_venting_run(void) {
 		control_error_start();
 		return;
 	}
-	//must correct so that it goes back to glide if called from there
+	//must correct so that it goes back to glide/apogee if called from there
+	if(prev_state == IDLE){
+		
+	}
 	control_idle_start();
 }
 
