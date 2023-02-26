@@ -21,7 +21,6 @@
 
 #include <od/od.h>
 
-
 #include <cmsis_os.h>
 
 #include <driver/serial.h>
@@ -42,12 +41,9 @@
 #define CONTROL_HEART_BEAT	200
 #define FINAL_COUNTDOWN 999 //must be changed by wanted value
 
-
-
 /**********************
  *	MACROS
  **********************/
-
 
 /**********************
  *	TYPEDEFS
@@ -87,15 +83,12 @@ typedef enum control_state {
 	CONTROL_ERROR = 12,
 	/** User triggered error */
 	CONTROL_ABORT = 13
-}control_state_t;
-
-
-
+} control_state_t;
 
 typedef struct control {
 	control_state_t state;
-}control_t;
-
+	control_state_t prev_state;
+} control_t;
 
 /**********************
  *	VARIABLES
@@ -150,28 +143,27 @@ void control_abort_start(void);
 void control_abort_run(void);
 
 void (*control_fcn[])(void) = {
-        control_idle_run,
-        control_calibration_run,
-        control_venting_run,
-        control_pressurisation_run,
-        control_countdown_run,
-        control_glide_run,
-        control_ignition_run,
-        control_powered_run,
-        control_thrust_run,
-        control_shutdown_run,
-        control_apogee_run,
-        control_depressurisation_run,
-        control_error_run,
-        control_abort_run
+	control_idle_run,
+	control_calibration_run,
+	control_venting_run,
+	control_pressurisation_run,
+	control_countdown_run,
+	control_glide_run,
+	control_ignition_run,
+	control_powered_run,
+	control_thrust_run,
+	control_shutdown_run,
+	control_apogee_run,
+	control_depressurisation_run,
+	control_error_run,
+	control_abort_run
 };
 
+static void prev_state_start(void);
 
 /**********************
  *	DECLARATIONS
  **********************/
-
-
 
 /**
  * @brief 	Control thread entry point
@@ -182,17 +174,16 @@ void (*control_fcn[])(void) = {
  * @param	arg	freertos thread entry point context (unused)
  *
  */
-void engine_control_thread(__attribute__((unused)) void * arg) {
+void engine_control_thread(__attribute__((unused)) void *arg) {
 	static TickType_t last_wake_time;
 	static const TickType_t period = pdMS_TO_TICKS(CONTROL_HEART_BEAT);
 	last_wake_time = xTaskGetTickCount();
 
-    control_idle_start();
+	control_idle_start();
 	uint16_t checkpoint = led_add_checkpoint(led_blue);
 	debug_log("Control start\n");
 
-
-	for(;;) {
+	for (;;) {
 
 		//read battery TODO
 //		HAL_ADC_Start(&hadc1);
@@ -217,19 +208,15 @@ void engine_control_thread(__attribute__((unused)) void * arg) {
 
 		//how are radio instructions implemented ?
 
-
-
-
 		led_checkpoint(checkpoint);
 		//debug_log("Control loop | state: %d\n", control.state);
 
+		// Call the function associated with the current state.
+		control_fcn[control.state]();
 
-        control_fcn[control.state]();
-
-		vTaskDelayUntil( &last_wake_time, period );
+		vTaskDelayUntil(&last_wake_time, period);
 	}
 }
-
 
 /**
  * @brief	Idle state entry (aka Ground state)
@@ -239,7 +226,6 @@ void engine_control_thread(__attribute__((unused)) void * arg) {
  */
 void control_idle_start(void) {
 	control.state = CONTROL_IDLE;
-
 }
 
 /**
@@ -248,13 +234,14 @@ void control_idle_start(void) {
  * 			command/action to happen.
  */
 void control_idle_run(void) {
-	
-	//Check battery state, if charge disconnected scream!
-	
-	/*does nothing, control_thread will loop until further instructions*/
 
+	// TODO Check battery state, if charge disconnected scream!
+	if (/* charge_disconnected */ ) {
+		// Log("charge disconnected")
+		control_error_start();
+	}
 
-
+	// Does nothing, control_thread will loop until further instructions
 }
 
 /**
@@ -271,14 +258,15 @@ void control_calibration_start(void) {
  * 			back to Idle or go to Error.
  */
 void control_calibration_run(void) {
-	uint8_t error_calibration = 0;//calibration()
+	uint8_t error_calibration = 0; //calibration()
 
 	//Run the calibration subroutines and log for errors
 
-	if(error_calibration){
+	if (error_calibration) {
 		control_error_start();
 		return;
 	}
+
 	control_idle_start();
 }
 
@@ -304,15 +292,31 @@ void control_venting_run(void) {
 	//Open or close the venting valves while logging for errors
 	//Venting valves are controlled by solenoids on 2 pins from 3,4,5,6 (needs crosscheck)
 
-	if(error_venting){
+	if (error_venting) {
 		control_error_start();
 		return;
 	}
-	//must correct so that it goes back to glide/apogee if called from there
-	if(prev_state == IDLE){
-		
-	}
-	control_idle_start();
+
+	// TODO define venting valve behavior
+
+	//must correct so that it goes back to glide if called from there
+	// TODO remove
+	//	switch (control.prev_state) {
+	//		case CONTROL_IDLE:
+	//			control_idle_start();
+	//			break;
+	//		case CONTROL_GLIDE:
+	//			control_glide_start();
+	//			break;
+	//		default:
+	//			// avoids undefined behavior
+	//			control_idle_start();
+	//			 break;
+	//	}
+
+	// Return to previous state
+	control.state = control.prev_state;
+
 }
 
 /**
@@ -323,7 +327,6 @@ void control_venting_run(void) {
  */
 void control_pressurisation_start(void) {
 	control.state = CONTROL_PRESSURISATION;
-
 }
 
 /**
@@ -337,11 +340,11 @@ void control_pressurisation_run(void) {
 	//Open/close the pressurisation valve while logging for errors
 	//Press valve controlled by solenoid on one of the 3-6 pins
 
-	if(error_pressurisation){
+	if (error_pressurisation) {
 		control_error_start();
 		return;
 	}
-	
+
 	control_idle_start();
 }
 
@@ -352,27 +355,29 @@ void control_pressurisation_run(void) {
  */
 void control_countdown_start(void) {
 	control.state = CONTROL_COUNTDOWN;
-
 }
 
 /**
  * @brief	countdown state runtime
- * @details	This state will wait for the countown to end and will jump to ignition.
+ * @details	This state will wait for the countdown to end and will jump to ignition.
  */
 void control_countdown_run(void) {
 	uint8_t countdown = FINAL_COUNTDOWN;
-	do{
+	do {
 		//delay
+		osDelay(CONTROL_HEART_BEAT); // TODO define desired countdown incrementation delay
 		//check 
-		if(/*error_detected*/){
+
+		if (/*error_detected*/) {
 			control_error_start();
 			return;
-		}else if(/*abort needed*/){
+		} else if (/*abort needed*/) {
 			control_abort_start();
 			return;
 		}
+
 		countdown--;
-	}while(countdown);
+	} while (countdown);
 	control_ignition_start();
 }
 
@@ -384,7 +389,6 @@ void control_countdown_run(void) {
  */
 void control_glide_start(void) {
 	control.state = CONTROL_GLIDE;
-
 }
 
 /**
@@ -393,11 +397,11 @@ void control_glide_start(void) {
  *			It will also wait until touchdown then return to idle.
  */
 void control_glide_run(void) {
-	if(/*depressurisation_needed()*/){
+	if (/*depressurisation_needed()*/) {
 		control_start_depressurisation_start();
 		return;
 	}
-	if(/* landing() */){	//-> landing() gives a 1 once it has landed, else 0
+	if (/* landing() */) {	//-> landing() gives a 1 once it has landed, else 0
 		control_idle_start();
 		return;
 	};
@@ -426,10 +430,10 @@ void control_ignition_run(void) {
 
 	//Check if good engine start (pressure and temp?), if too many failed abort
 
-	if(/*error_ignition == IGNITION_ABORT*/){
+	if (/*error_ignition == IGNITION_ABORT*/) {
 		control_abort_start();
 		return;
-	}else if(/*error_ignition == IGNITION_ERROR*/){
+	} else if (/*error_ignition == IGNITION_ERROR*/) {
 		//turn off solenoids()
 		control_error_start(); //or new function ?
 		return;
@@ -443,7 +447,6 @@ void control_ignition_run(void) {
  */
 void control_powered_start(void) {
 	control.state = CONTROL_POWERED;
-
 }
 
 /**
@@ -453,7 +456,7 @@ void control_powered_start(void) {
  */
 void control_powered_run(void) {
 	uint8_t error_powering = 0; //powering() -> partial open state of servos
-	if(error_powering){
+	if (error_powering) {
 		control_abort_start();
 		return;
 	}
@@ -466,7 +469,6 @@ void control_powered_run(void) {
  */
 void control_thrust_start(void) {
 	control.state = CONTROL_THRUST;
-
 }
 
 /**
@@ -476,7 +478,7 @@ void control_thrust_start(void) {
  */
 void control_thrust_run(void) {
 	uint8_t error_thrust = 0; //thrust() -> full open state of servos
-	if(error_thrust){
+	if (error_thrust) {
 		control_abort_start();
 		return;
 	}
@@ -500,7 +502,7 @@ void control_shutdown_start(void) {
  */
 void control_shutdown_run(void) {
 	uint8_t error_shutdown = 0; //shutdown()
-	if(error_shutdown){
+	if (error_shutdown) {
 		control_abort_start();
 		return;
 	}
@@ -523,7 +525,7 @@ void control_apogee_start(void) {
  */
 void control_apogee_run(void) {
 	uint8_t error_start_fall = 0; //start_fall() -> venting
-	if(error_start_fall){
+	if (error_start_fall) {
 		control_abort_start();
 		return;
 	}
@@ -546,7 +548,7 @@ void control_depressurisation_start(void) {
  */
 void control_depressurisation_run(void) {
 	uint8_t error_depressurisation = 0; //depressurisation() -> open valve
-	if(error_depressurisation){
+	if (error_depressurisation) {
 		control_abort_start();
 		return;
 	}
@@ -574,8 +576,9 @@ void control_error_start(void) {
  */
 void control_error_run(void) {
 	//memorize_what_went_wrong_for_next_time()
-	if(/* venting|pressurisation|countdown|ignition went wrong */){
+	if (/* venting|pressurisation|countdown|ignition went wrong */) {
 		control_calibration_start();
+
 	}
 	control_idle_start();
 }
@@ -598,14 +601,13 @@ void control_abort_start(void) {
  * 			manually or automatically (tdb depending on the previous state or the cause of the abort?).
  */
 void control_abort_run(void) {
-
 	uint8_t state_rocket = 0; //dead_or_not_too_dead()
-	if(state_rocket = 0 /*not too dead*/){
+
+	if (state_rocket = 0 /*not too dead*/) {
 		control_glide_start();
 		return;
 	}
 	control_idle_start(); /*dead*/
 }
-
 
 /* END */
