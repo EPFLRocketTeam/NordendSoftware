@@ -19,39 +19,27 @@
  *	CONSTANTS
  **********************/
 
-/// TODO - change the time used here?
-
 /**
- * Instance of first servo
+ * Instance of Ethanol servo.
  */
-servo_t servo1_inst;
-servo_t * servo1 = &servo1_inst;
-/**
- * Open/closed constants for the valves of first servo.
- */
-const float SERVO1_OPEN = 0;
-const float SERVO1_CLOSED = 90.0;
+static servo_t ethanol_servo_inst;
+servo_t * servo_ethanol = &ethanol_servo_inst;
 /**
  * Origin offset (in microseconds), for computing the pulse width. Default is 1500.
  */
-const float SERVO1_OFFSET = 1500;
+static const float SERVO_ETHANOL_OFFSET = 1500;
 
 
 
 /**
- * Instance of second servo
+ * Instance of N2O servo
  */
-servo_t servo2_inst;
-servo_t * servo2 = &servo2_inst;
-/**
- * Open/closed constants for the valves of second servo.
- */
-const float SERVO2_OPEN = 0;
-const float SERVO2_CLOSED = 90.0;
+static servo_t servo_n2o_inst;
+servo_t * servo_n2o = &servo_n2o_inst;
 /**
  * Origin offset (in microseconds), for computing the pulse width. Default is 1500.
  */
-const float SERVO2_OFFSET = 1500;
+static const float SERVO_N2O_OFFSET = 1500;
 
 const uint32_t DEFAULT_OFFSET = 1500;
 
@@ -105,7 +93,7 @@ util_error_t servo_init(
 	return ER_SUCCESS;
 }
 
-util_error_t set_rotation(servo_t * servo, float newRotation) {
+util_error_t servo_set_rotation(servo_t * servo, float newRotation) {
 	servo->rotation = newRotation;
 	uint32_t us = degrees_to_usec(newRotation, servo->degrees_per_usec) + servo->origin;
 	us = clamp_u32(servo->min_pulse, us, servo->max_pulse);
@@ -115,11 +103,13 @@ util_error_t set_rotation(servo_t * servo, float newRotation) {
 	return ER_SUCCESS;
 }
 
-float get_rotation(servo_t * servo) {
+float servo_get_rotation(servo_t * servo) {
 	return servo->rotation;
 }
 
 void servo_thread(__attribute__((unused)) void * arg) {
+	// TODO remove when servos have been correctly added to engine control thread.
+
 	// Initialize servos -- empty structs
 	pwm_data_t pwm_data_inst;
 	pwm_data_t * pwm_data = &pwm_data_inst;
@@ -129,11 +119,11 @@ void servo_thread(__attribute__((unused)) void * arg) {
 	uint32_t max_pulse = 2200;
 	float degrees_per_usec = 0.114;
 
-	servo_init(servo1, pwm_data, PWM_SELECT_CH1, min_pulse, max_pulse, SERVO1_OFFSET, degrees_per_usec);
-	servo_init(servo2, pwm_data, PWM_SELECT_CH2, min_pulse, max_pulse, SERVO2_OFFSET, degrees_per_usec);
+	servo_init(servo_ethanol, pwm_data, PWM_SELECT_CH1, min_pulse, max_pulse, SERVO_ETHANOL_OFFSET, degrees_per_usec);
+	servo_init(servo_n2o, pwm_data, PWM_SELECT_CH2, min_pulse, max_pulse, SERVO_N2O_OFFSET, degrees_per_usec);
 
 	// Using channels 1 and 2 -- initialize the PWM channel
-	pwm_init(pwm_data, PWM_TIM5, servo1->pwm_channel | servo2->pwm_channel);
+	pwm_init(pwm_data, PWM_TIM5, servo_ethanol->pwm_channel | servo_n2o->pwm_channel);
 }
 
 
