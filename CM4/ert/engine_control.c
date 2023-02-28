@@ -34,12 +34,26 @@
 #include <abstraction/gpio.h>
 #include <engine_control.h>
 
+#include <propulsion/servo.h>
+#include <driver/pwm.h>
+
 /**********************
  *	CONSTANTS
  **********************/
 
 #define CONTROL_HEART_BEAT	200
 #define FINAL_COUNTDOWN 999 //must be changed by wanted value
+
+/**
+ * Origin offset (in microseconds), for computing the pulse width. Default is 1500.
+ */
+static const float SERVO_ETHANOL_OFFSET = 1500;
+
+/**
+ * Origin offset (in microseconds), for computing the pulse width. Default is 1500.
+ */
+static const float SERVO_N2O_OFFSET = 1500;
+
 
 /**********************
  *	MACROS
@@ -96,6 +110,17 @@ typedef struct control {
 //shoudn't it be static ?
 control_t control;
 
+/**
+ * Instance of Ethanol servo.
+ */
+static servo_t ethanol_servo_inst;
+static servo_t * servo_ethanol = &ethanol_servo_inst;
+
+/**
+ * Instance of N2O servo
+ */
+static servo_t servo_n2o_inst;
+static servo_t * servo_n2o = &servo_n2o_inst;
 /**********************
  *	PROTOTYPES
  **********************/
@@ -182,6 +207,24 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 	control_idle_start();
 	uint16_t checkpoint = led_add_checkpoint(led_blue);
 	debug_log("Control start\n");
+
+	// Initialize servos – TODO perhaps relegate to another state/function
+
+	pwm_data_t pwm_data_inst;
+	pwm_data_t * pwm_data = &pwm_data_inst;
+
+	// Specific to the SB2290SG Monster Torque Brushless Servo
+	uint32_t min_pulse = 800;
+	uint32_t max_pulse = 2200;
+	float degrees_per_usec = 0.114;
+
+	// Assign Ethanol servo to pin 13 (TIM4, CH2) and N2O servo to pin 14 (TIM4, CH3)
+	servo_init(servo_ethanol, pwm_data, PWM_SELECT_CH2, min_pulse, max_pulse, SERVO_ETHANOL_OFFSET, degrees_per_usec);
+	servo_init(servo_n2o, pwm_data, PWM_SELECT_CH3, min_pulse, max_pulse, SERVO_N2O_OFFSET, degrees_per_usec);
+
+	// Using channels 1 and 2 -- initialize the PWM channel
+	pwm_init(pwm_data, PWM_TIM4, servo_ethanol->pwm_channel | servo_n2o->pwm_channel);
+
 
 	for (;;) {
 
@@ -365,7 +408,7 @@ void control_countdown_run(void) {
 	uint8_t countdown = FINAL_COUNTDOWN;
 	do {
 		//delay
-		osDelay(CONTROL_HEART_BEAT); // TODO define desired countdown incrementation delay
+		// osDelay(countdown_period_ticks); // TODO define desired countdown incrementation delay
 		//check 
 
 		if (/*error_detected*/) {
@@ -427,6 +470,8 @@ void control_ignition_run(void) {
 
 	//Set ethanol and N2O servos (pins 13 and 14) to partially open
 	//Activate ignition
+	servo_set_rotation(servo_n2o, SERVO_N2O_IGNITION);
+	servo_set_rotation(servo_ethanol, SERVO_ETHANOL_IGNITION);
 
 	//Check if good engine start (pressure and temp?), if too many failed abort
 
@@ -460,6 +505,10 @@ void control_powered_run(void) {
 		control_abort_start();
 		return;
 	}
+
+	servo_set_rotation(servo_n2o, SERVO_N2O_IGNITION);
+	servo_set_rotation(servo_ethanol, SERVO_ETHANOL_IGNITION);
+
 	control_thrust_start();
 }
 
@@ -482,6 +531,10 @@ void control_thrust_run(void) {
 		control_abort_start();
 		return;
 	}
+
+	servo_set_rotation(servo_n2o, SERVO_N2O_OPEN);
+	servo_set_rotation(servo_ethanol, SERVO_ETHANOL_OPEN);
+
 	control_shutdown_start();
 }
 
