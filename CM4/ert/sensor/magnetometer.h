@@ -10,8 +10,8 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include "util.h"
-#include "device.h"
+#include <util.h>
+#include <device/device.h>
 #include <math.h>
 
 #define MAGNETO_AXIS_COUNT 3
