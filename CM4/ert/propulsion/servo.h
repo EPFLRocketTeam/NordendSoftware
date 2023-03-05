@@ -6,8 +6,8 @@
  *  Description : template for code files
  */
 
-#ifndef TEMPLATE_H
-#define TEMPLATE_H
+#ifndef SERVO_H
+#define SERVO_H
 
 
 
@@ -23,6 +23,19 @@
  *  CONSTANTS
  **********************/
 
+/**
+ * Open/closed constants for the valves of first servo.
+ */
+const float SERVO_ETHANOL_OPEN = 0;
+const float SERVO_ETHANOL_IGNITION = 45.0; /*!< Partially open (ignition phase) */
+const float SERVO_ETHANOL_CLOSED = 90.0;
+
+/**
+ * Open/closed constants for the valves of second servo.
+ */
+const float SERVO_N2O_OPEN = 0;
+const float SERVO_N2O_IGNITION = 45.0; /*!< Partially open (ignition phase) */
+const float SERVO_N2O_CLOSED = 90.0;
 
 /**********************
  *  MACROS
@@ -72,7 +85,7 @@ extern "C"{
  * @param newRotation The new rotation to set, in degrees.
  * @return ER_SUCCESS if everything went well.
  */
-util_error_t set_rotation(servo_t * servo, float newRotation);
+util_error_t servo_set_rotation(servo_t * servo, float newRotation);
 
 /**
  * @fn float getRotation(servo_t*)
@@ -81,7 +94,7 @@ util_error_t set_rotation(servo_t * servo, float newRotation);
  * @param servo The associated servo instance.
  * @return the current rotation (in degrees) of the servo
  */
-float get_rotation(servo_t * servo);
+float servo_get_rotation(servo_t * servo);
 
 
 /**
@@ -114,6 +127,6 @@ util_error_t servo_init(
 } // extern "C"
 #endif /* __cplusplus */
 
-#endif /* TEMPLATE_H */
+#endif /* SERVO_H */
 
 /* END */
