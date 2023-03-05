@@ -96,6 +96,10 @@ typedef struct control {
 //shoudn't it be static ?
 control_t control;
 
+static device_t * i2c_engine_press;
+static device_t * i2c_engine_temp;
+
+
 /**********************
  *	PROTOTYPES
  **********************/
