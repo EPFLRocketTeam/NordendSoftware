@@ -73,30 +73,38 @@ typedef enum control_state {
 	CONTROL_IDLE = 0,
 	/** Calibrate sensors and actuators */
 	CONTROL_CALIBRATION = 1,
-	/** Armed, wait for liftoff */
-	CONTROL_VENTING = 2,
+	/** Control venting 1 */
+	CONTROL_VENT1 = 2,
+	/** Control venting 2 */
+	CONTROL_VENT2 = 3,
+	/** Control the opening of the purge */
+	CONTROL_PURGE = 4,
+	/** Control the N2O servo */
+	CONTROL_N2O = 5,
+	/** Control the ethanol servo */
+	CONTROL_ETHANOL = 6,
 	/** Powered ascent */
-	CONTROL_PRESSURISATION = 3,
-	/** Supersonic flight */
-	CONTROL_COUNTDOWN = 4,
+	CONTROL_PRESSURISATION = 7,
 	/** Subsonic, coast flight */
-	CONTROL_GLIDE = 5,
+	CONTROL_GLIDE = 8,
+	/** Supersonic flight */
+	CONTROL_COUNTDOWN = 7,
 	/** Apogee reached, trigger first event */
-	CONTROL_IGNITION = 6,
+	CONTROL_IGNITER = 10,
 	/** Drogue chute descent, wait for second event */
-	CONTROL_POWERED = 7,
+	CONTROL_IGNITION = 11,
 	/** Low alt reached, trigger second event */
-	CONTROL_THRUST = 8,
+	CONTROL_THRUST = 12,
 	/** Main chute descent, wait for touchdown */
-	CONTROL_SHUTDOWN = 9,
+	CONTROL_SHUTDOWN = 13,
 	/** Touchdown detected, end of the flight */ //-> should be end of propulsion only
-	CONTROL_APOGEE = 10,
+	CONTROL_APOGEE = 14,
 	/** Ballistic flight detected */
-	CONTROL_DEPRESSURISATION = 11,
-	/** Auto triggered error */
-	CONTROL_ERROR = 12,
-	/** User triggered error */
-	CONTROL_ABORT = 13
+	CONTROL_DEPRESSURISATION = 15,
+	/** Ground (automatic) error */
+	CONTROL_ERROR = 16,
+	/** Flight (radio-triggered) error */
+	CONTROL_ABORT = 17
 } control_state_t;
 
 typedef struct control {
@@ -121,6 +129,7 @@ static servo_t * servo_ethanol = &ethanol_servo_inst;
  */
 static servo_t servo_n2o_inst;
 static servo_t * servo_n2o = &servo_n2o_inst;
+
 /**********************
  *	PROTOTYPES
  **********************/
@@ -131,23 +140,35 @@ void control_idle_run(void);
 void control_calibration_start(void);
 void control_calibration_run(void);
 
-void control_venting_start(void);
-void control_venting_run(void);
+void control_vent1_start(void);
+void control_vent1_run(void);
+
+void control_vent2_start(void);
+void control_vent2_run(void);
+
+void control_purge_start(void);
+void control_purge_run(void);
+
+void control_n2o_start(void);
+void control_n2o_run(void);
+
+void control_ethanol_start(void);
+void control_ethanol_run(void);
 
 void control_pressurisation_start(void);
 void control_pressurisation_run(void);
 
-void control_countdown_start(void);
-void control_countdown_run(void);
-
 void control_glide_start(void);
 void control_glide_run(void);
 
+void control_countdown_start(void);
+void control_countdown_run(void);
+
+void control_igniter_start(void);
+void control_igniter_run(void);
+
 void control_ignition_start(void);
 void control_ignition_run(void);
-
-void control_powered_start(void);
-void control_powered_run(void);
 
 void control_thrust_start(void);
 void control_thrust_run(void);
@@ -170,12 +191,15 @@ void control_abort_run(void);
 void (*control_fcn[])(void) = {
 	control_idle_run,
 	control_calibration_run,
-	control_venting_run,
+	control_vent1_run,
+	control_vent2_run,
+	control_purge_run,
+	control_ethanol_run,
 	control_pressurisation_run,
-	control_countdown_run,
 	control_glide_run,
-	control_ignition_run,
-	control_powered_run,
+	control_countdown_run,
+	control_igniter_run,
+	control_igniter_run,
 	control_thrust_run,
 	control_shutdown_run,
 	control_apogee_run,
@@ -319,8 +343,8 @@ void control_calibration_run(void) {
  * 			This function can be called as many times as needed and is initiated by radio/remotely.
  * 			It can also be initiated by glide.
  */
-void control_venting_start(void) {
-	control.state = CONTROL_VENTING;
+void control_vent1_start(void) {
+	control.state = CONTROL_VENT1;
 }
 
 /**
@@ -329,7 +353,7 @@ void control_venting_start(void) {
  * 			This function will open/close the venting valves.
  * 			---->Should we be making an vent-open and vent-close state?
  */
-void control_venting_run(void) {
+void control_vent1_run(void) {
 	uint8_t error_venting = 0;
 
 	//Open or close the venting valves while logging for errors
@@ -363,6 +387,81 @@ void control_venting_run(void) {
 }
 
 /**
+ * @brief Venting state 2 entry
+ * @details This function will initiate the venting sequence.
+ * 			This function can be called as many times as needed and is initiated by radio/remotely.
+ * 			It can also be initiated by glide.
+ */
+void control_vent2_start(void) {
+	control.state = CONTROL_VENT2;
+}
+
+/**
+ * @brief Venting state 2 runtime
+ * @details This state will wait for the venting sequence to finish and jump back to its previous state.
+ * 			This function will open/close the venting valves.
+ * 			---->Should we be making an vent-open and vent-close state?
+ */
+void control_vent2_run(void) {
+
+}
+
+/**
+ *
+ * @fn void control_purge_start(void)
+ * @brief Purge state entry
+ * @details
+ */
+void control_purge_start(void) {
+	control.state = CONTROL_PURGE;
+}
+
+/**
+ * @fn void control_purge_run(void)
+ * @brief Purge state runtime
+ * @details
+ */
+void control_purge_run(void) {
+
+}
+
+/**
+ * @fn void control_n2o_start(void)
+ * @brief N2O state entry
+ * @details
+ */
+void control_n2o_start(void) {
+	control.state = CONTROL_N2O;
+}
+
+/**
+ * @fn void control_n2o_run(void)
+ * @brief N2O state runtime
+ * @details
+ */
+void control_n2o_run(void) {
+
+}
+
+/**
+ * @fn void control_ethanol_start(void)
+ * @brief Ethanol state entry
+ * @details
+ */
+void control_ethanol_start(void) {
+	control.state = CONTROL_ETHANOL;
+}
+
+/**
+ * @fn void control_ethanol_run(void)
+ * @brief Ethanol state runtime
+ */
+void control_ethanol_run(void) {
+
+}
+
+
+/**
  * @brief Pressurisation state entry.
  * @details This function will initiate the pressurisation sequence.
  * 			This function can be called as many times as needed and is initiated by radio/remotely.
@@ -389,6 +488,33 @@ void control_pressurisation_run(void) {
 	}
 
 	control_idle_start();
+}
+
+/**
+ * @brief	Glide state entry
+ * @details This function resets the state machine into it's (default) Glide.
+ * 			state. The glide state is used as 'default' state before during flight.
+ * 			It can also be accessed and access the venting/pressurisation and abort states.
+ */
+void control_glide_start(void) {
+	control.state = CONTROL_GLIDE;
+}
+
+/**
+ * @brief	Glide state runtime
+ * @details The glide state will simply wait for the depressurisation action to start and finish
+ *			It will also wait until touchdown then return to idle.
+ */
+void control_glide_run(void) {
+	if (/*depressurisation_needed()*/) {
+		control_start_depressurisation_start();
+		return;
+	}
+	if (/* landing() */) {	//-> landing() gives a 1 once it has landed, else 0
+		control_idle_start();
+		return;
+	};
+
 }
 
 /**
@@ -424,48 +550,22 @@ void control_countdown_run(void) {
 	control_ignition_start();
 }
 
-/**
- * @brief	Glide state entry
- * @details This function resets the state machine into it's (default) Glide.
- * 			state. The glide state is used as 'default' state before during flight.
- * 			It can also be accessed and access the venting/pressurisation and abort states.
- */
-void control_glide_start(void) {
-	control.state = CONTROL_GLIDE;
-}
 
 /**
- * @brief	Glide state runtime
- * @details The glide state will simply wait for the depressurisation action to start and finish
- *			It will also wait until touchdown then return to idle.
- */
-void control_glide_run(void) {
-	if (/*depressurisation_needed()*/) {
-		control_start_depressurisation_start();
-		return;
-	}
-	if (/* landing() */) {	//-> landing() gives a 1 once it has landed, else 0
-		control_idle_start();
-		return;
-	};
-
-}
-
-/**
- * @brief	Ignition state entry
+ * @brief	Igniter state entry
  * @details	This function will initiate the ignition sequence
  */
-void control_ignition_start(void) {
-	control.state = CONTROL_IGNITION;
+void control_igniter_start(void) {
+	control.state = CONTROL_IGNITER;
 
 }
 
 /**
- * @brief Ignition state runtime
+ * @brief Igniter state runtime
  * @details	Ignition will send the appropriate current for the igniter to turn on.
  * 			This state will wait for ignition to end and will jump to powered.
  */
-void control_ignition_run(void) {
+void control_igniter_run(void) {
 	uint8_t error_ignition = 0; //ignition() -> will turn the igniter on (solenoids)
 
 	//Set ethanol and N2O servos (pins 13 and 14) to partially open
@@ -487,19 +587,19 @@ void control_ignition_run(void) {
 }
 
 /**
- * @brief	Powered state entry
+ * @brief	Ignition state entry
  * @details	This function will initiate the powered sequence.
  */
-void control_powered_start(void) {
-	control.state = CONTROL_POWERED;
+void control_ignition_start(void) {
+	control.state = CONTROL_IGNITION;
 }
 
 /**
- * @brief	powered state runtime
+ * @brief	Ignition state runtime
  * @details	This state will open the servos to their 'partially open' state.
  * 			After a delay, it will jump to the thrust state.
  */
-void control_powered_run(void) {
+void control_ignition_run(void) {
 	uint8_t error_powering = 0; //powering() -> partial open state of servos
 	if (error_powering) {
 		control_abort_start();
