@@ -310,6 +310,15 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 }
 
 /**
+ * @fn void prev_state_start(void)
+ * @brief Returns to the previous saved state.
+ * @details Used for automatic switching back from certain states.
+ */
+void prev_state_start(void) {
+	control.state = control.prev_state;
+}
+
+/**
  * @brief	Idle state entry (aka Ground state)
  * @details This function resets the state machine into it's (default) Idle
  * 			state. The idle state is used as 'default' state before liftoff and after touchdown
@@ -464,7 +473,26 @@ void control_n2o_start(void) {
  * @details
  */
 void control_n2o_run(void) {
+	// TODO don't we need an open, close, and partially open state ?
+	// TODO review how to implement this, I'm not comfortable comparing floats
 
+	switch (servo_get_state(servo_n2o)) {
+		case SERVO_OPEN:
+			servo_set_state(servo_n2o, SERVO_CLOSED);
+			break;
+		case SERVO_PARTIALLY_OPEN:
+			servo_set_state(servo_n2o, SERVO_OPEN);
+			break;
+		case SERVO_CLOSED:
+			servo_set_state(servo_n2o, SERVO_PARTIALLY_OPEN);
+			break;
+		default:
+			servo_set_state(servo_n2o, SERVO_CLOSED);
+			break;
+	}
+
+	// Go back to prev state
+	prev_state_start();
 }
 
 /**
@@ -482,6 +510,23 @@ void control_ethanol_start(void) {
  */
 void control_ethanol_run(void) {
 
+	switch (servo_get_state(servo_ethanol)) {
+		case SERVO_OPEN:
+			servo_set_state(servo_ethanol, SERVO_CLOSED);
+			break;
+		case SERVO_PARTIALLY_OPEN:
+			servo_set_state(servo_ethanol, SERVO_OPEN);
+			break;
+		case SERVO_CLOSED:
+			servo_set_state(servo_ethanol, SERVO_PARTIALLY_OPEN);
+			break;
+		default:
+			servo_set_state(servo_ethanol, SERVO_CLOSED);
+			break;
+	}
+
+	// Go back to prev state
+	prev_state_start();
 }
 
 
@@ -581,7 +626,6 @@ void control_countdown_run(void) {
  */
 void control_igniter_start(void) {
 	control.state = CONTROL_IGNITER;
-
 }
 
 /**

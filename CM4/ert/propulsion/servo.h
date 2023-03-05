@@ -60,6 +60,7 @@ typedef struct servo {
 	uint32_t origin;						/*!< Offset for the origin, in microseconds. Usually 1500 us corresponds to 0 degrees */
 	float degrees_per_usec;					/*!< Degrees per microsecond */
 
+	servo_state_t state;						/*!< State */
 	float open_rotation;					/*!< Open state rotation */
 	float partially_open_rotation;			/*!< Partially open state rotation */
 	float closed_rotation;					/*!< Closed state rotation */
