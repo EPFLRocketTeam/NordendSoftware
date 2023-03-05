@@ -5,7 +5,7 @@
 *	Version	: 0.1
 */
 
-#include "Magnetometer.h"
+#include "magnetometer.h"
 
 #define WHO_AM_I        0x4F
 #define WHO_AM_I_MAGIC  0x40
@@ -38,15 +38,15 @@ util_error_t magnetometer_init(device_t * magneto) {
     //initialize sensor data rate -> 100Hz
     switch (INIT_MODE) {
         case NO_T_COMPENSATION_NO_REBOOT:
-            error |= device_write_u8(magneto, CFG_REG_A, 00001111);
+            error |= device_write_u8(magneto, CFG_REG_A, 0b00001111);
             break;
 
         case T_COMPENSATION_NO_REBOOT:
-            error |= device_write_u8(magneto, CFG_REG_A, 10001111);
+            error |= device_write_u8(magneto, CFG_REG_A, 0b10001111);
             break;
 
         case T_COMPENSATION_REBOOT:
-            error |= device_write_u8(magneto, CFG_REG_A, 11001111);
+            error |= device_write_u8(magneto, CFG_REG_A, 0b11001111);
             break;
 
         default:

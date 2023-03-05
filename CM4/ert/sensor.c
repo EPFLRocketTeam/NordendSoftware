@@ -23,6 +23,7 @@
 #include <sensor/gyroscope.h>
 #include <sensor/barometer.h>
 #include <sensor/engine_pressure.h>
+#include <sensor/magnetometer.h>
 #include <od/od.h>
 #include <driver/hostproc.h>
 #include <hostcom.h>
@@ -56,6 +57,7 @@ static device_t * i2c_gyro;
 static device_t * i2c_baro;
 static device_t * i2c_engine_press;
 
+static device_t * i2c_magneto;
 
 static uint8_t i2c_calib;
 
@@ -66,6 +68,7 @@ static gyroscope_data_t i2c_gyro_data;
 static barometer_data_t i2c_baro_data;
 static barometer_meta_t i2c_baro_meta;
 static double i2c_engine_press_data;
+static magnetometer_data_t i2c_magneto_data;
 
 
 
@@ -97,6 +100,7 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	i2c_acc = i2c_sensor_get_accelerometer();
 	i2c_gyro = i2c_sensor_get_gyroscope();
 	i2c_baro = i2c_sensor_get_barometer();
+	i2c_magneto = i2c_sensor_get_magnetometer();
 
 
 
@@ -106,6 +110,7 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	util_error_t gyro_err = gyroscope_init(i2c_gyro);
 	util_error_t baro_err = barometer_init(i2c_baro, &i2c_baro_meta);
 	util_error_t engine_pressure_err = engine_pressure_init(i2c_engine_press);
+	util_error_t magneto_err = magnetometer_init(i2c_magneto);
 
 	uint16_t checkpoint_acc;
 	if(acc_err == ER_SUCCESS) {
@@ -125,6 +130,12 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	} else {
 		checkpoint_baro = led_add_checkpoint(led_red);
 	}
+	uint16_t checkpoint_magneto;
+	if(magneto_err == ER_SUCCESS) {
+		checkpoint_magneto = led_add_checkpoint(led_green);
+	} else {
+		checkpoint_magneto = led_add_checkpoint(led_red);
+	}
 
 	//manual calibration only:
 	i2c_calib = 0;
@@ -135,6 +146,7 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 		led_checkpoint(checkpoint_baro);
 		led_checkpoint(checkpoint_gyro);
 		led_checkpoint(checkpoint_acc);
+		led_checkpoint(checkpoint_magneto);
 
 
 		if(1) {
@@ -149,6 +161,13 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 				accelerometer_read_data(i2c_acc, &i2c_acc_data);
 				accelerometer_process_data(&i2c_acc_data, 10000);
 				//hostcom_data_acc_send(HAL_GetTick(), i2c_acc_data.processed[ACC_Z]);
+			}
+
+			if(acc_err == ER_SUCCESS) {
+				//magneto read
+				magnetometer_read_X_axis(i2c_magneto, &i2c_magneto_data);
+				magnetometer_read_Y_axis(i2c_magneto, &i2c_magneto_data);
+				magnetometer_read_Z_axis(i2c_magneto, &i2c_magneto_data);
 			}
 
 			vTaskDelay(baro_delay);
@@ -186,6 +205,7 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 			od_write_ACC_I2C_A(&i2c_acc_data);
 			od_write_GYRO_I2C_A(&i2c_gyro_data);
 			od_write_BARO_I2C_A(&i2c_baro_data);
+			od_write_MAG_I2C_A(&i2c_baro_data);
 #else
 			od_write_ACC_I2C_B(&i2c_acc_data);
 			od_write_GYRO_I2C_B(&i2c_gyro_data);

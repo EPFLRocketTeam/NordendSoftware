@@ -18,6 +18,10 @@
 #include <device/device.h>
 #include <stdint.h>
 
+#include <sensor/accelerometer.h>
+#include <sensor/barometer.h>
+#include <sensor/gyroscope.h>
+#include <sensor/magnetometer.h>
 
 /**********************
  *  CONSTANTS
@@ -56,6 +60,7 @@ device_t * i2c_sensor_get_accelerometer(void);
 device_t * i2c_sensor_get_gyroscope(void);
 device_t * i2c_sensor_get_barometer(void);
 device_t * i2c_sensor_get_engine_pressure(void);
+device_t * i2c_sensor_get_magnetometer(void);
 
 util_error_t i2c_sensor_init(void);
 

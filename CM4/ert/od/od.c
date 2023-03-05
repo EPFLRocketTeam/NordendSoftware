@@ -71,6 +71,8 @@ ALLOCATE_OD_ENTRY(KALMAN_DATA_B, 13, transfer_data_res_t);
 ALLOCATE_OD_ENTRY(GNSS, 14, gnss_data_t);
 ALLOCATE_OD_ENTRY(BATTERY_A, 15, uint32_t);
 ALLOCATE_OD_ENTRY(BATTERY_B, 16, uint32_t);
+ALLOCATE_OD_ENTRY(MAG_I2C_A, 17, magnetometer_data_t);
+ALLOCATE_OD_ENTRY(MAG_I2C_B, 18, magnetometer_data_t);
 
 
 /**
@@ -81,7 +83,9 @@ static const od_entry_t od_entries[OD_MAX_DATAID] = {
 	LINK_OD_ENTRY(KALMAN_DATA_B),
 	LINK_OD_ENTRY(GNSS),
 	LINK_OD_ENTRY(BATTERY_A),
-	LINK_OD_ENTRY(BATTERY_B)
+	LINK_OD_ENTRY(BATTERY_B),
+    LINK_OD_ENTRY(MAG_I2C_A),
+    LINK_OD_ENTRY(MAG_I2C_B)
 };
 
 /**

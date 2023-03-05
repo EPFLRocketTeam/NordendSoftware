@@ -5,6 +5,7 @@
  *      Author: julianruizrodriguez
  */
 
+#include "temperature.h"
 
 #define MIN_TEMP  -70;
 #define MAX_TEMP 550;

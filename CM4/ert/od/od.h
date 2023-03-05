@@ -17,6 +17,10 @@
 
 #include <stdint.h>
 
+#include "sensor/accelerometer.h"
+#include "sensor/barometer.h"
+#include "sensor/gyroscope.h"
+#include "sensor/magnetometer.h"
 #include "sensor/gnss.h"
 #include <protocol/structures.h>
 
@@ -84,6 +88,8 @@ DECLARE_OD_ENTRY(KALMAN_DATA_B, transfer_data_res_t);
 DECLARE_OD_ENTRY(GNSS, gnss_data_t);
 DECLARE_OD_ENTRY(BATTERY_A, uint32_t);
 DECLARE_OD_ENTRY(BATTERY_B, uint32_t);
+DECLARE_OD_ENTRY(MAG_A, magnetometer_data_t);
+DECLARE_OD_ENTRY(MAG_B, magnetometer_data_t);
 
 #ifdef __cplusplus
 } // extern "C"
