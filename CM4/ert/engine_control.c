@@ -246,8 +246,29 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 	float degrees_per_usec = 0.114;
 
 	// Assign Ethanol servo to pin 13 (TIM4, CH2) and N2O servo to pin 14 (TIM4, CH3)
-	servo_init(servo_ethanol, pwm_data, PWM_SELECT_CH2, min_pulse, max_pulse, SERVO_ETHANOL_OFFSET, degrees_per_usec);
-	servo_init(servo_n2o, pwm_data, PWM_SELECT_CH3, min_pulse, max_pulse, SERVO_N2O_OFFSET, degrees_per_usec);
+	servo_init(
+			servo_ethanol,
+			pwm_data,
+			PWM_SELECT_CH2,
+			min_pulse,
+			max_pulse,
+			SERVO_ETHANOL_OFFSET,
+			degrees_per_usec,
+			SERVO_ETHANOL_OPEN,
+			SERVO_ETHANOL_IGNITION,
+			SERVO_ETHANOL_CLOSED);
+
+	servo_init(
+			servo_n2o,
+			pwm_data,
+			PWM_SELECT_CH3,
+			min_pulse,
+			max_pulse,
+			SERVO_N2O_OFFSET,
+			degrees_per_usec,
+			SERVO_N2O_OPEN,
+			SERVO_N2O_IGNITION,
+			SERVO_N2O_CLOSED);
 
 	// Using channels 1 and 2 -- initialize the PWM channel
 	pwm_init(pwm_data, PWM_TIM4, servo_ethanol->pwm_channel | servo_n2o->pwm_channel);
