@@ -75,6 +75,8 @@ util_error_t servo_init(
 	servo->partially_open_rotation = partially_open_rotation;
 	servo->closed_rotation = closed_rotation;
 
+	servo->state = SERVO_CLOSED;
+
 	return ER_SUCCESS;
 }
 
