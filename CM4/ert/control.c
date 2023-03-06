@@ -40,7 +40,7 @@
  *	CONSTANTS
  **********************/
 
-#define CONTROL_HEART_BEAT	200
+#define CONTROL_HEART_BEAT	200  //ms
 
 
 /**********************

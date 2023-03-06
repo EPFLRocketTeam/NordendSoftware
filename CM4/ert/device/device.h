@@ -53,17 +53,6 @@ typedef struct device_interface {
 
 }device_interface_t;
 
-typedef struct device_deamon {
-	uint32_t id;
-	StaticTask_t buffer;
-	StackType_t stack[ DEAMON_STACK_SIZE ];
-	TaskHandle_t handle;
-	uint32_t interfaces_count;
-	device_interface_t * interfaces[DEVICE_MAX_INTERFACES_PER_DEAMON];
-	void * context;
-	util_error_t (*data_rdy)(void*);
-}device_daemon_t;
-
 typedef struct device {
     uint32_t id;
     device_interface_t * interface;
@@ -94,15 +83,9 @@ util_error_t device_create(	device_t * dev,
 						util_error_t (*read_reg)(void*, device_interface_t *, uint32_t, uint8_t *, uint32_t),
 						util_error_t (*write_reg)(void*, device_interface_t *, uint32_t, uint8_t *, uint32_t));
 
-util_error_t device_deamon_create(	device_daemon_t * deamon,
-								const char * name,
-								uint32_t prio,
-								void * inst,
-								util_error_t (*data_rdy)(void*));
-
 util_error_t device_interface_create(   device_interface_t * interface,
                             		void * inst,
-									device_daemon_t * deamon,
+									void * deamon,
 									util_error_t (*send)(void*, uint8_t*, uint32_t),
 									util_error_t (*recv)(void*, uint8_t*, uint32_t*),
 									util_error_t (*handle_data)(void*, void*));
