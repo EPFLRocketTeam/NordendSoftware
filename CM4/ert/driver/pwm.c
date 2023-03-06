@@ -12,6 +12,7 @@
 
 #include "pwm.h"
 #include "stm32mp1xx_hal_rcc.h"
+#include "stm32mp1xx_hal_tim.h"
 #include <abstraction/gpio.h>
 
 /**********************

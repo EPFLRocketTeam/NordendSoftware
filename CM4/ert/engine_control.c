@@ -269,8 +269,29 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 	}
 
 	// Assign Ethanol servo to pin 13 (TIM4, CH2) and N2O servo to pin 14 (TIM4, CH3)
-	servo_init(servo_ethanol, pwm_data, PWM_SELECT_CH2, min_pulse, max_pulse, SERVO_ETHANOL_OFFSET, degrees_per_usec);
-	servo_init(servo_n2o, pwm_data, PWM_SELECT_CH3, min_pulse, max_pulse, SERVO_N2O_OFFSET, degrees_per_usec);
+	servo_init(
+			servo_ethanol,
+			pwm_data,
+			PWM_SELECT_CH2,
+			min_pulse,
+			max_pulse,
+			SERVO_ETHANOL_OFFSET,
+			degrees_per_usec,
+			SERVO_ETHANOL_OPEN,
+			SERVO_ETHANOL_IGNITION,
+			SERVO_ETHANOL_CLOSED);
+
+	servo_init(
+			servo_n2o,
+			pwm_data,
+			PWM_SELECT_CH3,
+			min_pulse,
+			max_pulse,
+			SERVO_N2O_OFFSET,
+			degrees_per_usec,
+			SERVO_N2O_OPEN,
+			SERVO_N2O_IGNITION,
+			SERVO_N2O_CLOSED);
 
 	// Using channels 1 and 2 -- initialize the PWM channel
 	pwm_init(pwm_data, PWM_TIM4, servo_ethanol->pwm_channel | servo_n2o->pwm_channel);
@@ -312,6 +333,15 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 
 		vTaskDelayUntil(&last_wake_time, period);
 	}
+}
+
+/**
+ * @fn void prev_state_start(void)
+ * @brief Returns to the previous saved state.
+ * @details Used for automatic switching back from certain states.
+ */
+void prev_state_start(void) {
+	control.state = control.prev_state;
 }
 
 /**
@@ -472,7 +502,26 @@ void control_n2o_start(void) {
  * @details
  */
 void control_n2o_run(void) {
+	// TODO don't we need an open, close, and partially open state ?
+	// TODO review how to implement this, I'm not comfortable comparing floats
 
+	switch (servo_get_state(servo_n2o)) {
+		case SERVO_OPEN:
+			servo_set_state(servo_n2o, SERVO_CLOSED);
+			break;
+		case SERVO_PARTIALLY_OPEN:
+			servo_set_state(servo_n2o, SERVO_OPEN);
+			break;
+		case SERVO_CLOSED:
+			servo_set_state(servo_n2o, SERVO_PARTIALLY_OPEN);
+			break;
+		default:
+			servo_set_state(servo_n2o, SERVO_CLOSED);
+			break;
+	}
+
+	// Go back to prev state
+	prev_state_start();
 }
 
 /**
@@ -490,6 +539,23 @@ void control_ethanol_start(void) {
  */
 void control_ethanol_run(void) {
 
+	switch (servo_get_state(servo_ethanol)) {
+		case SERVO_OPEN:
+			servo_set_state(servo_ethanol, SERVO_CLOSED);
+			break;
+		case SERVO_PARTIALLY_OPEN:
+			servo_set_state(servo_ethanol, SERVO_OPEN);
+			break;
+		case SERVO_CLOSED:
+			servo_set_state(servo_ethanol, SERVO_PARTIALLY_OPEN);
+			break;
+		default:
+			servo_set_state(servo_ethanol, SERVO_CLOSED);
+			break;
+	}
+
+	// Go back to prev state
+	prev_state_start();
 }
 
 
@@ -589,7 +655,6 @@ void control_countdown_run(void) {
  */
 void control_igniter_start(void) {
 	control.state = CONTROL_IGNITER;
-
 }
 
 /**
