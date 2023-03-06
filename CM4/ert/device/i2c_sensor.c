@@ -48,7 +48,7 @@
 static device_t i2c_accelerometer_device;
 static device_t i2c_gyroscope_device;
 static device_t i2c_barometer_device;
-static device_t i2c_engine_pressure_device;
+static device_t i2c_ADC_device;
 static device_t i2c_magnetometer_device;
 
 static i2c_sensor_context_t i2c_accelerometer_device_context = {
@@ -66,6 +66,10 @@ static i2c_sensor_context_t i2c_barometer_device_context = {
 static i2c_sensor_context_t i2c_magnetometer_device_context = {
 	//	.device_address = 0xee Need to know the adresse
 };
+
+static i2c_sensor_context_t i2c_ADC_device_context = {
+	//	.device_adress = 0xee adress not yet known
+}
 
 /**********************
  *	PROTOTYPES
@@ -93,8 +97,8 @@ device_t * i2c_sensor_get_barometer(void) {
 	return &i2c_barometer_device;
 }
 
-device_t * i2c_sensor_get_engine_pressure(void) {
-	return &i2c_engine_pressure_device;
+device_t * i2c_sensor_get_ADC(void) {
+	return &i2c_ADC_device;
 }
 
 device_t * i2c_sensor_get_magnetometer(void) {
@@ -110,7 +114,7 @@ util_error_t i2c_sensor_init(void) {
 	device_create((void*) &i2c_gyroscope_device, &i2c_gyroscope_device_context, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
 	device_create((void*) &i2c_barometer_device, &i2c_barometer_device_context, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
 	device_create((void*) &i2c_magnetometer_device, &i2c_magnetometer_device_context, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
-
+	device_create((void*) &i2c_ADC_device, &i2c_ADC_device_context, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
 	return ER_SUCCESS;
 
 }

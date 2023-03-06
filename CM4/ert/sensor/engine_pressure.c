@@ -34,9 +34,9 @@ static double LIN_RATIO = 0;
 
 void engine_sensor_convert_pres(double * data);
 
-util_error_t engine_pressure_init(device_t * eng_pres){
+util_error_t engine_pressure_init(device_t * eng_press){
     util_error_t error = ER_SUCCESS;
-    error |= adc_init(eng_pres);
+    error |= adc_init(eng_press);
     LIN_RATIO = (double)((MAX_PRESSURE-MIN_PRESSURE)/(
         (DIFFERENTIAL_RESISTOR*MAX_CURRENT)-(DIFFERENTIAL_RESISTOR*MIN_CURRENT)));
     return error;
@@ -52,4 +52,10 @@ util_error_t engine_pressure_read(device_t * eng_press, double * data) {
     error |= adc_read_voltage(eng_press, data, PRESS_SENS_ADC_CHANNEL);
     engine_sensor_convert_pres(data);
 	return error;
+}
+
+util_error_t engine_pressure_calibrate(device_t * eng_press) {
+    util_error_t error = ER_SUCCESS;
+    //TODO: write some sort of calibration code for the sensor
+    return error;
 }

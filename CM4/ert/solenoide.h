@@ -10,5 +10,5 @@
 
 void solenoid_init(void);
 
-void solenoid_on();
-void solenoid_off();
+void solenoid_on(uint8_t & pin);
+void solenoid_off(uint8_t & pin);

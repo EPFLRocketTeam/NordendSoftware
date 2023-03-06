@@ -245,6 +245,29 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 	uint32_t max_pulse = 2200;
 	float degrees_per_usec = 0.114;
 
+	//Get sensor devices
+	i2c_engine_press = i2c_sensor_get_ADC();
+	i2c_engine_temp = i2c_sensor_get_ADC();
+
+	//Initialize sensors
+	util_error_t engine_press_err = engine_pressure_init(i2c_engine_press);
+	util_error_t engine_temp_err = temperature_sensor_init(i2c_engine_temp);
+
+	//Sensor initialisation checkpoints
+	uint16_t checkpoint_engpress;
+	if(engine_press_err == ER_SUCCESS) {
+		checkpoint_engpress = led_add_checkpoint(led_green);
+	} else {
+		checkpoint_engpress = led_add_checkpoint(led_red);
+	}
+
+	uint16_t checkpoint_engtemp;
+	if(engine_temp_err == ER_SUCCESS) {
+		checkpoint_engtemp = led_add_checkpoint(led_green);
+	} else {
+		checkpoint_engtemp = led_add_checkpoint(led_red);
+	}
+
 	// Assign Ethanol servo to pin 13 (TIM4, CH2) and N2O servo to pin 14 (TIM4, CH3)
 	servo_init(servo_ethanol, pwm_data, PWM_SELECT_CH2, min_pulse, max_pulse, SERVO_ETHANOL_OFFSET, degrees_per_usec);
 	servo_init(servo_n2o, pwm_data, PWM_SELECT_CH3, min_pulse, max_pulse, SERVO_N2O_OFFSET, degrees_per_usec);
@@ -254,7 +277,6 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 
 
 	for (;;) {
-
 		//read battery TODO
 //		HAL_ADC_Start(&hadc1);
 //
@@ -277,8 +299,12 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 //		od_write_BATTERY_B(&bat2);
 
 		//how are radio instructions implemented ?
+		
 
+		//LED Debug checkpoints
 		led_checkpoint(checkpoint);
+		led_checkpoint(checkpoint_engpress);
+		led_checkpoint(checkpoint_engtemp);
 		//debug_log("Control loop | state: %d\n", control.state);
 
 		// Call the function associated with the current state.
@@ -328,9 +354,12 @@ void control_calibration_start(void) {
  * 			back to Idle or go to Error.
  */
 void control_calibration_run(void) {
-	uint8_t error_calibration = 0; //calibration()
+	util_error_t error_calibration = 0;
 
-	//Run the calibration subroutines and log for errors
+	error_calibration |= engine_pressure_calibrate(i2c_engine_press);
+	error_calibration |= engine_temperature_calibrate(i2c_engine_temp);
+
+	//TODO: Is any type of calibration necessary for servos etc?
 
 	if (error_calibration) {
 		control_error_start();

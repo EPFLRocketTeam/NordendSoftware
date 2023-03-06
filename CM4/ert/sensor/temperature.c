@@ -32,3 +32,11 @@ util_error_t  temperature_sensor_read(device_t * temp_sensor, double * data) {
 
 	return error;
 }
+
+util_error_t temperature_sensor_calibrate(device_t * temp_sensor, double * data) {
+	util_error_t error = ER_SUCCESS;
+
+	//TODO write code to calibrate the temperature sensor if necessary
+
+	return error;
+}

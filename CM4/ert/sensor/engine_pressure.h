@@ -11,8 +11,9 @@
 
 #include <sensor/ADC.h>
 
-util_error_t engine_pressure_init(device_t * eng_pres);
+util_error_t engine_pressure_init(device_t * eng_press);
 util_error_t engine_pressure_read(device_t * eng_press, double * data);
+uitl_error_t engine_pressure_calibrate(device_t * eng_press);
 
 #ifdef __cplusplus
 extern "C"{
