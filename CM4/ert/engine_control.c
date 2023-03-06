@@ -37,6 +37,9 @@
 #include <propulsion/servo.h>
 #include <driver/pwm.h>
 
+#include <sensor/engine_pressure.h>
+#include <sensor/temperature.h>
+
 /**********************
  *	CONSTANTS
  **********************/
