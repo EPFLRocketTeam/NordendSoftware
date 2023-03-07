@@ -3,7 +3,7 @@
  *	Author		: Thilo Chalas, Luciano Calcoen
  *	Date		: 19.11.2022
  *	Version		: 0.1
- *	Description	: ADC driver
+ *	Description	: ADC driver for the MCP3427 ADC
  */
 
 #ifndef ADC_H

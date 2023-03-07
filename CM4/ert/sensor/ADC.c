@@ -21,7 +21,9 @@
 #define ADC_RESOLUTION_BITS 12
 #define ADC_OUTPUT_BYTES 3
 //ADC PGA GAIN BITS (2 LSB bits)
-#define PGA_GAIN 0b00000000
+#define PGA_GAIN_BITS 0b00000000
+#define PGA_GAIN 1
+
 /**********************
  *	MACROS
  **********************/
@@ -35,7 +37,7 @@
  *	VARIABLES
  **********************/
 
-static uint8_t adc_setup = 0b10010000 | PGA_GAIN;
+static uint8_t adc_setup = 0b10010000 | PGA_GAIN_BITS;
 static uint8_t adc_output[ADC_OUTPUT_BYTES];
 static uint8_t prev_channel = 0;
 const double adc_voltage_range  = 4.096;
