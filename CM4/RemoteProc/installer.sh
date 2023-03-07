@@ -8,7 +8,7 @@
 
 REMOTE_SSH=$( ifconfig | grep 192.168.7. )
 
-SSH_TARGET="root@192.168.7.1"
+SSH_TARGET="hostboard"
 
 KERMIT_CONFIG_FAST=kermit_config_fast.cfg
 KERMIT_CONFIG_SLOW=kermit_config_slow.cfg
@@ -99,13 +99,13 @@ if [[ -z "$REMOTE_SSH" ]]; then
 		#kermit $KERMIT_CONFIG -s patcher.py ~/
 		#kermit $KERMIT_CONFIG -s start_fw.sh ~/
 		#kermit $KERMIT_CONFIG -s stop_fw.sh ~/
-		kermit $KERMIT_CONFIG -C " remote  kill -9 \$( pidof hostproc_app ), exit"
-		kermit $KERMIT_CONFIG -s ../../CA7/hostproc_app/hostproc_app ~/
+		#kermit $KERMIT_CONFIG -C " remote  kill -9 \$( pidof hostproc_app ), exit"
+		#kermit $KERMIT_CONFIG -s ../../CA7/hostproc_app/hostproc_app ~/
 		kermit $KERMIT_CONFIG -s rc.local ~/
 		kermit $KERMIT_CONFIG -C " remote host mv rc.local /etc/rc.local, exit"
 		kermit $KERMIT_CONFIG -C " remote host chmod +x /etc/rc.local, exit"
 		echo "tools sent"
-
+		echo "../$SOURCE_FOLDER/WildhornAV_CM4.elf WildhornAV_CM4.elf"
 		cp  ../$SOURCE_FOLDER/WildhornAV_CM4.elf WildhornAV_CM4.elf
 		bzip2 -f WildhornAV_CM4.elf
 		echo "firmware compressed"
