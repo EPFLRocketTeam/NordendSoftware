@@ -38,6 +38,7 @@
  **********************/
 
 static uint8_t adc_setup = 0b10010000 | PGA_GAIN_BITS;
+static uint32_t adc_bytes = ADC_OUTPUT_BYTES;
 static uint8_t adc_output[ADC_OUTPUT_BYTES];
 static uint8_t prev_channel = 0;
 const double adc_voltage_range  = 4.096;
@@ -82,7 +83,7 @@ util_error_t adc_read_voltage(device_t * adc, double * voltage, uint8_t channel)
         uint8_t dataready = 0;
         //Wait for the next conversion to be ready
         while (!dataready){
-            error |= device_interface_recv(adc->interface, adc_output , ADC_OUTPUT_BYTES);
+            error |= device_interface_recv(adc->interface, adc_output , &adc_bytes);
             if (adc_output[2] == (adc_channel & 0b01111111)){
                 dataready = 1;
             }       
@@ -90,7 +91,7 @@ util_error_t adc_read_voltage(device_t * adc, double * voltage, uint8_t channel)
     }
     
     //Read the data from the ADC
-    error |= device_interface_recv(adc->interface, adc_output , ADC_OUTPUT_BYTES);
+    error |= device_interface_recv(adc->interface, adc_output , &adc_bytes);
     
     //Convert the value to a voltage
     int16_t adc_value = (adc_output[0]<<8 | adc_output[1]);

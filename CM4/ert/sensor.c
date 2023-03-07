@@ -54,7 +54,6 @@
 static device_t * i2c_acc;
 static device_t * i2c_gyro;
 static device_t * i2c_baro;
-static device_t * i2c_engine_press;
 
 
 static uint8_t i2c_calib;
@@ -91,51 +90,59 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	static const TickType_t baro_delay = pdMS_TO_TICKS(10);
 	last_wake_time = xTaskGetTickCount();
 
-	uint16_t checkpoint = led_add_checkpoint(led_green);
+	uint16_t checkpoint = led_add_checkpoint(led_teal);
 	debug_log("Sensor i2c start\n");
-	//get devices
+	
+	
+	//get and initialize accelerometer
 	i2c_acc = i2c_sensor_get_accelerometer();
-	i2c_gyro = i2c_sensor_get_gyroscope();
-	i2c_baro = i2c_sensor_get_barometer();
-
-
-
-
-	//init
 	util_error_t acc_err = accelerometer_init(i2c_acc);
-	util_error_t gyro_err = gyroscope_init(i2c_gyro);
-	util_error_t baro_err = barometer_init(i2c_baro, &i2c_baro_meta);
-	util_error_t engine_pressure_err = engine_pressure_init(i2c_engine_press);
-
+	
 	uint16_t checkpoint_acc;
 	if(acc_err == ER_SUCCESS) {
 		checkpoint_acc = led_add_checkpoint(led_green);
 	} else {
 		checkpoint_acc = led_add_checkpoint(led_red);
 	}
+
+
+	//get and initialize gyroscope
+	i2c_gyro = i2c_sensor_get_gyroscope();
+	util_error_t gyro_err = gyroscope_init(i2c_gyro);
+	
 	uint16_t checkpoint_gyro;
 	if(gyro_err == ER_SUCCESS) {
 		checkpoint_gyro = led_add_checkpoint(led_green);
 	} else {
 		checkpoint_gyro = led_add_checkpoint(led_red);
 	}
+
+	
+	//get and initialize barometer
+	i2c_baro = i2c_sensor_get_barometer();
+	util_error_t baro_err = barometer_init(i2c_baro, &i2c_baro_meta);
+
 	uint16_t checkpoint_baro;
 	if(baro_err == ER_SUCCESS) {
 		checkpoint_baro = led_add_checkpoint(led_green);
 	} else {
 		checkpoint_baro = led_add_checkpoint(led_red);
-	}
+	}	
 
 	//manual calibration only:
 	i2c_calib = 0;
 
 	//mainloop
+
+	
+
 	for(;;) {
 		led_checkpoint(checkpoint);
-		led_checkpoint(checkpoint_baro);
-		led_checkpoint(checkpoint_gyro);
 		led_checkpoint(checkpoint_acc);
+		led_checkpoint(checkpoint_gyro);
+		led_checkpoint(checkpoint_baro);
 
+		
 
 		if(1) {
 			if(baro_err == ER_SUCCESS) {
@@ -193,7 +200,7 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 #endif
 
 
-		} else { /* Calibration */
+		} else { // Calibration
 			//calibration steps
 
 			//normally not necessary...
@@ -213,6 +220,9 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 //					i2c_acc_data.processed[0], i2c_acc_data.processed[1],
 //					i2c_acc_data.processed[2], i2c_baro_data.pressure,
 //					i2c_baro_data.temperature);
+
+
+
 
 
 		vTaskDelayUntil( &last_wake_time, period );
