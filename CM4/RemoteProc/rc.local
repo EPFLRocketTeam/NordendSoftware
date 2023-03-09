@@ -15,9 +15,9 @@ echo -n $FW_NAME > /sys/class/remoteproc/remoteproc0/firmware
 # start remoteproc
 echo -n start > /sys/class/remoteproc/remoteproc0/state
 
-sleep 5
+# sleep 5
 
-/home/root/hostproc_app &> /home/root/last_av_out.log
+# /home/root/hostproc_app &> /home/root/last_av_out.log
 
 
 

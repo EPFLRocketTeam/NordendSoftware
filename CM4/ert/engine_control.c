@@ -91,7 +91,7 @@ typedef enum control_state {
 	/** Subsonic, coast flight */
 	CONTROL_GLIDE = 8,
 	/** Supersonic flight */
-	CONTROL_COUNTDOWN = 7,
+	CONTROL_COUNTDOWN = 9,
 	/** Apogee reached, trigger first event */
 	CONTROL_IGNITER = 10,
 	/** Drogue chute descent, wait for second event */
@@ -190,6 +190,22 @@ static void prev_state_start(void);
 void schedule_next_state(control_state_t next_state) {
 	control.prev_state = control.state;
 	control.state = next_state;
+}
+
+void control_isr_thread(__attribute__((unused)) void *arg) {
+	for(;;) {
+		// every XXX ticks, poll radio
+
+		if (/* radio event received AND manual change is requested */) {
+			// Notify engine control thread
+			// TODO maybe we actually don't want to notify thread unless necessary ?
+			// TODO need access to task pointer...
+			xTaskNotifyGive();
+		} else {
+			// Pause task for 1 ms
+			vTaskDelay(pdMS_TO_TICKS(1000));
+		}
+	}
 }
 
 /**
