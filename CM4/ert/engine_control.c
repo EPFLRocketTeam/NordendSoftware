@@ -36,6 +36,7 @@
 
 #include <propulsion/servo.h>
 #include <driver/pwm.h>
+#include <solenoide.h>
 
 #include <sensor/engine_pressure.h>
 #include <sensor/temperature.h>
@@ -136,6 +137,13 @@ static servo_t * servo_ethanol = &ethanol_servo_inst;
 static servo_t servo_n2o_inst;
 static servo_t * servo_n2o = &servo_n2o_inst;
 
+/*
+* Status of vent pins
+*/
+static uint8_t vent1_pins = 0;
+static uint8_t vent2_pins = 0;
+
+
 /**********************
  *	PROTOTYPES
  **********************/
@@ -218,11 +226,15 @@ void control_isr_thread(__attribute__((unused)) void *arg) {
  *
  */
 void engine_control_thread(__attribute__((unused)) void *arg) {
+	//Initialize the value of control
+	control.state = CONTROL_IDLE;
+	control.state = CONTROL_IDLE;
+
+	//Timer things
 	static TickType_t last_wake_time;
 	static const TickType_t period = pdMS_TO_TICKS(CONTROL_HEART_BEAT);
 	last_wake_time = xTaskGetTickCount();
 
-	control_idle_start();
 	uint16_t checkpoint = led_add_checkpoint(led_blue);
 	debug_log("Control start\n");
 
@@ -347,7 +359,7 @@ void control_idle_run(void) {
 	// TODO Check battery state, if charge disconnected scream!
 	if (/* charge_disconnected */ ) {
 		// Log("charge disconnected")
-		control_error_start();
+		control_error_start();//TODO REPLACE WITH CORRECT FORMAT
 	}
 
 	// Does nothing, control_thread will loop until further instructions
@@ -385,8 +397,16 @@ void control_calibration_run(void) {
 void control_vent1_run(void) {
 	uint8_t error_venting = 0;
 
-	//Open or close the venting valves while logging for errors
-	//Venting valves are controlled by solenoids on 2 pins from 3,4,5,6 (needs crosscheck)
+	if (vent1_pins) {
+		solenoid_off(SOLENOID_);//TODO FIND WHICH SOLENOIDS ARE WHICH
+		solenoid_off(SOLENOID_);
+		vent1_pins = 0;
+	}
+	else {
+		solenoid_on(SOLENOID_);//TODO FIND WHICH SOLENOIDS ARE WHICH
+		solenoid_on(SOLENOID_);
+		vent1_pins = 1;
+	}
 
 	if (error_venting) {
 		control_error_start();
@@ -423,6 +443,18 @@ void control_vent1_run(void) {
  */
 void control_vent2_run(void) {
 
+	if (vent2_pins) {
+		solenoid_off(SOLENOID_);//TODO FIND WHICH SOLENOIDS ARE WHICH
+		solenoid_off(SOLENOID_);
+		vent2_pins = 0;
+	}
+	else {
+		solenoid_on(SOLENOID_);//TODO FIND WHICH SOLENOIDS ARE WHICH
+		solenoid_on(SOLENOID_);
+		vent2_pins = 1;
+	}
+
+	//TODO Return to proper state after runnning
 }
 
 /**
