@@ -8,30 +8,27 @@
 #include "solenoide.h"
 #include <abstraction/gpio.h>
 
-#define SOLENOID_PIN	GPIO_PIN_3
 #define SOLENOID_PORT	GPIOC
 
 ////////////////////////////////////////////////////
-//Maybe not necessary?
-void solenoid_init(void) {
-	//GPIO init solenoid
-
+util_error_t solenoid_init(void) {
 	GPIO_InitTypeDef GPIO_InitStructure;
 
 	GPIO_InitStructure.Mode = GPIO_MODE_INPUT;
-	GPIO_InitStructure.Pin =  SOLENOID_PIN;
+	GPIO_InitStructure.Pin =  SOLENOID_1 | SOLENOID_2 | SOLENOID_3 | SOLENOID_4;
 
+	HAL_GPIO_Init(SOLENOID_PORT, &GPIO_InitStructure);
+
+	return ER_SUCCESS;
 }
 ///////////////////////////////////////////////////
 
-
-
 //Set a solenoid's pin to 1
-void solenoid_on(Solenoids_t solenoid){
+util_error_t solenoid_on(Solenoids_t solenoid){
 	HAL_GPIO_WritePin(SOLENOID_PORT, solenoid, GPIO_PIN_SET);
 }
 
 //Set a solenoid's pin to 0
-void solenoid_off(Solenoids_t solenoid){
+util_error_t solenoid_off(Solenoids_t solenoid){
 	HAL_GPIO_WritePin(SOLENOID_PORT, solenoid, GPIO_PIN_RESET);
 }

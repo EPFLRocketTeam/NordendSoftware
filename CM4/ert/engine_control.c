@@ -46,7 +46,15 @@
  **********************/
 
 #define CONTROL_HEART_BEAT	200
-#define FINAL_COUNTDOWN 999 //must be changed by wanted value
+#define FINAL_COUNTDOWN 10 //must be changed by wanted value, in seconds
+
+#define CONTROL_ONE_SECOND pdMS_TO_TICKS(1000)
+
+// TODO must define !
+#define SOLENOID_N2O SOLENOID_1
+#define SOLENOID_ETHANOL SOLENOID_2
+#define SOLENOID_PRESSURISATION SOLENOID_3
+#define SOLENOID_PURGE SOLENOID_4
 
 /**
  * Origin offset (in microseconds), for computing the pulse width. Default is 1500.
@@ -200,7 +208,17 @@ void schedule_next_state(control_state_t next_state) {
 	control.state = next_state;
 }
 
-void control_isr_thread(__attribute__((unused)) void *arg) {
+
+/**
+ * @fn void control_isr_thread(void*)
+ * @brief Control ISR thread entry
+ * @details Interrupt service routing thread that polls radio every second to check if a new command is sent.
+ * 			If the command "makes sense" the main control thread is notified, and the state of the propulsion machine
+ * 			is changed accordingly.
+ *
+ * @param arg FreeRTOS thread entry point context (unused) (prevents compiler warning)
+ */
+void enginge_control_isr_thread(__attribute__((unused)) void *arg) {
 	for(;;) {
 		// every XXX ticks, poll radio
 
@@ -208,17 +226,17 @@ void control_isr_thread(__attribute__((unused)) void *arg) {
 			// Notify engine control thread
 			// TODO maybe we actually don't want to notify thread unless necessary ?
 			// TODO need access to task pointer...
-			xTaskNotifyGive();
+			// xTaskNotifyGive();
 		} else {
 			// Pause task for 1 ms
-			vTaskDelay(pdMS_TO_TICKS(1000));
+			vTaskDelay(CONTROL_ONE_SECOND);
 		}
 	}
 }
 
 /**
  * @brief 	Control thread entry point
- * @details This thread holds the main state machine of the Nordend software. It will be
+ * @details This thread holds the main state machine of the Nordend propulsion software. It will be
  * 			the main decision point for actions to be taken with respect to real world events.
  *
  *
@@ -227,7 +245,6 @@ void control_isr_thread(__attribute__((unused)) void *arg) {
  */
 void engine_control_thread(__attribute__((unused)) void *arg) {
 	//Initialize the value of control
-	control.state = CONTROL_IDLE;
 	control.state = CONTROL_IDLE;
 
 	//Timer things
@@ -359,7 +376,7 @@ void control_idle_run(void) {
 	// TODO Check battery state, if charge disconnected scream!
 	if (/* charge_disconnected */ ) {
 		// Log("charge disconnected")
-		control_error_start();//TODO REPLACE WITH CORRECT FORMAT
+		schedule_next_state(CONTROL_ERROR);
 	}
 
 	// Does nothing, control_thread will loop until further instructions
@@ -380,11 +397,11 @@ void control_calibration_run(void) {
 	//TODO: Is any type of calibration necessary for servos etc?
 
 	if (error_calibration) {
-		control_error_start();
+		schedule_next_state(CONTROL_ERROR);
 		return;
 	}
 
-	control_idle_start();
+	schedule_next_state(CONTROL_IDLE);
 }
 
 
@@ -409,7 +426,7 @@ void control_vent1_run(void) {
 	}
 
 	if (error_venting) {
-		control_error_start();
+		schedule_next_state(CONTROL_ERROR);
 		return;
 	}
 
@@ -455,6 +472,7 @@ void control_vent2_run(void) {
 	}
 
 	//TODO Return to proper state after runnning
+	prev_state_start();
 }
 
 /**
@@ -563,22 +581,24 @@ void control_glide_run(void) {
  */
 void control_countdown_run(void) {
 	uint8_t countdown = FINAL_COUNTDOWN;
+
 	do {
 		//delay
-		// osDelay(countdown_period_ticks); // TODO define desired countdown incrementation delay
-		//check 
+		vTaskDelay(CONTROL_ONE_SECOND); // wait 1 second
 
-		if (/*error_detected*/) {
-			schedule_next_state(CONTROL_ERROR);
-			return;
-		} else if (/*abort needed*/) {
-			schedule_next_state(CONTROL_ABORT);
-			return;
-		}
+		// TODO leave error handling to the main loop
+//		if (/*error_detected*/) {
+//			schedule_next_state(CONTROL_ERROR);
+//			return;
+//		} else if (/*abort needed*/) {
+//			schedule_next_state(CONTROL_ABORT);
+//			return;
+//		}
 
 		countdown--;
 	} while (countdown);
-	control_ignition_start();
+
+	schedule_next_state(CONTROL_IGNITER);
 }
 
 
@@ -590,10 +610,8 @@ void control_countdown_run(void) {
 void control_igniter_run(void) {
 	uint8_t error_ignition = 0; //ignition() -> will turn the igniter on (solenoids)
 
-	//Set ethanol and N2O servos (pins 13 and 14) to partially open
-	//Activate ignition
-	servo_set_rotation(servo_n2o, SERVO_N2O_IGNITION);
-	servo_set_rotation(servo_ethanol, SERVO_ETHANOL_IGNITION);
+	// Activate ignition
+	// TODO define behavior !
 
 	//Check if good engine start (pressure and temp?), if too many failed abort
 
@@ -602,6 +620,7 @@ void control_igniter_run(void) {
 		return;
 	} else if (/*error_ignition == IGNITION_ERROR*/) {
 		//turn off solenoids()
+
 		schedule_next_state(CONTROL_ERROR);
 		return;
 	}
@@ -615,16 +634,18 @@ void control_igniter_run(void) {
  * 			After a delay, it will jump to the thrust state.
  */
 void control_ignition_run(void) {
-	uint8_t error_powering = 0; //powering() -> partial open state of servos
-	if (error_powering) {
-		control_abort_start();
-		return;
-	}
+	util_error_t error_ignition = ER_SUCCESS; //powering() -> partial open state of servos
 
-	servo_set_rotation(servo_n2o, SERVO_N2O_IGNITION);
-	servo_set_rotation(servo_ethanol, SERVO_ETHANOL_IGNITION);
+	vTaskDelay(pdMS_TO_TICKS(100)); // pause for 100 ms
 
-	schedule_next_state(CONTROL_THRUST);
+	//Set ethanol and N2O servos (pins 13 and 14) to partially open
+	error_ignition |= servo_set_state(servo_n2o, SERVO_PARTIALLY_OPEN);
+	error_ignition |= servo_set_state(servo_ethanol, SERVO_PARTIALLY_OPEN);
+
+	if (error_ignition)
+		schedule_next_state(CONTROL_ABORT);
+	else
+		schedule_next_state(CONTROL_THRUST);
 }
 
 /**
@@ -633,16 +654,18 @@ void control_ignition_run(void) {
  * 			After a delay, it will jump to the shutdown state.
  */
 void control_thrust_run(void) {
-	uint8_t error_thrust = 0; //thrust() -> full open state of servos
-	if (error_thrust) {
+	util_error_t error_thrust = ER_SUCCESS; //thrust() -> full open state of servos
+
+
+	error_thurst |= servo_set_state(servo_n2o, SERVO_OPEN);
+	error_thrust |= servo_set_rotation(servo_ethanol, SERVO_OPEN);
+
+	vTaskDelay(30 * CONTROL_ONE_SECOND); // pause for 30 seconds
+
+	if (error_thrust)
 		schedule_next_state(CONTROL_ABORT);
-		return;
-	}
-
-	servo_set_rotation(servo_n2o, SERVO_N2O_OPEN);
-	servo_set_rotation(servo_ethanol, SERVO_ETHANOL_OPEN);
-
-	schedule_next_state(CONTROL_SHUTDOWN);
+	else
+		schedule_next_state(CONTROL_SHUTDOWN);
 }
 
 /**
@@ -652,13 +675,14 @@ void control_thrust_run(void) {
  * 			Since we do not know if the engine has enough power to reach apogee without a full combustion, shutdown() is tbd
  */
 void control_shutdown_run(void) {
-	uint8_t error_shutdown = 0; //shutdown()
-	if (error_shutdown) {
-		schedule_next_state(CONTROL_ABORT);
-		return;
-	}
+	util_error_t error_shutdown = ER_SUCCESS; //shutdown()
 
-	schedule_next_state(CONTROL_APOGEE);
+	// TODO define engine shutdown behavior
+
+	if (error_shutdown)
+		schedule_next_state(CONTROL_ABORT);
+	else
+		schedule_next_state(CONTROL_APOGEE);
 }
 
 /**
@@ -667,13 +691,15 @@ void control_shutdown_run(void) {
  * 			After the end of the sequence, it will jump to the depressurisation state.
  */
 void control_apogee_run(void) {
-	uint8_t error_start_fall = 0; //start_fall() -> venting
-	if (error_start_fall) {
-		schedule_next_state(CONTROL_ABORT);
-		return;
-	}
+	util_error_t error_start_fall = ER_SUCCESS; //start_fall() -> venting
 
-	schedule_next_state(CONTROL_DEPRESSURISATION);
+	error_start_fall |= solenoid_on(SOLENOID_N2O);
+	error_start_fall |= solenoid_on(SOLENOID_ETHANOL);
+
+	if (error_start_fall)
+		schedule_next_state(CONTROL_ABORT);
+	else
+		schedule_next_state(CONTROL_DEPRESSURISATION);
 }
 
 /**
@@ -683,6 +709,9 @@ void control_apogee_run(void) {
  */
 void control_depressurisation_run(void) {
 	uint8_t error_depressurisation = 0; //depressurisation() -> open valve
+
+	solenoid_on(SOLENOID_PRESSURISATION);
+
 	if (error_depressurisation) {
 		schedule_next_state(CONTROL_ABORT);
 		return;

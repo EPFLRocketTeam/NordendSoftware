@@ -119,11 +119,11 @@ util_error_t pwm_init(pwm_data_t * data, PWM_Timer_t timer, uint8_t channel_sel)
 util_error_t pwm_init_arr(pwm_data_t *data, PWM_Timer_t timer,
 		uint8_t channel_sel, uint32_t arr_val) {
 
-	// Pin configs (Bank, Pin) ////////////////////////////////////////////////////
-	// TIM3 (leds)	CH1: (C, 6) R	CH2: (C, 7) G	CH3: (B, 0) B				 //
-	// TIM4 		CH1: (B, 6)		CH2: (D, 13)	CH3: (D, 14)  	CH4: (D, 15) 	 //
-	// TIM5			CH1: (A, 0) 	CH2: (A, 1)		CH3: (A, 2) 	CH4: (A, 3)  	 //
-	///////////////////////////////////////////////////////////////////////////////
+	// Pin configs (Bank, Pin) ///////////////////////////////////////////////////////
+	// TIM3 (leds)	CH1: (C, 6) R	CH2: (C, 7) G	CH3: (B, 0) B				 	//
+	// TIM4 		CH1: (B, 6)		CH2: (D, 13)		CH3: (D, 14)  	CH4: (D, 15) 	//
+	// TIM5			CH1: (A, 0) 		CH2: (A, 1)		CH3: (A, 2) 		CH4: (A, 3)  	//
+	//////////////////////////////////////////////////////////////////////////////////
 
 	// Then initialize the Timer
 	switch (timer) {
