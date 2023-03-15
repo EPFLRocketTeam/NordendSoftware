@@ -86,11 +86,11 @@ typedef enum control_state {
 	/** Calibrate sensors and actuators */
 	CONTROL_CALIBRATION = 1,
 	/** Control venting 1 */
-	CONTROL_VENT1 = 2,
+	CONTROL_VENT_N20 = 2,
 	/** Control venting 2 */
-	CONTROL_VENT2 = 3,
+	CONTROL_VENT_ETHANOL = 3,
 	/** Control the opening of the purge */
-	CONTROL_PURGE = 4,
+	CONTROL_VENT_PURGE = 4,
 	/** Control the N2O servo */
 	CONTROL_N2O = 5,
 	/** Control the ethanol servo */
@@ -148,8 +148,10 @@ static servo_t * servo_n2o = &servo_n2o_inst;
 /*
 * Status of vent pins
 */
-static uint8_t vent1_pins = 0;
-static uint8_t vent2_pins = 0;
+static uint8_t vent_n2o_pins = 0;
+static uint8_t vent_ethanol_pins = 0;
+static uint8_t vent_purge_pins = 0;
+static uint8_t vent_pressurization_pins = 0;
 
 
 /**********************
@@ -160,9 +162,9 @@ void schedule_next_state(control_state_t next_state);
 
 void control_idle_run(void);
 void control_calibration_run(void);
-void control_vent1_run(void);
-void control_vent2_run(void);
-void control_purge_run(void);
+void control_vent_n2o_run(void);
+void control_vent_ethanol_run(void);
+void control_vent_purge_run(void);
 void control_n2o_run(void);
 void control_ethanol_run(void);
 void control_pressurisation_run(void);
@@ -180,9 +182,9 @@ void control_abort_run(void);
 void (*control_fcn[])(void) = {
 	control_idle_run,
 	control_calibration_run,
-	control_vent1_run,
-	control_vent2_run,
-	control_purge_run,
+	control_vent_n2o_run,
+	control_vent_ethanol_run,
+	control_vent_purge_run,
 	control_ethanol_run,
 	control_pressurisation_run,
 	control_glide_run,
@@ -411,18 +413,18 @@ void control_calibration_run(void) {
  * 			This function will open/close the venting valves.
  * 			---->Should we be making an vent-open and vent-close state?
  */
-void control_vent1_run(void) {
+void control_vent_n2o_run(void) {
 	uint8_t error_venting = 0;
 
-	if (vent1_pins) {
-		solenoid_off(SOLENOID_);//TODO FIND WHICH SOLENOIDS ARE WHICH
-		solenoid_off(SOLENOID_);
-		vent1_pins = 0;
+	if (vent_n2o_pins) {
+		solenoid_off(SOLENOID_N2O);//TODO FIND WHICH SOLENOIDS ARE WHICH
+		solenoid_off(SOLENOID_N2O);
+		vent_n2o_pins = 0;
 	}
 	else {
-		solenoid_on(SOLENOID_);//TODO FIND WHICH SOLENOIDS ARE WHICH
-		solenoid_on(SOLENOID_);
-		vent1_pins = 1;
+		solenoid_on(SOLENOID_N2O);//TODO FIND WHICH SOLENOIDS ARE WHICH
+		solenoid_on(SOLENOID_N2O);
+		vent_n2o_pins = 1;
 	}
 
 	if (error_venting) {
@@ -458,17 +460,17 @@ void control_vent1_run(void) {
  * 			This function will open/close the venting valves.
  * 			---->Should we be making an vent-open and vent-close state?
  */
-void control_vent2_run(void) {
+void control_vent_ethanol_run(void) {
 
-	if (vent2_pins) {
-		solenoid_off(SOLENOID_);//TODO FIND WHICH SOLENOIDS ARE WHICH
-		solenoid_off(SOLENOID_);
-		vent2_pins = 0;
+	if (vent_ethanol_pins) {
+		solenoid_off(SOLENOID_ETHANOL);//TODO FIND WHICH SOLENOIDS ARE WHICH
+		solenoid_off(SOLENOID_ETHANOL);
+		vent_ethanol_pins = 0;
 	}
 	else {
-		solenoid_on(SOLENOID_);//TODO FIND WHICH SOLENOIDS ARE WHICH
-		solenoid_on(SOLENOID_);
-		vent2_pins = 1;
+		solenoid_on(SOLENOID_ETHANOL);//TODO FIND WHICH SOLENOIDS ARE WHICH
+		solenoid_on(SOLENOID_ETHANOL);
+		vent_ethanol_pins = 1;
 	}
 
 	//TODO Return to proper state after runnning
@@ -476,11 +478,25 @@ void control_vent2_run(void) {
 }
 
 /**
- * @fn void control_purge_run(void)
+ * @fn void control_vent_purge_run(void)
  * @brief Purge state runtime
  * @details
  */
-void control_purge_run(void) {
+void control_vent_purge_run(void) {
+
+	if (vent_purge_pins) {
+		solenoid_off(SOLENOID_PURGE);//TODO FIND WHICH SOLENOIDS ARE WHICH
+		solenoid_off(SOLENOID_PURGE);
+		vent_purge_pins = 0;
+	}
+	else {
+		solenoid_on(SOLENOID_PURGE);//TODO FIND WHICH SOLENOIDS ARE WHICH
+		solenoid_on(SOLENOID_PURGE);
+		vent_purge_pins = 1;
+	}
+
+	//TODO Return to proper state after runnning
+	prev_state_start();
 
 }
 
@@ -545,17 +561,21 @@ void control_ethanol_run(void) {
  * 			This state will open/close the N20 pressurisation valve.
  */
 void control_pressurisation_run(void) {
-	uint8_t error_pressurisation = 0; //pressurisation()
 
-	//Open/close the pressurisation valve while logging for errors
-	//Press valve controlled by solenoid on one of the 3-6 pins
-
-	if (error_pressurisation) {
-		schedule_next_state(CONTROL_ERROR);
-		return;
+	if (vent_pressurization_pins) {
+		solenoid_off(SOLENOID_PRESSURISATION);//TODO FIND WHICH SOLENOIDS ARE WHICH
+		solenoid_off(SOLENOID_PRESSURISATION);
+		vent_pressurization_pins = 0;
+	}
+	else {
+		solenoid_on(SOLENOID_PRESSURISATION);//TODO FIND WHICH SOLENOIDS ARE WHICH
+		solenoid_on(SOLENOID_PRESSURISATION);
+		vent_pressurization_pins = 1;
 	}
 
-	schedule_next_state(CONTROL_IDLE);
+	//TODO Return to proper state after runnning
+	prev_state_start();
+
 }
 
 /**
