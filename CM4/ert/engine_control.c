@@ -75,54 +75,6 @@ static const float SERVO_N2O_OFFSET = 1500;
  *	TYPEDEFS
  **********************/
 
-/**
- * @brief State of the control FSM
- * 
- * the description of the states don't make sense -> must be reviewed
- */
-typedef enum control_state {
-	/** Wait for arming or calibration */
-	CONTROL_IDLE = 0,
-	/** Calibrate sensors and actuators */
-	CONTROL_CALIBRATION = 1,
-	/** Control venting 1 */
-	CONTROL_VENT_N20 = 2,
-	/** Control venting 2 */
-	CONTROL_VENT_ETHANOL = 3,
-	/** Control the opening of the purge */
-	CONTROL_VENT_PURGE = 4,
-	/** Control the N2O servo */
-	CONTROL_N2O = 5,
-	/** Control the ethanol servo */
-	CONTROL_ETHANOL = 6,
-	/** Powered ascent */
-	CONTROL_PRESSURISATION = 7,
-	/** Subsonic, coast flight */
-	CONTROL_GLIDE = 8,
-	/** Supersonic flight */
-	CONTROL_COUNTDOWN = 9,
-	/** Apogee reached, trigger first event */
-	CONTROL_IGNITER = 10,
-	/** Drogue chute descent, wait for second event */
-	CONTROL_IGNITION = 11,
-	/** Low alt reached, trigger second event */
-	CONTROL_THRUST = 12,
-	/** Main chute descent, wait for touchdown */
-	CONTROL_SHUTDOWN = 13,
-	/** Touchdown detected, end of the flight */ //-> should be end of propulsion only
-	CONTROL_APOGEE = 14,
-	/** Ballistic flight detected */
-	CONTROL_DEPRESSURISATION = 15,
-	/** Ground (automatic) error */
-	CONTROL_ERROR = 16,
-	/** Flight (radio-triggered) error */
-	CONTROL_ABORT = 17
-} control_state_t;
-
-typedef struct control {
-	control_state_t state;
-	control_state_t prev_state;
-} control_t;
 
 /**********************
  *	VARIABLES
@@ -160,44 +112,26 @@ static uint8_t vent_pressurization_pins = 0;
 
 void schedule_next_state(control_state_t next_state);
 
-void control_idle_run(void);
-void control_calibration_run(void);
-void control_vent_n2o_run(void);
-void control_vent_ethanol_run(void);
-void control_vent_purge_run(void);
-void control_n2o_run(void);
-void control_ethanol_run(void);
-void control_pressurisation_run(void);
-void control_glide_run(void);
-void control_countdown_run(void);
-void control_igniter_run(void);
-void control_ignition_run(void);
-void control_thrust_run(void);
-void control_shutdown_run(void);
-void control_apogee_run(void);
-void control_depressurisation_run(void);
-void control_error_run(void);
-void control_abort_run(void);
-
-void (*control_fcn[])(void) = {
-	control_idle_run,
-	control_calibration_run,
-	control_vent_n2o_run,
-	control_vent_ethanol_run,
-	control_vent_purge_run,
-	control_ethanol_run,
-	control_pressurisation_run,
-	control_glide_run,
-	control_countdown_run,
-	control_igniter_run,
-	control_igniter_run,
-	control_thrust_run,
-	control_shutdown_run,
-	control_apogee_run,
-	control_depressurisation_run,
-	control_error_run,
-	control_abort_run
-};
+// TODO REMOVE
+//void (*control_fcn[])(void) = {
+//	control_idle_run,
+//	control_calibration_run,
+//	control_vent1_run,
+//	control_vent2_run,
+//	control_purge_run,
+//	control_ethanol_run,
+//	control_pressurisation_run,
+//	control_glide_run,
+//	control_countdown_run,
+//	control_igniter_run,
+//	control_igniter_run,
+//	control_thrust_run,
+//	control_shutdown_run,
+//	control_apogee_run,
+//	control_depressurisation_run,
+//	control_error_run,
+//	control_abort_run
+//};
 
 static void prev_state_start(void);
 
@@ -240,42 +174,16 @@ uint8_t error_can_be_recalibrated(){
 
 
 /**
- * @fn void control_isr_thread(void*)
- * @brief Control ISR thread entry
- * @details Interrupt service routing thread that polls radio every second to check if a new command is sent.
- * 			If the command "makes sense" the main control thread is notified, and the state of the propulsion machine
- * 			is changed accordingly.
+ * @fn util_error_t init(void)
+ * @brief Initializes all peripherals and sets up the control object.
  *
- * @param arg FreeRTOS thread entry point context (unused) (prevents compiler warning)
+ * @return ER_SUCCESS if everything went well, a non-zero error code otherwise.
  */
-void enginge_control_isr_thread(__attribute__((unused)) void *arg) {
-	for(;;) {
-		// every XXX ticks, poll radio
-
-		if (/* radio event received AND manual change is requested */) {
-			// Notify engine control thread
-			// TODO maybe we actually don't want to notify thread unless necessary ?
-			// TODO need access to task pointer...
-			// xTaskNotifyGive();
-		} else {
-			// Pause task for 1 ms
-			vTaskDelay(CONTROL_ONE_SECOND);
-		}
-	}
-}
-
-/**
- * @brief 	Control thread entry point
- * @details This thread holds the main state machine of the Nordend propulsion software. It will be
- * 			the main decision point for actions to be taken with respect to real world events.
- *
- *
- * @param	arg	freertos thread entry point context (unused)
- *
- */
-void engine_control_thread(__attribute__((unused)) void *arg) {
+util_error_t init(void) {
 	//Initialize the value of control
 	control.state = CONTROL_IDLE;
+
+	led_init();
 
 	//Timer things
 	static TickType_t last_wake_time;
@@ -285,15 +193,6 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 	uint16_t checkpoint = led_add_checkpoint(led_blue);
 	debug_log("Control start\n");
 
-	// Initialize servos – TODO perhaps relegate to another state/function
-
-	pwm_data_t pwm_data_inst;
-	pwm_data_t * pwm_data = &pwm_data_inst;
-
-	// Specific to the SB2290SG Monster Torque Brushless Servo
-	uint32_t min_pulse = 800;
-	uint32_t max_pulse = 2200;
-	float degrees_per_usec = 0.114;
 
 	//Get sensor devices
 	i2c_engine_press = i2c_sensor_get_ADC();
@@ -317,6 +216,15 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 	} else {
 		checkpoint_engtemp = led_add_checkpoint(led_red);
 	}
+
+	// Initialize servos
+	pwm_data_t pwm_data_inst;
+	pwm_data_t * pwm_data = &pwm_data_inst;
+
+	// Specific to the SB2290SG Monster Torque Brushless Servo
+	uint32_t min_pulse = 800;
+	uint32_t max_pulse = 2200;
+	float degrees_per_usec = 0.114;
 
 	// Assign Ethanol servo to pin 13 (TIM4, CH2) and N2O servo to pin 14 (TIM4, CH3)
 	servo_init(
@@ -346,6 +254,26 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 	// Using channels 1 and 2 -- initialize the PWM channel
 	pwm_init(pwm_data, PWM_TIM4, servo_ethanol->pwm_channel | servo_n2o->pwm_channel);
 
+	return ER_SUCCESS;
+}
+
+/**
+ * @brief 	Control thread entry point
+ * @details This thread holds the main state machine of the Nordend propulsion software. It will be
+ * 			the main decision point for actions to be taken with respect to real world events.
+ *
+ *
+ * @param	arg	freertos thread entry point context (unused)
+ *
+ */
+void engine_control_thread(__attribute__((unused)) void *arg) {
+
+	util_error_t init_err = init();
+
+	if (init_err) {
+		// lol = !lol (PropulsionControl/engine.c:41)
+	}
+
 
 	for (;;) {
 		//read battery TODO
@@ -360,7 +288,64 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 		//debug_log("Control loop | state: %d\n", control.state);
 
 		// Call the function associated with the current state.
-		control_fcn[control.state]();
+		switch (control.state) {
+			case CONTROL_IDLE:
+				control_idle_start();
+				break;
+			case CONTROL_CALIBRATION:
+				control_calibration_start();
+				break;
+			case CONTROL_VENT1:
+				control_vent1_start();
+				break;
+			case CONTROL_VENT2:
+				control_vent2_start();
+				break;
+			case CONTROL_PURGE:
+				control_purge_start();
+				break;
+			case CONTROL_N2O:
+				control_n2o_start();
+				break;
+			case CONTROL_ETHANOL:
+				control_ethanol_start();
+				break;
+			case CONTROL_PRESSURISATION:
+				control_pressurisation_start();
+				break;
+			case CONTROL_GLIDE:
+				control_glide_start();
+				break;
+			case CONTROL_COUNTDOWN:
+				control_countdown_start();
+				break;
+			case CONTROL_IGNITER:
+				control_igniter_start();
+				break;
+			case CONTROL_IGNITION:
+				control_ignition_start();
+				break;
+			case CONTROL_THRUST:
+				control_thrust_start();
+				break;
+			case CONTROL_SHUTDOWN:
+				control_shutdown_start();
+				break;
+			case CONTROL_APOGEE:
+				control_apogee_start();
+				break;
+			case CONTROL_DEPRESSURISATION:
+				control_depressurisation_start();
+				break;
+			case CONTROL_ERROR:
+				control_error_start();
+				break;
+			case CONTROL_ABORT:
+				control_abort_start();
+				break;
+			default:
+				// Undefined behavior (error!)
+				control_error_start();
 
 		vTaskDelayUntil(&last_wake_time, period);
 	}
@@ -383,7 +368,6 @@ void prev_state_start(void) {
  * 			command/action to happen.
  */
 void control_idle_run(void) {
-
 	// TODO Check battery state, if charge disconnected scream!
 
 //		HAL_ADC_Start(&hadc1);
