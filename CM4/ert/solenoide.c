@@ -10,6 +10,7 @@
 
 #define SOLENOID_PORT	GPIOC
 
+//TODO Check if this is still needed (code below)
 ////////////////////////////////////////////////////
 util_error_t solenoid_init(void) {
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -24,11 +25,11 @@ util_error_t solenoid_init(void) {
 ///////////////////////////////////////////////////
 
 //Set a solenoid's pin to 1
-util_error_t solenoid_on(Solenoids_t solenoid){
+void solenoid_on(Solenoids_t solenoid){
 	HAL_GPIO_WritePin(SOLENOID_PORT, solenoid, GPIO_PIN_SET);
 }
 
 //Set a solenoid's pin to 0
-util_error_t solenoid_off(Solenoids_t solenoid){
+void solenoid_off(Solenoids_t solenoid){
 	HAL_GPIO_WritePin(SOLENOID_PORT, solenoid, GPIO_PIN_RESET);
 }

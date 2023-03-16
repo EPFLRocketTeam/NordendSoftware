@@ -210,6 +210,34 @@ void schedule_next_state(control_state_t next_state) {
 	control.state = next_state;
 }
 
+uint8_t error_can_be_recalibrated(){
+	uint8_t boule = 0;
+	switch (control.prev_state)
+	{
+		case CONTROL_VENT_ETHANOL : 
+			boule=1;
+			break;
+		case CONTROL_VENT_N20: 
+			boule=1;
+			break;
+		case CONTROL_VENT_PURGE: 
+			boule=1;
+			break;
+		case CONTROL_PRESSURISATION : 
+			boule=1;
+			break;
+		case CONTROL_COUNTDOWN : 
+			boule=1;
+			break;
+		case CONTROL_IGNITION : 
+			boule=1;
+			break;
+		default :
+			break;
+	}
+	return boule;
+}
+
 
 /**
  * @fn void control_isr_thread(void*)
@@ -321,25 +349,6 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 
 	for (;;) {
 		//read battery TODO
-//		HAL_ADC_Start(&hadc1);
-//
-//		HAL_ADC_PollForConversion(&hadc1, 10);
-//
-//		uint32_t bat1 = HAL_ADC_GetValue(&hadc1);
-//
-//		//convert to millivolt
-//
-//		od_write_BATTERY_A(&bat1);
-//
-//		HAL_ADC_Start(&hadc1);
-//
-//		HAL_ADC_PollForConversion(&hadc1, 10);
-//
-//		uint32_t bat2 = HAL_ADC_GetValue(&hadc1);
-//
-//		//convert to millivolt
-//
-//		od_write_BATTERY_B(&bat2);
 
 		//how are radio instructions implemented ?
 		
@@ -376,6 +385,30 @@ void prev_state_start(void) {
 void control_idle_run(void) {
 
 	// TODO Check battery state, if charge disconnected scream!
+
+//		HAL_ADC_Start(&hadc1);
+//
+//		HAL_ADC_PollForConversion(&hadc1, 10);
+//
+//		uint32_t bat1 = HAL_ADC_GetValue(&hadc1);
+//
+//		//convert to millivolt
+//
+//		od_write_BATTERY_A(&bat1);
+//
+//		HAL_ADC_Start(&hadc1);
+//
+//		HAL_ADC_PollForConversion(&hadc1, 10);
+//
+//		uint32_t bat2 = HAL_ADC_GetValue(&hadc1);
+//
+//		//convert to millivolt
+//
+//		od_write_BATTERY_B(&bat2);
+	
+
+
+	
 	if (/* charge_disconnected */ ) {
 		// Log("charge disconnected")
 		schedule_next_state(CONTROL_ERROR);
@@ -417,12 +450,12 @@ void control_vent_n2o_run(void) {
 	uint8_t error_venting = 0;
 
 	if (vent_n2o_pins) {
-		solenoid_off(SOLENOID_N2O);//TODO FIND WHICH SOLENOIDS ARE WHICH
+		solenoid_off(SOLENOID_N2O);
 		solenoid_off(SOLENOID_N2O);
 		vent_n2o_pins = 0;
 	}
 	else {
-		solenoid_on(SOLENOID_N2O);//TODO FIND WHICH SOLENOIDS ARE WHICH
+		solenoid_on(SOLENOID_N2O);
 		solenoid_on(SOLENOID_N2O);
 		vent_n2o_pins = 1;
 	}
@@ -432,26 +465,8 @@ void control_vent_n2o_run(void) {
 		return;
 	}
 
-	// TODO define venting valve behavior
-
-	//must correct so that it goes back to glide if called from there
-	// TODO remove
-	//	switch (control.prev_state) {
-	//		case CONTROL_IDLE:
-	//			control_idle_start();
-	//			break;
-	//		case CONTROL_GLIDE:
-	//			control_glide_start();
-	//			break;
-	//		default:
-	//			// avoids undefined behavior
-	//			control_idle_start();
-	//			 break;
-	//	}
-
 	// Return to previous state
-	control.state = control.prev_state;
-
+	prev_state_start();
 }
 
 /**
@@ -463,17 +478,17 @@ void control_vent_n2o_run(void) {
 void control_vent_ethanol_run(void) {
 
 	if (vent_ethanol_pins) {
-		solenoid_off(SOLENOID_ETHANOL);//TODO FIND WHICH SOLENOIDS ARE WHICH
+		solenoid_off(SOLENOID_ETHANOL);
 		solenoid_off(SOLENOID_ETHANOL);
 		vent_ethanol_pins = 0;
 	}
 	else {
-		solenoid_on(SOLENOID_ETHANOL);//TODO FIND WHICH SOLENOIDS ARE WHICH
+		solenoid_on(SOLENOID_ETHANOL);
 		solenoid_on(SOLENOID_ETHANOL);
 		vent_ethanol_pins = 1;
 	}
 
-	//TODO Return to proper state after runnning
+
 	prev_state_start();
 }
 
@@ -584,10 +599,12 @@ void control_pressurisation_run(void) {
  *			It will also wait until touchdown then return to idle.
  */
 void control_glide_run(void) {
+	//TODO check for depressurisation
 	if (/*depressurisation_needed()*/) {
 		schedule_next_state(CONTROL_DEPRESSURISATION);
 		return;
 	}
+	//TODO check for landing
 	if (/* landing() */) {	//-> landing() gives a 1 once it has landed, else 0
 		schedule_next_state(CONTROL_IDLE);
 		return;
@@ -711,9 +728,9 @@ void control_shutdown_run(void) {
  * 			After the end of the sequence, it will jump to the depressurisation state.
  */
 void control_apogee_run(void) {
-	util_error_t error_start_fall = ER_SUCCESS; //start_fall() -> venting
+	util_error_t error_start_fall = ER_SUCCESS;
 
-	error_start_fall |= solenoid_on(SOLENOID_N2O);
+	error_start_fall |= solenoid_on(SOLENOID_N2O);     //TODO Check if this is correct, pretty sure solenoid returns nothing and we do not need the error var
 	error_start_fall |= solenoid_on(SOLENOID_ETHANOL);
 
 	if (error_start_fall)
@@ -728,9 +745,9 @@ void control_apogee_run(void) {
  * 			After the end of the sequence, it will jump to the glide state.
  */
 void control_depressurisation_run(void) {
-	uint8_t error_depressurisation = 0; //depressurisation() -> open valve
+	uint8_t error_depressurisation = ER_SUCCESS; //depressurisation() -> open valve
 
-	solenoid_on(SOLENOID_PRESSURISATION);
+	error_depressurisation != solenoid_on(SOLENOID_PRESSURISATION);
 
 	if (error_depressurisation) {
 		schedule_next_state(CONTROL_ABORT);
@@ -744,11 +761,11 @@ void control_depressurisation_run(void) {
  * @details	The error state will try to fix the issue and return to the previous state
  * 			in the case of calibration or idle if else.
  * 			It will send the maximum information to the GS, and have different sequences
- * 			depending on the error to try to ix the problem.
+ * 			depending on the error to try to fix the problem.
  */
 void control_error_run(void) {
-	//memorize_what_went_wrong_for_next_time()
-	if (/* venting|pressurisation|countdown|ignition went wrong */) {
+	//TODO memorize_what_went_wrong_for_next_time()
+	if (error_can_be_recalibrated()) {
 		schedule_next_state(CONTROL_CALIBRATION);
 	}
 	control_idle_start();
@@ -756,18 +773,12 @@ void control_error_run(void) {
 
 /**
  * @brief	Abort state runtime
- * @details	This state will go to glide or idle (depending on the state of the rocket)
- * 			so that the depressurisation/venting sequences can be triggered
- * 			manually or automatically (tdb depending on the previous state or the cause of the abort?).
+ * @details	This state will go to glide so that the depressurisation/venting sequences can be triggered
+ * 			manually or automatically .
  */
 void control_abort_run(void) {
-	uint8_t state_rocket = 0; //dead_or_not_too_dead()
-
-	if (state_rocket = 0 /*not too dead*/) {
-		schedule_next_state(CONTROL_GLIDE);
-		return;
-	}
-	schedule_next_state(CONTROL_IDLE); // dead
+	//TODO 
+	schedule_next_state = CONTROL_GLIDE;
 }
 
 /* END */
