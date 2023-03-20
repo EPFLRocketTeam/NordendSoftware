@@ -25,11 +25,13 @@ util_error_t solenoid_init(void) {
 ///////////////////////////////////////////////////
 
 //Set a solenoid's pin to 1
-void solenoid_on(Solenoids_t solenoid){
+util_error_t solenoid_on(Solenoids_t solenoid){
 	HAL_GPIO_WritePin(SOLENOID_PORT, solenoid, GPIO_PIN_SET);
+	return ER_SUCCESS;
 }
 
 //Set a solenoid's pin to 0
-void solenoid_off(Solenoids_t solenoid){
+util_error_t solenoid_off(Solenoids_t solenoid){
 	HAL_GPIO_WritePin(SOLENOID_PORT, solenoid, GPIO_PIN_RESET);
+	return ER_SUCCESS
 }
