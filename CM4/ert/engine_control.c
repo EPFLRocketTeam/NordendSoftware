@@ -124,6 +124,8 @@ uint8_t error_can_be_recalibrated()
 	uint8_t boule = 0; // this is a boolean
 	switch (control.prev_state)
 	{
+	// TODO this won't do anymore -- we'll have to find an alternative way to recognize errors (OD maybe?)
+	// 	 since all these states are now manual
 	case CONTROL_VENT_ETHANOL:
 		boule = 1;
 		break;
@@ -373,6 +375,10 @@ void engine_control_thread(__attribute__((unused)) void *arg)
 		// Else Do nothing -> control_thread will loop until further instructions
 	}
 
+	void control_calibration_start(void) {
+		schedule_next_state(CONTROL_CALIBRATION);
+	}
+
 	/**
 	 * @brief	Calibration state runtime
 	 * @details This state will wait for the calibration sequence to finish and jump
@@ -382,8 +388,8 @@ void engine_control_thread(__attribute__((unused)) void *arg)
 	{
 		util_error_t error_calibration = 0;
 
-		error_calibration |= engine_pressure_calibrate(i2c_engine_press);
-		error_calibration |= engine_temperature_calibrate(i2c_engine_temp);
+		error_calibration |= engine_pressure_calibrate(control->i2c_engine_press);
+		error_calibration |= engine_temperature_calibrate(control->i2c_engine_temp);
 
 		if (error_calibration)
 		{
@@ -394,13 +400,17 @@ void engine_control_thread(__attribute__((unused)) void *arg)
 		schedule_next_state(CONTROL_IDLE);
 	}
 
+	void control_vent_start(void) {
+		schedule_next_state(CONTROL_VENTS);
+	}
+
 	/**
 	 * @brief Venting state runtime
 	 * @details This state will wait for the venting sequence to finish and jump back to its previous state.
 	 * 			This function will open/close the venting valves.
 	 * 			---->Should we be making an vent-open and vent-close state?
 	 */
-	void control_vent_n2o_run(void)
+	void control_vent_run(void)
 	{
 		uint8_t error_venting = 0;
 
@@ -423,19 +433,6 @@ void engine_control_thread(__attribute__((unused)) void *arg)
 			return;
 		}
 
-		// Return to previous state
-		prev_state_start();
-	}
-
-	/**
-	 * @brief Venting state 2 runtime
-	 * @details This state will wait for the venting sequence to finish and jump back to its previous state.
-	 * 			This function will open/close the venting valves.
-	 * 			---->Should we be making an vent-open and vent-close state?
-	 */
-	void control_vent_ethanol_run(void)
-	{
-
 		if (vent_ethanol_pins)
 		{
 			solenoid_off(SOLENOID_ETHANOL);
@@ -452,12 +449,16 @@ void engine_control_thread(__attribute__((unused)) void *arg)
 		prev_state_start();
 	}
 
+	void control_purge_start(void) {
+		schedule_next_state(CONTROL_PURGE);
+	}
+
 	/**
 	 * @fn void control_vent_purge_run(void)
 	 * @brief Purge state runtime
 	 * @details
 	 */
-	void control_vent_purge_run(void)
+	void control_purge_run(void)
 	{
 
 		if (vent_purge_pins)
@@ -477,27 +478,21 @@ void engine_control_thread(__attribute__((unused)) void *arg)
 		prev_state_start();
 	}
 
+	void control_servo_start(void) {
+		schedule_next_state(CONTROL_SERVOS);
+	}
+	}
+
 	/**
 	 * @fn void control_n2o_run(void)
 	 * @brief N2O state runtime
 	 * @details
 	 */
-	void control_n2o_run(void)
+	void control_servo_run(void)
 	{
 		// TODO don't we need an open, close, and partially open state ?
 
 		// TODO implementation
-
-		// Go back to prev state
-		prev_state_start();
-	}
-
-	/**
-	 * @fn void control_ethanol_run(void)
-	 * @brief Ethanol state runtime
-	 */
-	void control_ethanol_run(void)
-	{
 
 		switch (servo_get_state(servo_ethanol))
 		{
@@ -517,6 +512,10 @@ void engine_control_thread(__attribute__((unused)) void *arg)
 
 		// Go back to prev state
 		prev_state_start();
+	}
+
+	void control_pressurisation_start(void) {
+		schedule_next_state(CONTROL_PRESSURISATION);
 	}
 
 	/**
@@ -544,6 +543,10 @@ void engine_control_thread(__attribute__((unused)) void *arg)
 		prev_state_start();
 	}
 
+	void control_glide_start(void) {
+		schedule_next_state(CONTROL_GLIDE);
+	}
+
 	/**
 	 * @brief	Glide state runtime
 	 * @details The glide state will simply wait for the depressurisation action to start and finish
@@ -563,6 +566,10 @@ void engine_control_thread(__attribute__((unused)) void *arg)
 			schedule_next_state(CONTROL_IDLE);
 			return;
 		};
+	}
+
+	void control_countdown_start(void) {
+		schedule_next_state(CONTROL_COUNTDOWN);
 	}
 
 	/**
@@ -590,6 +597,10 @@ void engine_control_thread(__attribute__((unused)) void *arg)
 			countdown--;
 		} while (countdown);
 
+		schedule_next_state(CONTROL_IGNITER);
+	}
+
+	void control_igniter_start(void) {
 		schedule_next_state(CONTROL_IGNITER);
 	}
 
@@ -623,6 +634,10 @@ void engine_control_thread(__attribute__((unused)) void *arg)
 		schedule_next_state(CONTROL_IGNITION);
 	}
 
+	void control_ignition_start(void) {
+		schedule_next_state(CONTROL_IGNITION);
+	}
+
 	/**
 	 * @brief	Ignition state runtime
 	 * @details	This state will open the servos to their 'partially open' state.
@@ -642,6 +657,10 @@ void engine_control_thread(__attribute__((unused)) void *arg)
 			schedule_next_state(CONTROL_ABORT);
 		else
 			schedule_next_state(CONTROL_THRUST);
+	}
+
+	void control_thrust_start(void) {
+		schedule_next_state(CONTROL_THRUST);
 	}
 
 	/**
@@ -664,6 +683,10 @@ void engine_control_thread(__attribute__((unused)) void *arg)
 			schedule_next_state(CONTROL_SHUTDOWN);
 	}
 
+	void control_shutdown_start(void) {
+		schedule_next_state(CONTROL_SHUTDOWN);
+	}
+
 	/**
 	 * @brief	Shutdown state runtime
 	 * @details	This function will stop the engine, depending on which algorithm is chosen (before or during the apogee, tbd).
@@ -682,6 +705,10 @@ void engine_control_thread(__attribute__((unused)) void *arg)
 			schedule_next_state(CONTROL_APOGEE);
 	}
 
+	void control_apogee_start(void) {
+		schedule_next_state(CONTROL_APOGEE);
+	}
+
 	/**
 	 * @brief	Apogee state runtime
 	 * @details	This function will open the venting valves (N20 and ethanol).
@@ -698,6 +725,10 @@ void engine_control_thread(__attribute__((unused)) void *arg)
 			schedule_next_state(CONTROL_ABORT);
 		else
 			schedule_next_state(CONTROL_DEPRESSURISATION);
+	}
+
+	void control_depressurisation_start(void) {
+		schedule_next_state(CONTROL_DEPRESSURISATION);
 	}
 
 	/**
@@ -719,6 +750,10 @@ void engine_control_thread(__attribute__((unused)) void *arg)
 		control_glide_start();
 	}
 
+	void control_error_start(void) {
+		schedule_next_state(CONTROL_ERROR);
+	}
+
 	/**
 	 * @brief	Error state runtime
 	 * @details	The error state will try to fix the issue and return to the previous state
@@ -734,6 +769,10 @@ void engine_control_thread(__attribute__((unused)) void *arg)
 			schedule_next_state(CONTROL_CALIBRATION);
 		}
 		control_idle_start();
+	}
+
+	void control_abort_start(void) {
+		schedule_next_state(CONTROL_ABORT);
 	}
 
 	/**

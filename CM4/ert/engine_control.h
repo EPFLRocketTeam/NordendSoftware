@@ -46,28 +46,30 @@ typedef enum control_state
 	CONTROL_VENTS = 2,
 	/** Control the servos */
 	CONTROL_SERVOS = 3,
+	/** Purge */
+	CONTROL_PURGE = 4,
 	/** Pressurisation */
-	CONTROL_PRESSURISATION = 4,
+	CONTROL_PRESSURISATION = 5,
 	/** Stand-by while falling */
-	CONTROL_GLIDE = 5,
+	CONTROL_GLIDE = 6,
 	/** Countdown until engine ignition */
-	CONTROL_COUNTDOWN = 6,
+	CONTROL_COUNTDOWN = 7,
 	/** New word */
-	CONTROL_IGNITER = 7,
+	CONTROL_IGNITER = 8,
 	/** smth smth */
-	CONTROL_IGNITION = 8,
+	CONTROL_IGNITION = 9,
 	/** Blow up stuff so rocket go ffffffffffiiiiiouuu */
-	CONTROL_THRUST = 9,
+	CONTROL_THRUST = 10,
 	/** Stops engine combustion */
-	CONTROL_SHUTDOWN = 10,
+	CONTROL_SHUTDOWN = 11,
 	/** Reach highest altitud before gliding back down */
-	CONTROL_APOGEE = 11,
+	CONTROL_APOGEE = 12,
 	/** Engine Depressurisation */
-	CONTROL_DEPRESSURISATION = 12,
+	CONTROL_DEPRESSURISATION = 13,
 	/** Ground (automatic) error */
-	CONTROL_ERROR = 13,
+	CONTROL_ERROR = 14,
 	/** Flight or radio-triggered) error */
-	CONTROL_ABORT = 14
+	CONTROL_ABORT = 15
 } control_state_t;
 
 typedef struct control
@@ -132,11 +134,9 @@ extern "C"
 
 	void control_idle_start(void);				/**/
 	void control_calibration_start(void);		/**/
-	void control_vent1_start(void);				/**/
-	void control_vent2_start(void);				/**/
+	void control_vent_start(void);				/**/
 	void control_purge_start(void);				/**/
-	void control_n2o_start(void);				/**/
-	void control_ethanol_start(void);			/**/
+	void control_servo_start(void);
 	void control_pressurisation_start(void);	/**/
 	void control_glide_start(void);				/**/
 	void control_countdown_start(void);			/**/
@@ -151,11 +151,9 @@ extern "C"
 
 	void control_idle_run(void);				/**/
 	void control_calibration_run(void);
-	void control_vent1_run(void);
-	void control_vent2_run(void);
+	void control_vent_run(void);
 	void control_purge_run(void);
-	void control_n2o_run(void);
-	void control_ethanol_run(void);
+	void control_servo_start(void);
 	void control_pressurisation_run(void);
 	void control_glide_run(void);
 	void control_countdown_run(void);
