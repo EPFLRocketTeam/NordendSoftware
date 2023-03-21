@@ -61,11 +61,11 @@ static radio_packet_t miaou_packet;
  **********************/
 
 
+
 void miaou_handler(uint8_t opcode, uint16_t len, uint8_t * data) {
 	UNUSED(opcode);
 	UNUSED(len);
 	UNUSED(data);
-
 }
 
 
@@ -74,6 +74,8 @@ void miaou_thread(__attribute__((unused)) void * arg) {
 	static const TickType_t period = pdMS_TO_TICKS(MIAOU_HEART_BEAT);
 	last_wake_time = xTaskGetTickCount();
 
+
+	//setup Miaou reception
 	device_interface_t * miaou_interface = serial_get_s1_interface();
 
 	comunicator_init(&miaou_comunicator, miaou_interface, miaou_handler);
