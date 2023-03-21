@@ -56,7 +56,6 @@ typedef struct {
     uint8_t data[OD_FRAME_MAX_SIZE];
 } od_frame_t;
 
-
 /**********************
  *  VARIABLES
  **********************/
@@ -89,6 +88,7 @@ DECLARE_OD_ENTRY(GNSS, gnss_data_t);
 DECLARE_OD_ENTRY(BATTERY_A, uint32_t);
 DECLARE_OD_ENTRY(BATTERY_B, uint32_t);
 DECLARE_OD_ENTRY(MAG_A, magnetometer_data_t);
+DECLARE_OD_ENTRY(MAG_B, magnetometer_data_t);
 DECLARE_OD_ENTRY(MAG_B, magnetometer_data_t);
 
 #ifdef __cplusplus
