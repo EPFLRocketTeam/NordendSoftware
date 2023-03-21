@@ -81,6 +81,7 @@
  **********************/
 
 static control_t control;
+static uint8_t error_loop_control = 0;
 
 // static device_t *i2c_engine_press;
 // static device_t *i2c_engine_temp;
@@ -117,37 +118,6 @@ void schedule_next_state(control_state_t next_state)
 {
 	control.prev_state = control.state;
 	control.state = next_state;
-}
-
-uint8_t error_can_be_recalibrated()
-{
-	uint8_t boule = 0; // this is a boolean
-	switch (control.prev_state)
-	{
-	// TODO this won't do anymore -- we'll have to find an alternative way to recognize errors (OD maybe?)
-	// 	 since all these states are now manual
-	case CONTROL_VENT_ETHANOL:
-		boule = 1;
-		break;
-	case CONTROL_VENT_N20:
-		boule = 1;
-		break;
-	case CONTROL_VENT_PURGE:
-		boule = 1;
-		break;
-	case CONTROL_PRESSURISATION:
-		boule = 1;
-		break;
-	case CONTROL_COUNTDOWN:
-		boule = 1;
-		break;
-	case CONTROL_IGNITION:
-		boule = 1;
-		break;
-	default:
-		break;
-	}
-	return boule;
 }
 
 /**
@@ -396,7 +366,7 @@ void engine_control_thread(__attribute__((unused)) void *arg)
 			schedule_next_state(CONTROL_ERROR);
 			return;
 		}
-
+		error_loop_control = 0;
 		schedule_next_state(CONTROL_IDLE);
 	}
 
@@ -764,10 +734,17 @@ void engine_control_thread(__attribute__((unused)) void *arg)
 	void control_error_run(void)
 	{
 		// TODO memorize_what_went_wrong_for_next_time()
-		if (error_can_be_recalibrated())
-		{
-			schedule_next_state(CONTROL_CALIBRATION);
-		}
+		if (control.prev_state==CONTROL_CALIBRATION)
+		if(error_loop_control !=4)
+			{
+				++error_loop_control;
+				schedule_next_state(CONTROL_CALIBRATION);
+			}
+		else
+			{
+				error_loop_control=0;
+				schedule_next_state(CONTROL_IDLE);
+			}
 		control_idle_start();
 	}
 
