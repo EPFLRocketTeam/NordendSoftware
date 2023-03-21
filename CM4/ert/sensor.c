@@ -77,6 +77,7 @@ static magnetometer_data_t i2c_magneto_data;
  **********************/
 
 
+
 /**********************
  *	DECLARATIONS
  **********************/

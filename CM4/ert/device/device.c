@@ -49,8 +49,6 @@
  *	PROTOTYPES
  **********************/
 
-void device_deamon_thread(void * arg);
-
 
 /**********************
  *	DECLARATIONS
@@ -105,21 +103,18 @@ util_error_t device_create(	device_t * dev,
  */
 util_error_t device_interface_create(   device_interface_t * interface,
                             			void * context,
-										device_daemon_t * daemon,
+										void * daemon,
 										util_error_t (*send)(void*, uint8_t*, uint32_t),
 										util_error_t (*recv)(void*, uint8_t*, uint32_t*),
 										util_error_t (*handle_data)(void*, void*))
 {
+	UNUSED(daemon);
     static int32_t count = 0;
     interface->context = context;
     interface->send = send;
     interface->recv = recv;
     interface->handle_data = handle_data;
     interface->id = count++;
-    if(daemon) {
-    	daemon->interfaces[daemon->interfaces_count] = interface;
-    	daemon->interfaces_count++;
-    }
     return ER_SUCCESS;
 }
 
@@ -128,66 +123,6 @@ util_error_t device_interface_register_handle_data(	device_interface_t * interfa
 	interface->handle_data = handle_data;
 	return ER_SUCCESS;
 }
-
-/**
- * @brief Initializea device deamon instance
- * @details
- *
- * @param	deamon 		Pointer to a device deamon object.
- * @param	name		Name of the device deamon thread.
- * @param	prio		Priority of the device deamon thread.
- * @param	context 	Generic pointer to a context associated with the deamon.
- * @param 	data_rdy 	Data ready blocking function, released when the deamon
- * 						can start processing data.
- *
- * @note 				If a deamon is created without data_rdy function, it can
- * 						be used to keep a list of interfaces without background
- * 						process
- */
-util_error_t device_deamon_create(	device_daemon_t * deamon,
-									const char * name,
-									uint32_t prio,
-									void * context,
-									util_error_t (*data_rdy)(void*))
-{
-	static uint32_t counter = 0;
-	deamon->id = counter++;
-	deamon->context = context;
-	deamon->data_rdy = data_rdy;
-	deamon->interfaces_count = 0;
-	if(data_rdy) {
-		deamon->handle = xTaskCreateStatic(device_deamon_thread, name, DEAMON_STACK_SIZE, deamon, prio, deamon->stack, &deamon->buffer);
-	} else {
-		deamon->handle = NULL;
-	}
-	return ER_SUCCESS;
-}
-
-/**
- * @brief 	Generic device deamon thread
- * @details This thread will call the handle data function for an interface,
- * 			whenever data is ready for a group of interfaces belonging to
- * 			the same deamon.
- * @param	arg	FreeRTOS entry point context, used to pass the deamon context to the thread.
- */
-void device_deamon_thread(void * arg)
-{
-	device_daemon_t * deamon = (device_daemon_t * ) arg;
-
-	for(;;) {
-		if(deamon->data_rdy(deamon->context) == ER_SUCCESS) {
-			//iterate over all interfaces in deamon
-			for(uint16_t i = 0; i < deamon->interfaces_count; i++) {
-				device_interface_t * interface = deamon->interfaces[i];
-				if(interface->handle_data) {
-					interface->handle_data(interface->context, deamon->context);
-				}
-			}
-		}
-	}
-}
-
-
 
 //interface send/recv functions
 
