@@ -1,5 +1,7 @@
 .settings
 .settings/*
+.metadata
+.metadata/*
 
 # Annoying macOS
 **/.DS_Store
