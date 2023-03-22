@@ -146,8 +146,12 @@ void engine_control_thread(__attribute__((unused)) void *arg)
 		// debug_log("Control loop | state: %d\n", control.state);
 
 		//Do task scheduler things
-		if ("A CHANGE FLAG IS SET"){ //TODO Make a function that checks if a flag is set
-			
+		control_sched_t flagged_state = CONTROL_SCHED_NOTHING;
+		flagged_state = check_flags_state(); //TODO Write a function that checks wether a flag has been set
+		if (flagged_state != CONTROL_SCHED_NOTHING){
+			reset_flag(flagged_state); //TODO Write the function to reset the flag 
+			control_state_t requested_state = correlate_state_sched(flagged_state);
+			control_sched_check_next(requested_state);
 		}
 
 
@@ -300,16 +304,53 @@ util_error_t init(void)
 
 
 /**
+ * @fn control_state_t correlate_state_sched(control_sched_t)
+ * @brief Correlates scheduling states to FSM states
+ * @details Used to convert scheduler states to FSM states
+ */
+control_state_t correlate_state_sched(control_sched_t requested_state){
+	switch (requested_state)
+	{
+	case CONTROL_SCHED_ABORT:
+		return CONTROL_ABORT;
+		break;
+	case CONTROL_SCHED_VENTS:
+		return CONTROL_VENTS;
+		break;
+	case CONTROL_SCHED_CALIBRATE:
+		return CONTROL_CALIBRATION;
+		break;
+	case CONTROL_SCHED_SERVOS:
+		return CONTROL_SERVOS;
+		break;
+	case CONTROL_SCHED_PURGE:
+		return CONTROL_PURGE;
+		break;
+	case CONTROL_SCHED_COUNTDOWN:
+		return CONTROL_COUNTDOWN;
+		break;
+	case CONTROL_SCHED_SHUTDOWN:
+		return CONTROL_SHUTDOWN;
+		break;
+	case CONTROL_SCHED_PRESSURISATION:
+		return CONTROL_PRESSURISATION;
+		break;
+	default:
+		return CONTROL_IDLE;
+		break;
+	}
+}
+
+/**
  * @fn void control_sched_check_next(control_state_t)
  * @brief Checks if requested state is valid
  * @details Used to check if the next state requested by GS is valid.
  */
-static void control_sched_check_next(control_state_t requested_state) {
+static void control_sched_check_next(control_state_t & requested_state) {
 	if(control.state != requested_state) {
 		for(uint8_t i = 0; i < SCHED_ALLOWED_WIDTH; i++) {
 			if(sched_allowed[control.state][i] == requested_state) {
 				schedule_next_state(requested_state);
-				reset_flag(requested_state); //TODO write this function
 				return;
 			}
 		}
