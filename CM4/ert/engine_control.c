@@ -46,7 +46,8 @@
  **********************/
 
 #define CONTROL_HEART_BEAT 200
-#define FINAL_COUNTDOWN 10 // must be changed by wanted value, in seconds
+#define CONTROL_TAKEOFF_THRESH 0 // The tolerance for taking off, in milliseconds
+#define FINAL_COUNTDOWN 10000 // must be changed by wanted countdown duration, in milliseconds
 
 #define CONTROL_ONE_SECOND pdMS_TO_TICKS(1000)
 
@@ -71,6 +72,11 @@
 /**********************
  *	MACROS
  **********************/
+
+#define IDLE_UNTIL_COUNTER_ZERO ({control->last_time = control->time;\
+	control->time = HAL_GetTick();\
+	control->counter -= countrol->time - control-last_time;\
+	if (control->counter > 0) return;})
 
 /**********************
  *	TYPEDEFS
@@ -99,7 +105,6 @@ static const TickType_t period = pdMS_TO_TICKS(CONTROL_HEART_BEAT);
 // static uint8_t vent_ethanol_pins = 0;
 // static uint8_t vent_purge_pins = 0;
 // static uint8_t vent_pressurization_pins = 0;
-
 /**********************
  *	PROTOTYPES
  **********************/
@@ -111,7 +116,6 @@ static const TickType_t period = pdMS_TO_TICKS(CONTROL_HEART_BEAT);
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //CONTROL THREAD INITIALIZATION
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-
 /**
  * @brief 	Control thread entry point
  * @details This thread holds the main state machine of the Nordend propulsion software. It will be
@@ -121,22 +125,18 @@ static const TickType_t period = pdMS_TO_TICKS(CONTROL_HEART_BEAT);
  * @param	arg	freertos thread entry point context (unused)
  *
  */
- 
-void engine_control_thread(__attribute__((unused)) void *arg)
-{
+
+void engine_control_thread(__attribute__((unused)) void *arg) {
 	util_error_t init_err = init();
 
 	// Timer things
 	last_wake_time = xTaskGetTickCount();
 
-
-	if (init_err)
-	{
+	if (init_err) {
 		// lol = !lol (PropulsionControl/engine.c:41)
 	}
 
-	for (;;)
-	{
+	for (;;) {
 		// read battery TODO
 
 		// LED Debug checkpoints
@@ -148,17 +148,15 @@ void engine_control_thread(__attribute__((unused)) void *arg)
 		//Do task scheduler things
 		control_sched_t flagged_state = CONTROL_SCHED_NOTHING;
 		flagged_state = check_flags_state(); //TODO Write a function that checks wether a flag has been set
-		if (flagged_state != CONTROL_SCHED_NOTHING){
+		if (flagged_state != CONTROL_SCHED_NOTHING) {
 			reset_flag(flagged_state); //TODO Write the function to reset the flag 
-			control_state_t requested_state = correlate_state_sched(flagged_state);
+			control_state_t requested_state = correlate_state_sched(
+					flagged_state);
 			control_sched_check_next(requested_state);
 		}
 
-
-
 		// Call the function associated with the current state.
-		switch (control.state)
-		{
+		switch (control.state) {
 		case CONTROL_IDLE:
 			control_idle_start();
 			break;
@@ -220,8 +218,7 @@ void engine_control_thread(__attribute__((unused)) void *arg)
  * @return ER_SUCCESS if everything went well, a non-zero error code otherwise.
  */
 
-util_error_t init(void)
-{
+util_error_t init(void) {
 	// Initialize the value of control
 	control.state = CONTROL_IDLE;
 
@@ -240,77 +237,75 @@ util_error_t init(void)
 
 	// Sensor initialisation checkpoints
 	uint16_t checkpoint_engpress;
-	if (engine_press_err == ER_SUCCESS)
-	{
+	if (engine_press_err == ER_SUCCESS) {
 		checkpoint_engpress = led_add_checkpoint(led_green);
-	}
-	else
-	{
+	} else {
 		checkpoint_engpress = led_add_checkpoint(led_red);
 	}
 
 	uint16_t checkpoint_engtemp;
-	if (engine_temp_err == ER_SUCCESS)
-	{
+	if (engine_temp_err == ER_SUCCESS) {
 		checkpoint_engtemp = led_add_checkpoint(led_green);
-	}
-	else
-	{
+	} else {
 		checkpoint_engtemp = led_add_checkpoint(led_red);
 	}
 
 	// Initialize servos
 	pwm_data_t pwm_data;
-	
+
 	// Specific to the SB2290SG Monster Torque Brushless Servo
 	uint32_t min_pulse = 800;
 	uint32_t max_pulse = 2200;
 	float degrees_per_usec = 0.114;
 
-	// Assign Ethanol servo to pin 13 (TIM4, CH2) and N2O servo to pin 14 (TIM4, CH3)
-	util_error_t servoErr = servo_init(
-		servo_ethanol,
-		&pwm_data,
-		PWM_SELECT_CH2,
-		min_pulse,
-		max_pulse,
-		SERVO_ETHANOL_OFFSET,
-		degrees_per_usec,
-		SERVO_ETHANOL_OPEN,
-		SERVO_ETHANOL_IGNITION,
-		SERVO_ETHANOL_CLOSED);
+	servo_t servo_ethanol;
+	servo_t servo_n2o;
 
-	servo_init(
-		servo_n2o,
-		&pwm_data,
-		PWM_SELECT_CH3,
-		min_pulse,
-		max_pulse,
-		SERVO_N2O_OFFSET,
-		degrees_per_usec,
-		SERVO_N2O_OPEN,
-		SERVO_N2O_IGNITION,
-		SERVO_N2O_CLOSED);
+	// Assign Ethanol servo to pin 13 (TIM4, CH2) and N2O servo to pin 14 (TIM4, CH3)
+	util_error_t
+	ethanol_err = servo_init(
+			&servo_ethanol,
+			&pwm_data,
+			PWM_SELECT_CH2,
+			min_pulse,
+			max_pulse,
+			SERVO_ETHANOL_OFFSET,
+			degrees_per_usec,
+			SERVO_ETHANOL_OPEN,
+			SERVO_ETHANOL_IGNITION,
+			SERVO_ETHANOL_CLOSED);
+
+	util_error_t
+	n2o_err = servo_init(
+			&servo_n2o,
+			&pwm_data,
+			PWM_SELECT_CH3,
+			min_pulse,
+			max_pulse,
+			SERVO_N2O_OFFSET,
+			degrees_per_usec,
+			SERVO_N2O_OPEN,
+			SERVO_N2O_IGNITION,
+			SERVO_N2O_CLOSED);
 
 	// Using channels 1 and 2 -- initialize the PWM channel
-	pwm_init(pwm_data, PWM_TIM4, servo_ethanol->pwm_channel | servo_n2o->pwm_channel);
+	pwm_init(pwm_data, PWM_TIM4,
+			servo_ethanol->pwm_channel | servo_n2o->pwm_channel);
 
-	return led_err;
+	return led_err | ethanol_err | n2o_err;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //CONTROL STATE CHANGING AND SCHEDULING
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 /**
  * @fn control_state_t correlate_state_sched(control_sched_t)
  * @brief Correlates scheduling states to FSM states
  * @details Used to convert scheduler states to FSM states
  */
-control_state_t correlate_state_sched(control_sched_t requested_state){
-	switch (requested_state)
-	{
+control_state_t correlate_state_sched(control_sched_t requested_state) {
+	switch (requested_state) {
 	case CONTROL_SCHED_ABORT:
 		return CONTROL_ABORT;
 		break;
@@ -322,9 +317,6 @@ control_state_t correlate_state_sched(control_sched_t requested_state){
 		break;
 	case CONTROL_SCHED_SERVOS:
 		return CONTROL_SERVOS;
-		break;
-	case CONTROL_SCHED_PURGE:
-		return CONTROL_PURGE;
 		break;
 	case CONTROL_SCHED_COUNTDOWN:
 		return CONTROL_COUNTDOWN;
@@ -346,10 +338,10 @@ control_state_t correlate_state_sched(control_sched_t requested_state){
  * @brief Checks if requested state is valid
  * @details Used to check if the next state requested by GS is valid.
  */
-static void control_sched_check_next(control_state_t & requested_state) {
-	if(control.state != requested_state) {
-		for(uint8_t i = 0; i < SCHED_ALLOWED_WIDTH; i++) {
-			if(sched_allowed[control.state][i] == requested_state) {
+static void control_sched_check_next(control_state_t *requested_state) {
+	if (control.state != requested_state) {
+		for (uint8_t i = 0; i < SCHED_ALLOWED_WIDTH; i++) {
+			if (sched_allowed[control.state][i] == requested_state) {
 				schedule_next_state(requested_state);
 				return;
 			}
@@ -357,15 +349,12 @@ static void control_sched_check_next(control_state_t & requested_state) {
 	}
 }
 
-
-
 /**
  * @fn void schedule_next_state(control_state_t)
  * @brief Sets the state for the next execution
  * @details Used to switch to the next desired state. <=====3
  */
-void schedule_next_state(control_state_t next_state)
-{
+void schedule_next_state(control_state_t next_state) {
 	control.prev_state = control.state;
 	control.state = next_state;
 }
@@ -375,20 +364,15 @@ void schedule_next_state(control_state_t next_state)
  * @brief Returns to the previous saved state.
  * @details Used for automatic switching back from certain states.
  */
-void prev_state_start(void)
-{
+void prev_state_start(void) {
 	control_state_t new_prev = control.state;
 	control.state = control.prev_state;
 	control.prev_state = new_prev;
 }
 
-
-
-	
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-//STATE RUNTIME FUNCTIONS
+// MANUAL STATE RUNTIME FUNCTIONS
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 void control_calibration_start(void) {
 	schedule_next_state(CONTROL_CALIBRATION);
@@ -399,15 +383,13 @@ void control_calibration_start(void) {
  * @details This state will wait for the calibration sequence to finish and jump
  * 			back to Idle or go to Error.
  */
-void control_calibration_run(void)
-{
+void control_calibration_run(void) {
 	util_error_t error_calibration = 0;
 
 	error_calibration |= engine_pressure_calibrate(control->i2c_engine_press);
 	error_calibration |= engine_temperature_calibrate(control->i2c_engine_temp);
 
-	if (error_calibration)
-	{
+	if (error_calibration) {
 		schedule_next_state(CONTROL_ERROR);
 		return;
 	}
@@ -425,77 +407,37 @@ void control_vent_start(void) {
  * 			This function will open/close the venting valves.
  * 			---->Should we be making an vent-open and vent-close state?
  */
-void control_vent_run(void)
-{
+void control_vent_run(void) {
 	uint8_t error_venting = 0;
 
-	if (vent_n2o_pins)
-	{
+	// TODO Use OD functionality here.
+	if (vent_n2o_pins) {
 		error_venting |= solenoid_off(SOLENOID_N2O);
 		error_venting |= solenoid_off(SOLENOID_N2O);
 		vent_n2o_pins = 0;
-	}
-	else
-	{
+	} else {
 		error_venting |= solenoid_on(SOLENOID_N2O);
 		error_venting |= solenoid_on(SOLENOID_N2O);
 		vent_n2o_pins = 1;
 	}
 
-
-	if (vent_ethanol_pins)
-	{
+	// TODO Use OD functionality here.
+	if (vent_ethanol_pins) {
 		error_venting |= solenoid_off(SOLENOID_ETHANOL);
 		error_venting |= solenoid_off(SOLENOID_ETHANOL);
 		vent_ethanol_pins = 0;
-	}
-	else
-	{
+	} else {
 		error_venting |= solenoid_on(SOLENOID_ETHANOL);
 		error_venting |= solenoid_on(SOLENOID_ETHANOL);
 		vent_ethanol_pins = 1;
 	}
 
-	if (error_venting)
-	{
+	if (error_venting) {
 		schedule_next_state(CONTROL_ERROR);
 	} else {
 		prev_state_start();
 	}
 
-}
-
-void control_purge_start(void) {
-	schedule_next_state(CONTROL_PURGE);
-}
-
-/**
- * @fn void control_vent_purge_run(void)
- * @brief Purge state runtime
- * @details
- */
-void control_purge_run(void)
-{
-	util_error_t err = ER_SUCCESS;
-
-	// od_read_ENGINE_STATE()
-
-	if (vent_purge_pins)
-	{
-		err |= solenoid_off(SOLENOID_PURGE); // TODO FIND WHICH SOLENOIDS ARE WHICH
-		vent_purge_pins = 0;
-	}
-	else
-	{
-		err |= solenoid_on(SOLENOID_PURGE); // TODO FIND WHICH SOLENOIDS ARE WHICH
-		vent_purge_pins = 1;
-	}
-
-	if (err) {
-		control_error_start();
-	} else {
-		prev_state_start();
-	}
 }
 
 void control_servo_start(void) {
@@ -507,14 +449,9 @@ void control_servo_start(void) {
  * @brief N2O state runtime
  * @details
  */
-void control_servo_run(void)
-{
-	// TODO don't we need an open, close, and partially open state ?
-
-	// TODO implementation
-
-	switch (servo_get_state(servo_ethanol))
-	{
+void control_servo_run(void) {
+	// TODO Use OD functionality here.
+	switch (servo_get_state(servo_ethanol)) {
 	case SERVO_OPEN:
 		servo_set_state(servo_ethanol, SERVO_CLOSED);
 		break;
@@ -542,25 +479,23 @@ void control_pressurisation_start(void) {
  * @details This state will wait for the pressurisation sequence to finish and jump back to its previous state.
  * 			This state will open/close the N20 pressurisation valve.
  */
-void control_pressurisation_run(void)
-{
-
-	if (vent_pressurization_pins)
-	{
+void control_pressurisation_run(void) {
+	// TODO Use OD functionality here.
+	if (vent_pressurization_pins) {
 		solenoid_off(SOLENOID_PRESSURISATION); // TODO FIND WHICH SOLENOIDS ARE WHICH
-		solenoid_off(SOLENOID_PRESSURISATION);
 		vent_pressurization_pins = 0;
-	}
-	else
-	{
+	} else {
 		solenoid_on(SOLENOID_PRESSURISATION); // TODO FIND WHICH SOLENOIDS ARE WHICH
-		solenoid_on(SOLENOID_PRESSURISATION);
 		vent_pressurization_pins = 1;
 	}
 
 	// TODO Return to proper state after runnning
 	prev_state_start();
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// AUTOMATIC & SPECIAL STATE RUNTIME FUNCTIONS
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 void control_glide_start(void) {
 	schedule_next_state(CONTROL_GLIDE);
@@ -570,24 +505,23 @@ void control_glide_start(void) {
  * @brief	Glide state runtime
  * @details The glide state will simply wait for the depressurisation action to start and finish
  *			It will also wait until touchdown then return to idle.
-	*/
-void control_glide_run(void)
-{
+ */
+void control_glide_run(void) {
 	// TODO check for depressurisation
-	if (/*depressurisation_needed()*/)
-	{
+	if (/*depressurisation_needed()*/) {
 		control_depressurisation_start();
 		return;
 	}
 	// TODO check for landing
-	if (/* landing() */)
-	{ //-> landing() gives a 1 once it has landed, else 0
+	if (/* landing() */) { //-> landing() gives a 1 once it has landed, else 0
 		control_idle_start();
 		return;
-	};
+	}
 }
 
 void control_countdown_start(void) {
+	// TODO review code structure to make sure this function only gets called once and not repeatedly.
+	control->counter = FINAL_COUNTDOWN;
 	schedule_next_state(CONTROL_COUNTDOWN);
 }
 
@@ -595,30 +529,17 @@ void control_countdown_start(void) {
  * @brief	countdown state runtime
  * @details	This state will wait for the countdown to end and will jump to ignition.
  */
-void control_countdown_run(void)
-{
-	uint8_t countdown = FINAL_COUNTDOWN;
+void control_countdown_run(void) {
+	// Compute time elapsed since last time, in milliseconds.
+	control->last_time = control->time;
+	control->time = HAL_GetTick();
 
-	// do
-	// {
-	// 	// delay
-	// 	vTaskDelay(CONTROL_ONE_SECOND); // wait 1 second
+	control->counter -= control->time - control->last_time;
 
-	// 	// TODO leave error handling to the main loop
-	// 	//		if (/*error_detected*/) {
-	// 	//			schedule_next_state(CONTROL_ERROR);
-	// 	//			return;
-	// 	//		} else if (/*abort needed*/) {
-	// 	//			schedule_next_state(CONTROL_ABORT);
-	// 	//			return;
-	// 	//		}
-
-	// 	countdown--;
-	// } while (countdown);
-
-	control->last_time
-
-	schedule_next_state(CONTROL_IGNITER);
+	// Check if we're ready to take off!
+	if (control->counter <= CONTROL_TAKEOFF_THRESH) {
+		control_igniter_start();
+	}
 }
 
 void control_igniter_start(void) {
@@ -630,8 +551,7 @@ void control_igniter_start(void) {
  * @details	Ignition will send the appropriate current for the igniter to turn on.
  * 			This state will wait for ignition to end and will jump to powered.
  */
-void control_igniter_run(void)
-{
+void control_igniter_run(void) {
 	uint8_t error_ignition = 0; // ignition() -> will turn the igniter on (solenoids)
 
 	// Activate ignition
@@ -639,23 +559,17 @@ void control_igniter_run(void)
 
 	// Check if good engine start (pressure and temp?), if too many failed abort
 
-	if (/*error_ignition == IGNITION_ABORT*/)
-	{
-		schedule_next_state(CONTROL_ABORT);
-		return;
-	}
-	else if (/*error_ignition == IGNITION_ERROR*/)
-	{
-		// turn off solenoids()
-
-		schedule_next_state(CONTROL_ERROR);
+	if (error_ignition) {
+		control_abort_start();
 		return;
 	}
 
-	schedule_next_state(CONTROL_IGNITION);
+	control_ignition_start();
+
 }
 
 void control_ignition_start(void) {
+	control->counter = 100; // init counter to 100ms
 	schedule_next_state(CONTROL_IGNITION);
 }
 
@@ -664,24 +578,24 @@ void control_ignition_start(void) {
  * @details	This state will open the servos to their 'partially open' state.
  * 			After a delay, it will jump to the thrust state.
  */
-void control_ignition_run(void)
-{
+void control_ignition_run(void) {
 	util_error_t error_ignition = ER_SUCCESS; // powering() -> partial open state of servos
 
-	vTaskDelay(pdMS_TO_TICKS(100)); // pause for 100 ms
+	IDLE_UNTIL_COUNTER_ZERO;
 
 	// Set ethanol and N2O servos (pins 13 and 14) to partially open
 	error_ignition |= servo_set_state(servo_n2o, SERVO_PARTIALLY_OPEN);
 	error_ignition |= servo_set_state(servo_ethanol, SERVO_PARTIALLY_OPEN);
 
 	if (error_ignition)
-		schedule_next_state(CONTROL_ABORT);
+		control_abort_start();
 	else
-		schedule_next_state(CONTROL_THRUST);
+		control_thrust_start();
 }
 
 void control_thrust_start(void) {
 	schedule_next_state(CONTROL_THRUST);
+	control->counter = CONTROL_ONE_SECOND * 30; // 30 second wait before switching state
 }
 
 /**
@@ -689,19 +603,19 @@ void control_thrust_start(void) {
  * @details	This state will open the servos to their 'fully open' position.
  * 			After a delay, it will jump to the shutdown state.
  */
-void control_thrust_run(void)
-{
+void control_thrust_run(void) {
 	util_error_t error_thrust = ER_SUCCESS; // thrust() -> full open state of servos
 
 	error_thurst |= servo_set_state(servo_n2o, SERVO_OPEN);
 	error_thrust |= servo_set_rotation(servo_ethanol, SERVO_OPEN);
 
-	vTaskDelay(30 * CONTROL_ONE_SECOND); // pause for 30 seconds
+	// Idle until the counter reaches zero (delay defined in start)
+	IDLE_UTIL_COUNTER_ZERO;
 
 	if (error_thrust)
-		schedule_next_state(CONTROL_ABORT);
+		control_abort_start();
 	else
-		schedule_next_state(CONTROL_SHUTDOWN);
+		control_shutdown_start();
 }
 
 void control_shutdown_start(void) {
@@ -714,16 +628,15 @@ void control_shutdown_start(void) {
  * 			After a delay, it will jump to the apogee state.
  * 			Since we do not know if the engine has enough power to reach apogee without a full combustion, shutdown() is tbd
  */
-void control_shutdown_run(void)
-{
+void control_shutdown_run(void) {
 	util_error_t error_shutdown = ER_SUCCESS; // shutdown()
 
 	// TODO define engine shutdown behavior
 
 	if (error_shutdown)
-		schedule_next_state(CONTROL_ABORT);
+		control_abort_start();
 	else
-		schedule_next_state(CONTROL_APOGEE);
+		control_apogee_start();
 }
 
 void control_apogee_start(void) {
@@ -735,17 +648,16 @@ void control_apogee_start(void) {
  * @details	This function will open the venting valves (N20 and ethanol).
  * 			After the end of the sequence, it will jump to the depressurisation state.
  */
-void control_apogee_run(void)
-{
+void control_apogee_run(void) {
 	util_error_t error_start_fall = ER_SUCCESS;
 
 	error_start_fall |= solenoid_on(SOLENOID_N2O);
 	error_start_fall |= solenoid_on(SOLENOID_ETHANOL);
 
 	if (error_start_fall)
-		schedule_next_state(CONTROL_ABORT);
+		control_abort_start();
 	else
-		schedule_next_state(CONTROL_DEPRESSURISATION);
+		control_depressurisation_start();
 }
 
 void control_depressurisation_start(void) {
@@ -757,15 +669,13 @@ void control_depressurisation_start(void) {
  * @details	This function will open the pressurisation valve (N20).
  * 			After the end of the sequence, it will jump to the glide state.
  */
-void control_depressurisation_run(void)
-{
+void control_depressurisation_run(void) {
 	uint8_t error_depressurisation = ER_SUCCESS; // depressurisation() -> open valve
 
 	error_depressurisation != solenoid_on(SOLENOID_PRESSURISATION);
 
-	if (error_depressurisation)
-	{
-		schedule_next_state(CONTROL_ABORT);
+	if (error_depressurisation) {
+		control_abort_start();
 		return;
 	}
 	control_glide_start();
@@ -782,21 +692,17 @@ void control_error_start(void) {
  * 			It will send the maximum information to the GS, and have different sequences
  * 			depending on the error to try to fix the problem.
  */
-void control_error_run(void)
-{
+void control_error_run(void) {
 	// TODO memorize_what_went_wrong_for_next_time()
-	if (control.prev_state==CONTROL_CALIBRATION)
-		if(error_loop_control !=4)
-			{
-				++error_loop_control;
-				schedule_next_state(CONTROL_CALIBRATION);
-			}
-		else
-			{
-				error_loop_control=0;
-				schedule_next_state(CONTROL_IDLE);
-			}
-		control_idle_start();
+	if (control.prev_state == CONTROL_CALIBRATION)
+		if (error_loop_control != 4) {
+			++error_loop_control;
+			control_calibration_start();
+		} else {
+			error_loop_control = 0;
+			control_idle_start();
+		}
+	control_idle_start();
 }
 
 void control_abort_start(void) {
@@ -808,10 +714,9 @@ void control_abort_start(void) {
  * @details	This state will go to glide so that the depressurisation/venting sequences can be triggered
  * 			manually or automatically .
  */
-void control_abort_run(void)
-{
+void control_abort_run(void) {
 	// TODO
-	schedule_next_state = CONTROL_GLIDE;
+	control_glide_start();
 }
 
 /* END */
