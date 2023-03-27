@@ -1,0 +1,19 @@
+name: Build WildornAV
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: xanderhendriks/action-build-stm32cubeide@v7.0
+      with:
+        project-path: '.'
+        project-target: 'release'
