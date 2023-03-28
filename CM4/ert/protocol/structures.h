@@ -58,12 +58,5 @@ typedef struct transfer_data_res {
     uint32_t time;
 }transfer_data_res_t;
 
-typedef struct transfer_cmd {
-
-}transfer_cmd_t;
-
-
-
-
 
 #endif //HOSTPROC_APP_STRUCTURES_H

@@ -10,7 +10,6 @@
  *	INCLUDES
  **********************/
 
-#include "od.h"
 #include <cmsis_os2.h>
 #include <FreeRTOS.h>
 #include <device/comunicator.h>
@@ -21,6 +20,7 @@
 
 #include <string.h>
 #include <assert.h>
+#include "od.h"
 
 /**********************
  *	CONSTANTS
@@ -71,6 +71,9 @@ ALLOCATE_OD_ENTRY(KALMAN_DATA_B, 13, transfer_data_res_t);
 ALLOCATE_OD_ENTRY(GNSS, 14, gnss_data_t);
 ALLOCATE_OD_ENTRY(BATTERY_A, 15, uint32_t);
 ALLOCATE_OD_ENTRY(BATTERY_B, 16, uint32_t);
+ALLOCATE_OD_ENTRY(RF_CMD, 17, rf_cmd_t);
+ALLOCATE_OD_ENTRY(COUNTDOWN, 18, uint16_t);
+//ALLOCATE_OD_ENTRY(ENGINE_STATE, 18, état de toutes les vannes structure à définir)
 
 
 /**
@@ -81,7 +84,9 @@ static const od_entry_t od_entries[OD_MAX_DATAID] = {
 	LINK_OD_ENTRY(KALMAN_DATA_B),
 	LINK_OD_ENTRY(GNSS),
 	LINK_OD_ENTRY(BATTERY_A),
-	LINK_OD_ENTRY(BATTERY_B)
+	LINK_OD_ENTRY(BATTERY_B),
+	LINK_OD_ENTRY(RF_CMD),
+	LINK_OD_ENTRY(COUNTDOWN),
 };
 
 /**
