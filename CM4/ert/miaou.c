@@ -22,6 +22,7 @@
 #include <device/device.h>
 #include <feedback/led.h>
 #include <feedback/debug.h>
+#include <string.h>
 
 /**********************
  *	CONSTANTS
@@ -45,7 +46,6 @@
  **********************/
 
 static comunicator_t miaou_comunicator;
-
 static radio_packet_t miaou_packet;
 
 
@@ -58,12 +58,46 @@ static radio_packet_t miaou_packet;
  *	DECLARATIONS
  **********************/
 
+//TODO :
+//- write miaou handler (different opcodes, different boards, write in od, radio & gnss)
+//- for now only one packet, will add 3/5 later
 
+void miaou_handler(uint8_t opcode, uint16_t len, uint8_t * _data) {
 
-void miaou_handler(uint8_t opcode, uint16_t len, uint8_t * data) {
-	UNUSED(opcode);
-	UNUSED(len);
-	UNUSED(data);
+	if(opcode == RF_PREFIX) {
+		if(len == sizeof(PacketAV_uplink_t)) {
+			PacketAV_uplink_t data;
+			memcpy(&data, _data, sizeof(PacketAV_uplink_t));
+			rf_cmd_t cmd = data.cmd;
+			//uint8_t cmd_counter = data.cmd_counter;
+			uint16_t cmd_countdown = data.cmd_countdown;
+
+#if ND_COMPUTER == ND_A
+			od_write_RF_CMD(&cmd);
+			od_write_COUNTDOWN(&cmd_countdown);
+
+#else
+			od_write_RF_CMD(&cmd);
+			od_write_COUNTDOWN(&cmd_countdown);
+#endif
+
+	}
+}
+
+/*
+	if(opcode = TRANSFER_DATA_GNSS_RMC) {  //utliliser le gnss data type ou en créer un autre parce que le code de décodage tourne sur miaou??
+		if(len == sizeof(transfer_data_gnss_rmc_t)) {
+			transfer_data_gnss_rmc_t data;
+			memcpy(&data, _data, sizeof(transfer_data_gnss_rmc_t));
+			od_write_(&data);
+	}
+}
+	if(opcode = TRANSFER_DATA_GNSS_OTHER) {
+		if(len == sizeof()) {
+
+	}
+}
+*/
 }
 
 
@@ -72,8 +106,8 @@ void miaou_thread(__attribute__((unused)) void * arg) {
 	static const TickType_t period = pdMS_TO_TICKS(MIAOU_HEART_BEAT);
 	last_wake_time = xTaskGetTickCount();
 
+	// initialise la réception de données par serial, géré après par le thread serial
 
-	//setup Miaou reception
 	device_interface_t * miaou_interface = serial_get_s1_interface();
 
 	comunicator_init(&miaou_comunicator, miaou_interface, miaou_handler);
@@ -83,6 +117,8 @@ void miaou_thread(__attribute__((unused)) void * arg) {
 	uint16_t checkpoint = led_add_checkpoint(led_orange);
 
 	static int32_t packet_number = 0;
+
+	// transission données
 
 	for(;;) {
 
@@ -108,8 +144,8 @@ void miaou_thread(__attribute__((unused)) void * arg) {
 		miaou_packet.timestamp = HAL_GetTick();
 
 		comunicator_send(	&miaou_comunicator,
-							radio_packet_opcode,
-							radio_packet_size,
+							0x00, //radio_packet_opcode,
+							sizeof(radio_packet_t), //radio_packet_size,
 							(uint8_t *) &miaou_packet);
 
 

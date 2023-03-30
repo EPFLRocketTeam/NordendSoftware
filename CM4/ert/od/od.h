@@ -17,12 +17,9 @@
 
 #include <stdint.h>
 
-#include "sensor/accelerometer.h"
-#include "sensor/barometer.h"
-#include "sensor/gyroscope.h"
-#include "sensor/magnetometer.h"
 #include "sensor/gnss.h"
 #include <protocol/structures.h>
+#include <RadioPacket/RadioPacket.h>
 
 /**********************
  *  CONSTANTS
@@ -56,6 +53,7 @@ typedef struct {
     uint8_t data[OD_FRAME_MAX_SIZE];
 } od_frame_t;
 
+
 /**********************
  *  VARIABLES
  **********************/
@@ -87,9 +85,9 @@ DECLARE_OD_ENTRY(KALMAN_DATA_B, transfer_data_res_t);
 DECLARE_OD_ENTRY(GNSS, gnss_data_t);
 DECLARE_OD_ENTRY(BATTERY_A, uint32_t);
 DECLARE_OD_ENTRY(BATTERY_B, uint32_t);
-DECLARE_OD_ENTRY(MAG_A, magnetometer_data_t);
-DECLARE_OD_ENTRY(MAG_B, magnetometer_data_t);
-DECLARE_OD_ENTRY(MAG_B, magnetometer_data_t);
+DECLARE_OD_ENTRY(RF_CMD, rf_cmd_t);
+DECLARE_OD_ENTRY(COUNTDOWN, uint16_t);
+//DECLARE_OD_ENTRY(ENGINE_STATE, tbd);
 
 #ifdef __cplusplus
 } // extern "C"
