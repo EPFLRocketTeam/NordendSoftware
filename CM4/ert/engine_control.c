@@ -519,8 +519,10 @@ void control_glide_run(void) {
 	}
 }
 
+/**
+ * @details	Can only be called from Idle and has lowest priority (just in case :D)
+ */
 void control_countdown_start(void) {
-	// TODO review code structure to make sure this function only gets called once and not repeatedly.
 	control->counter = FINAL_COUNTDOWN;
 	schedule_next_state(CONTROL_COUNTDOWN);
 }
