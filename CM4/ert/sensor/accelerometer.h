@@ -1,8 +1,8 @@
-/*  Title		: Accelerometer
- *  Filename	: accelerometer.h
- *	Author		: iacopo sprenger
- *	Date		: 10.06.2022
- *	Version		: 0.1
+/*  Title		: AccelerometerADXL375
+ *  Filename	: accelerometerADXL375.h
+ *	Author		: Thilo Chalas, Luciano Calcoen, iacopo sprenger
+ *	Date		: 08.11.2022
+ *	Version		: 0.2
  *	Description	: accelerometer setup and acquisition
  */
 
@@ -24,7 +24,7 @@
  **********************/
 
 #define ACC_AXIS_COUNT	3
-
+#define CALIBRATION_VALUE_COUNT 25
 
 
 /**********************
@@ -42,13 +42,24 @@ typedef enum accelerometer_axis {
 	ACC_Z
 }accelerometer_axis_t;
 
+typedef enum accelerometer_state {
+	CALIBRATION,
+	READY
+}accelerometer_state_t;
 
 typedef struct accelerometer_data {
 	int16_t raw[ACC_AXIS_COUNT];
 	int16_t	processed[ACC_AXIS_COUNT];
 	uint32_t timestamp;
-
+	accelerometer_state_t state;
 }accelerometer_data_t;
+
+
+typedef struct accelerometer_calibration_data {
+	int16_t axeXRaw[CALIBRATION_VALUE_COUNT];
+	int16_t axeYRaw[CALIBRATION_VALUE_COUNT];
+	int16_t axeZRaw[CALIBRATION_VALUE_COUNT];
+}accelerometer_calibration_data_t;
 
 
 /**********************

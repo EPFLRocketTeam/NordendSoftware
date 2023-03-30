@@ -15,6 +15,13 @@
 
 #define STATUS_REG      0x67
 
+#define OFFSET_X_REG_L 	0x45
+#define OFFSET_X_REG_H 	0x46
+#define OFFSET_Y_REG_L 	0x47
+#define OFFSET_Y_REG_H 	0x48
+#define OFFSET_Z_REG_L 	0x49
+#define OFFSET_Z_REG_H 	0x4A
+
 #define OUTX_L_REG      0x68
 #define OUTX_H_REG      0x69
 #define OUTY_L_REG      0x6A
