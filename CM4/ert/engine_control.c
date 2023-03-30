@@ -150,64 +150,65 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 		flagged_state = check_flags_state(); //TODO Write a function that checks wether a flag has been set
 		if (flagged_state != CONTROL_SCHED_NOTHING) {
 			reset_flag(flagged_state); //TODO Write the function to reset the flag 
-			control_state_t requested_state = correlate_state_sched(
-					flagged_state);
+			control_state_t requested_state = correlate_state_sched(flagged_state);
 			control_sched_check_next(requested_state);
 		}
 
 		// Call the function associated with the current state.
 		switch (control.state) {
 		case CONTROL_IDLE:
-			control_idle_start();
+			control_idle_run();
 			break;
 		case CONTROL_CALIBRATION:
-			control_calibration_start();
+			control_calibration_run();
 			break;
 		case CONTROL_VENTS:
-			control_vents_start();
+			control_vents_run();
 			break;
 		case CONTROL_SERVOS:
-			control_servos_start();
+			control_servos_run();
 			break;
 		case CONTROL_PRESSURISATION:
-			control_pressurisation_start();
+			control_pressurisation_run();
 			break;
 		case CONTROL_GLIDE:
-			control_glide_start();
+			control_glide_run();
 			break;
 		case CONTROL_COUNTDOWN:
-			control_countdown_start();
+			control_countdown_run();
 			break;
 		case CONTROL_IGNITER:
-			control_igniter_start();
+			control_igniter_run();
 			break;
 		case CONTROL_IGNITION:
-			control_ignition_start();
+			control_ignition_run();
 			break;
 		case CONTROL_THRUST:
-			control_thrust_start();
+			control_thrust_run();
 			break;
 		case CONTROL_SHUTDOWN:
-			control_shutdown_start();
+			control_shutdown_run();
 			break;
 		case CONTROL_APOGEE:
-			control_apogee_start();
+			control_apogee_run();
 			break;
 		case CONTROL_DEPRESSURISATION:
-			control_depressurisation_start();
+			control_depressurisation_run();
 			break;
 		case CONTROL_ERROR:
-			control_error_start();
+			control_error_run();
 			break;
 		case CONTROL_ABORT:
-			control_abort_start();
+			control_abort_run();
 			break;
 		default:
 			// Undefined behavior / ghost state -> abort
-			control_abort_start();
-
-			vTaskDelayUntil(&last_wake_time, period);
+			control_abort_run();
+			break;
 		}
+
+		vTaskDelayUntil(&last_wake_time, period);
+		
 	}
 }
 
@@ -292,6 +293,8 @@ util_error_t init(void) {
 	pwm_init(pwm_data, PWM_TIM4,
 			servo_ethanol->pwm_channel | servo_n2o->pwm_channel);
 
+	//TODO SET INITIAL STATES FOR SERVOS ETC.
+
 	return led_err | ethanol_err | n2o_err;
 }
 
@@ -356,7 +359,56 @@ static void control_sched_check_next(control_state_t *requested_state) {
  */
 void schedule_next_state(control_state_t next_state) {
 	control.prev_state = control.state;
-	control.state = next_state;
+	switch (next_state)
+	{
+	case CONTROL_IDLE:
+		control_idle_start();
+		break;
+	case CONTROL_CALIBRATION:
+		control_calibration_start();
+		break;
+	case CONTROL_VENTS:
+		control_vents_start();
+		break;
+	case CONTROL_SERVOS:
+		control_servos_start();
+		break;
+	case CONTROL_PRESSURISATION:
+		control_pressurisation_start();
+		break;
+	case CONTROL_GLIDE:
+		control_glide_start();
+		break;
+	case CONTROL_COUNTDOWN:
+		control_countdown_start();
+		break;
+	case CONTROL_IGNITER:
+		control_igniter_start();
+		break;
+	case CONTROL_IGNITION:
+		control_ignition_start();
+		break;
+	case CONTROL_THRUST:
+		control_thrust_start();
+		break;
+	case CONTROL_SHUTDOWN:
+		control_shutdown_start();
+		break;
+	case CONTROL_APOGEE:
+		control_apogee_start();
+		break;
+	case CONTROL_DEPRESSURISATION:
+		control_depressurisation_start();
+		break;
+	case CONTROL_ERROR:
+		control_error_start();
+		break;
+	case CONTROL_ABORT:
+		control_abort_start();
+		break;
+	default:
+		break;
+	}
 }
 
 /**
@@ -365,9 +417,9 @@ void schedule_next_state(control_state_t next_state) {
  * @details Used for automatic switching back from certain states.
  */
 void prev_state_start(void) {
-	control_state_t new_prev = control.state;
-	control.state = control.prev_state;
-	control.prev_state = new_prev;
+	control_state_t new_prev = control.state;//TODO CHECK IF REALLY NECESSARY
+	schedule_next_state(control.prev_state);
+	control.prev_state = new_prev;//TODO CHECK IF REALLY NECESSARY
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -375,7 +427,7 @@ void prev_state_start(void) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 void control_calibration_start(void) {
-	schedule_next_state(CONTROL_CALIBRATION);
+	control.state = CONTROL_CALIBRATION;
 }
 
 /**
@@ -398,7 +450,7 @@ void control_calibration_run(void) {
 }
 
 void control_vent_start(void) {
-	schedule_next_state(CONTROL_VENTS);
+	control.state = CONTROL_VENTS;
 }
 
 /**
@@ -410,27 +462,23 @@ void control_vent_start(void) {
 void control_vent_run(void) {
 	uint8_t error_venting = 0;
 
-	// TODO Use OD functionality here.
-	if (vent_n2o_pins) {
-		error_venting |= solenoid_off(SOLENOID_N2O);
+	if (vent_n20_state()) {//TODO Write a fct that gets the pin state from the OD
 		error_venting |= solenoid_off(SOLENOID_N2O);
 		vent_n2o_pins = 0;
 	} else {
 		error_venting |= solenoid_on(SOLENOID_N2O);
-		error_venting |= solenoid_on(SOLENOID_N2O);
 		vent_n2o_pins = 1;
 	}
 
-	// TODO Use OD functionality here.
-	if (vent_ethanol_pins) {
-		error_venting |= solenoid_off(SOLENOID_ETHANOL);
+	if (vent_ethanol_state()) {//TODO Write a fct that gets the pin state from the OD
 		error_venting |= solenoid_off(SOLENOID_ETHANOL);
 		vent_ethanol_pins = 0;
 	} else {
 		error_venting |= solenoid_on(SOLENOID_ETHANOL);
-		error_venting |= solenoid_on(SOLENOID_ETHANOL);
 		vent_ethanol_pins = 1;
 	}
+
+	//TODO Should this state affect the pressurisation valve
 
 	if (error_venting) {
 		schedule_next_state(CONTROL_ERROR);
@@ -441,7 +489,7 @@ void control_vent_run(void) {
 }
 
 void control_servo_start(void) {
-	schedule_next_state(CONTROL_SERVOS);
+	control.state = CONTROL_SERVOS;
 }
 
 /**
@@ -471,7 +519,7 @@ void control_servo_run(void) {
 }
 
 void control_pressurisation_start(void) {
-	schedule_next_state(CONTROL_PRESSURISATION);
+	control.state = CONTROL_PRESSURISATION;
 }
 
 /**
@@ -480,12 +528,12 @@ void control_pressurisation_start(void) {
  * 			This state will open/close the N20 pressurisation valve.
  */
 void control_pressurisation_run(void) {
-	// TODO Use OD functionality here.
-	if (vent_pressurization_pins) {
-		solenoid_off(SOLENOID_PRESSURISATION); // TODO FIND WHICH SOLENOIDS ARE WHICH
+
+	if (vent_pressurization_state()) {//TODO Write a fct that gets the pin state from the OD
+		solenoid_off(SOLENOID_PRESSURISATION);
 		vent_pressurization_pins = 0;
 	} else {
-		solenoid_on(SOLENOID_PRESSURISATION); // TODO FIND WHICH SOLENOIDS ARE WHICH
+		solenoid_on(SOLENOID_PRESSURISATION);
 		vent_pressurization_pins = 1;
 	}
 
@@ -498,7 +546,7 @@ void control_pressurisation_run(void) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 void control_glide_start(void) {
-	schedule_next_state(CONTROL_GLIDE);
+	control.state = CONTROL_GLIDE;
 }
 
 /**
@@ -543,7 +591,7 @@ void control_countdown_run(void) {
 }
 
 void control_igniter_start(void) {
-	schedule_next_state(CONTROL_IGNITER);
+	control.state = CONTROL_IGNITER;
 }
 
 /**
@@ -569,8 +617,8 @@ void control_igniter_run(void) {
 }
 
 void control_ignition_start(void) {
-	control->counter = 100; // init counter to 100ms
-	schedule_next_state(CONTROL_IGNITION);
+	control.counter = 100; // init counter to 100ms
+	control.state = CONTROL_IGNITION;
 }
 
 /**
@@ -586,7 +634,7 @@ void control_ignition_run(void) {
 	// Set ethanol and N2O servos (pins 13 and 14) to partially open
 	error_ignition |= servo_set_state(servo_n2o, SERVO_PARTIALLY_OPEN);
 	error_ignition |= servo_set_state(servo_ethanol, SERVO_PARTIALLY_OPEN);
-
+	//TODO Check for pressure in combustion chamber
 	if (error_ignition)
 		control_abort_start();
 	else
@@ -594,8 +642,8 @@ void control_ignition_run(void) {
 }
 
 void control_thrust_start(void) {
-	schedule_next_state(CONTROL_THRUST);
-	control->counter = CONTROL_ONE_SECOND * 30; // 30 second wait before switching state
+	control.state = CONTROL_THRUST;
+	control.counter = CONTROL_ONE_SECOND * 30; // 30 second wait before switching state
 }
 
 /**
@@ -619,28 +667,30 @@ void control_thrust_run(void) {
 }
 
 void control_shutdown_start(void) {
-	schedule_next_state(CONTROL_SHUTDOWN);
+	control.state = CONTROL_SHUTDOWN;
 }
 
 /**
  * @brief	Shutdown state runtime
  * @details	This function will stop the engine, depending on which algorithm is chosen (before or during the apogee, tbd).
  * 			After a delay, it will jump to the apogee state.
- * 			Since we do not know if the engine has enough power to reach apogee without a full combustion, shutdown() is tbd
+ * 			Nordend (2023) : engine doesn't have enough power to reach apogee without a full combustion so shutdown goes to glide() 
  */
 void control_shutdown_run(void) {
 	util_error_t error_shutdown = ER_SUCCESS; // shutdown()
 
-	// TODO define engine shutdown behavior
+	// TODO define engine shutdown behavior, check a flag to go to apogee
 
 	if (error_shutdown)
 		control_abort_start();
 	else
 		control_apogee_start();
+
+	control_glide_start();
 }
 
 void control_apogee_start(void) {
-	schedule_next_state(CONTROL_APOGEE);
+	control.state = CONTROL_APOGEE;
 }
 
 /**
@@ -661,7 +711,7 @@ void control_apogee_run(void) {
 }
 
 void control_depressurisation_start(void) {
-	schedule_next_state(CONTROL_DEPRESSURISATION);
+	control.state = CONTROL_DEPRESSURISATION;
 }
 
 /**
@@ -671,8 +721,8 @@ void control_depressurisation_start(void) {
  */
 void control_depressurisation_run(void) {
 	uint8_t error_depressurisation = ER_SUCCESS; // depressurisation() -> open valve
-
-	error_depressurisation != solenoid_on(SOLENOID_PRESSURISATION);
+	//TODO update the functions
+	error_depressurisation |= solenoid_on(SOLENOID_PRESSURISATION);
 
 	if (error_depressurisation) {
 		control_abort_start();
@@ -682,7 +732,7 @@ void control_depressurisation_run(void) {
 }
 
 void control_error_start(void) {
-	schedule_next_state(CONTROL_ERROR);
+	control.state = CONTROL_ERROR;
 }
 
 /**
@@ -706,7 +756,7 @@ void control_error_run(void) {
 }
 
 void control_abort_start(void) {
-	schedule_next_state(CONTROL_ABORT);
+	control.state = CONTROL_ABORT;
 }
 
 /**
