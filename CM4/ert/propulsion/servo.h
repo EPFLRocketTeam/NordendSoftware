@@ -23,19 +23,6 @@
  *  CONSTANTS
  **********************/
 
-/**
- * Open/closed constants for the valves of first servo.
- */
-const float SERVO_ETHANOL_OPEN = 0;
-const float SERVO_ETHANOL_IGNITION = 45.0; /*!< Partially open (ignition phase) */
-const float SERVO_ETHANOL_CLOSED = 90.0;
-
-/**
- * Open/closed constants for the valves of second servo.
- */
-const float SERVO_N2O_OPEN = 0;
-const float SERVO_N2O_IGNITION = 45.0; /*!< Partially open (ignition phase) */
-const float SERVO_N2O_CLOSED = 90.0;
 
 /**********************
  *  MACROS
@@ -45,6 +32,19 @@ const float SERVO_N2O_CLOSED = 90.0;
 /**********************
  *  TYPEDEFS
  **********************/
+
+
+/**
+ * @struct servo_state
+ * @brief Defines the three possible servo states:
+ * 	open, partially open and closed.
+ *
+ */
+typedef enum servo_state {
+	SERVO_OPEN,
+	SERVO_PARTIALLY_OPEN,
+	SERVO_CLOSED
+} servo_state_t;
 
 /**
  * @struct servo
@@ -66,19 +66,9 @@ typedef struct servo {
 
 	pwm_data_t * pwm_data; 					/*!< Attached PWM driver data structure */
 	PWM_Channel_Selection_t pwm_channel;  	/*!< Associated PWM channel */
-} servo_t;
 
-/**
- * @struct servo_state
- * @brief Defines the three possible servo states:
- * 	open, partially open and closed.
- *
- */
-typedef enum servo_state {
-	SERVO_OPEN,
-	SERVO_PARTIALLY_OPEN,
-	SERVO_CLOSED
-} servo_state_t;
+	servo_state_t state;
+} servo_t;
 
 /**********************
  *  VARIABLES
@@ -163,6 +153,9 @@ util_error_t servo_init(
 		float partially_open_rotation,
 		float closed_rotation
 	);
+
+
+void servo_thread(__attribute__((unused)) void * arg);
 
 
 #ifdef __cplusplus

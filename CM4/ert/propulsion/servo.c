@@ -14,13 +14,32 @@
 #include "servo.h"
 #include <math.h>
 #include <tim.h>
+#include <feedback/led.h>
 
 /**********************
  *	CONSTANTS
  **********************/
 
 const uint32_t DEFAULT_OFFSET = 1500;
+const uint32_t SERVO_ETHANOL_OFFSET = 1500;
 
+//static const led_color_t led_red = {
+//		.r = 0xff,
+//		.g = 0x00,
+//		.b = 0x00
+//};
+//
+//static const led_color_t led_green = {
+//		.r = 0x00,
+//		.g = 0xff,
+//		.b = 0x00
+//};
+//
+//static const led_color_t led_blue = {
+//		.r = 0x00,
+//		.g = 0x00,
+//		.b = 0xff
+//};
 
 /**********************
  *	MACROS
@@ -36,6 +55,7 @@ const uint32_t DEFAULT_OFFSET = 1500;
  *	VARIABLES
  **********************/
 
+servo_t servo_ethanol = {0};
 
 /**********************
  *	PROTOTYPES
@@ -93,7 +113,8 @@ float servo_get_rotation(servo_t *servo) {
 	return servo->rotation;
 }
 
-servo_set_state(servo_t *servo, servo_state_t new_state) {
+util_error_t servo_set_state(servo_t *servo, servo_state_t new_state) {
+	servo->state = new_state;
 	switch (new_state) {
 		case SERVO_OPEN:
 			servo_set_rotation(servo, servo->open_rotation);
@@ -111,28 +132,39 @@ servo_set_state(servo_t *servo, servo_state_t new_state) {
 	return ER_SUCCESS;
 }
 
-servo_get_state(servo_t *servo) {
+servo_state_t servo_get_state(servo_t *servo) {
 	return servo->state;
 }
 
-//void servo_thread(__attribute__((unused)) void * arg) {
-//	// TODO remove when servos have been correctly added to engine control thread.
-//
-//	// Initialize servos -- empty structs
-//	pwm_data_t pwm_data_inst;
-//	pwm_data_t * pwm_data = &pwm_data_inst;
-//
-//	// Specific to the SB2290SG Monster Torque Brushless Servo
-//	uint32_t min_pulse = 800;
-//	uint32_t max_pulse = 2200;
-//	float degrees_per_usec = 0.114;
-//
-//	servo_init(servo_ethanol, pwm_data, PWM_SELECT_CH1, min_pulse, max_pulse, SERVO_ETHANOL_OFFSET, degrees_per_usec);
-//	servo_init(servo_n2o, pwm_data, PWM_SELECT_CH2, min_pulse, max_pulse, SERVO_N2O_OFFSET, degrees_per_usec);
-//
-//	// Using channels 1 and 2 -- initialize the PWM channel
-//	pwm_init(pwm_data, PWM_TIM5, servo_ethanol->pwm_channel | servo_n2o->pwm_channel);
-//}
+void servo_thread(__attribute__((unused)) void * arg) {
+	// TODO remove when servos have been correctly added to engine control thread.
+
+	// Initialize servos -- empty structs
+	pwm_data_t pwm_data_inst;
+	pwm_data_t * pwm_data = &pwm_data_inst;
+
+	// Specific to the SB2290SG Monster Torque Brushless Servo
+	uint32_t min_pulse = 800;
+	uint32_t max_pulse = 2200;
+	float degrees_per_usec = 0.114;
+
+	servo_init(&servo_ethanol, pwm_data, PWM_SELECT_CH1, min_pulse, max_pulse, SERVO_ETHANOL_OFFSET, degrees_per_usec, 0, 45, 90);
+
+	// Using channels 1 and 2 -- initialize the PWM channel
+	pwm_init(pwm_data, PWM_TIM5, servo_ethanol.pwm_channel);
+
+	for (;;) {
+		osDelay(1000);
+		servo_set_state(&servo_ethanol, SERVO_CLOSED);
+		led_rgb_set_color(led_red);
+		osDelay(1000);
+		led_rgb_set_color(led_green);
+		servo_set_state(&servo_ethanol, SERVO_PARTIALLY_OPEN);
+		osDelay(1000);
+		led_rgb_set_color(led_blue);
+		servo_set_state(&servo_ethanol, SERVO_OPEN);
+	}
+}
 
 
 

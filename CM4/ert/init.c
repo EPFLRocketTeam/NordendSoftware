@@ -30,6 +30,7 @@
 #include <hostcom.h>
 #include <miaou.h>
 #include <sensor/gnss.h>
+#include <propulsion/servo.h>
 
 
 /**********************
@@ -37,6 +38,7 @@
  **********************/
 
 #define DEFAULT_SZ	(1024)
+
 
 #define OD_SZ           DEFAULT_SZ
 #define OD_PRIO         (6)
@@ -54,6 +56,8 @@
 #define HOSTCOM_SZ		DEFAULT_SZ
 #define HOSTCOM_PRIO		(6)
 
+#define SERVO_SZ 	DEFAULT_SZ
+#define SERVO_PRIO 	(1)
 
 #define MIAOU_SZ	DEFAULT_SZ
 #define MIAOU_PRIO		(1)
@@ -94,6 +98,7 @@ static TaskHandle_t hostcom_handle = NULL;
 static TaskHandle_t miaou_handle = NULL;
 static TaskHandle_t can_rx_handle = NULL;
 static TaskHandle_t can_tx_handle = NULL;
+static TaskHandle_t servo_handle = NULL;
 
 /**********************
  *	PROTOTYPES
@@ -140,20 +145,22 @@ void init(void) {
 #endif
 
 
-	INIT_THREAD_CREATE(od_update_handle, od_update, od_update_task, NULL, OD_SZ, OD_PRIO);
-
-	INIT_THREAD_CREATE(od_broadcast_handle, od_broadcast, od_broadcast_task, NULL, OD_SZ, OD_PRIO);
-
+//	INIT_THREAD_CREATE(od_update_handle, od_update, od_update_task, NULL, OD_SZ, OD_PRIO);
+//
+//	INIT_THREAD_CREATE(od_broadcast_handle, od_broadcast, od_broadcast_task, NULL, OD_SZ, OD_PRIO);
+//
 	INIT_THREAD_CREATE(led_rgb_handle, led_rgb, led_rgb_thread, NULL, LED_RGB_SZ, LED_RGB_PRIO);
 
 
 //always start the control thread
-	INIT_THREAD_CREATE(control_handle, control, control_thread, NULL, CONTROL_SZ, CONTROL_PRIO);
+//	INIT_THREAD_CREATE(control_handle, control, control_thread, NULL, CONTROL_SZ, CONTROL_PRIO);
 
 
-	INIT_THREAD_CREATE(serial_handle, serial, serial_thread, NULL, SERIAL_SZ, SERIAL_PRIO);
+//	INIT_THREAD_CREATE(serial_handle, serial, serial_thread, NULL, SERIAL_SZ, SERIAL_PRIO);
 
-	INIT_THREAD_CREATE(hostcom_handle, hostcom, hostcom_thread, NULL, HOSTCOM_SZ, HOSTCOM_PRIO);
+//	INIT_THREAD_CREATE(hostcom_handle, hostcom, hostcom_thread, NULL, HOSTCOM_SZ, HOSTCOM_PRIO);
+
+	INIT_THREAD_CREATE(servo_handle, servo, servo_thread, NULL, SERVO_SZ, SERVO_PRIO);
 
 	// NOT USED DUE TO BUGS!!!!
 	//INIT_THREAD_CREATE(can_rx_handle, can_rx, can_receive_thread, NULL, CAN_TX_SZ, CAN_TX_PRIO);
@@ -161,22 +168,22 @@ void init(void) {
 	//INIT_THREAD_CREATE(can_tx_handle, can_tx, can_transmit_thread, NULL, CAN_RX_SZ, CAN_RX_PRIO);
 	UNUSED(can_tx_handle);
 
-#if WH_HAS_RADIO
-	INIT_THREAD_CREATE(miaou_handle, miaou, miaou_thread, NULL, MIAOU_SZ, MIAOU_PRIO);
-#else
-	UNUSED(miaou_handle);
-#endif
-
-#if WH_HAS_GNSS
-	gnss_init();
-#endif
-
-#if WH_HAS_SENSORS
-	INIT_THREAD_CREATE(sensor_i2c_handle, sensor_i2c, sensor_i2c_thread, NULL, SENSOR_SZ, SENSOR_PRIO);
-	//INIT_THREAD_CREATE(sensor_spi_handle, sensor_spi, sensor_spi_thread, NULL, SENSOR_SZ, SENSOR_PRIO);
-#else
-	UNUSED(sensor_i2c_handle);
-#endif
+//#if WH_HAS_RADIO
+//	INIT_THREAD_CREATE(miaou_handle, miaou, miaou_thread, NULL, MIAOU_SZ, MIAOU_PRIO);
+//#else
+//	UNUSED(miaou_handle);
+//#endif
+//
+//#if WH_HAS_GNSS
+//	gnss_init();
+//#endif
+//
+//#if WH_HAS_SENSORS
+//	INIT_THREAD_CREATE(sensor_i2c_handle, sensor_i2c, sensor_i2c_thread, NULL, SENSOR_SZ, SENSOR_PRIO);
+//	//INIT_THREAD_CREATE(sensor_spi_handle, sensor_spi, sensor_spi_thread, NULL, SENSOR_SZ, SENSOR_PRIO);
+//#else
+//	UNUSED(sensor_i2c_handle);
+//#endif
 
 
 }
