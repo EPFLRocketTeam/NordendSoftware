@@ -51,6 +51,7 @@ extern "C"{
 
 
 void miaou_thread(__attribute__((unused)) void * arg);
+//void miaou_handler(uint8_t opcode, uint16_t len, uint8_t * _data);
 
 #ifdef __cplusplus
 } // extern "C"

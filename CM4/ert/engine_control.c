@@ -631,7 +631,7 @@ void control_shutdown_start(void) {
 void control_shutdown_run(void) {
 	util_error_t error_shutdown = ER_SUCCESS; // shutdown()
 
-	// TODO define engine shutdown behavior
+	// TODO define engine shutdown behavior -> none for now
 
 	if (error_shutdown)
 		control_abort_start();
@@ -693,7 +693,7 @@ void control_error_start(void) {
  * 			depending on the error to try to fix the problem.
  */
 void control_error_run(void) {
-	// TODO memorize_what_went_wrong_for_next_time()
+	// TODO memorize_in_object_dictionnary_what_went_wrong_for_next_time()
 	if (control.prev_state == CONTROL_CALIBRATION)
 		if (error_loop_control != 4) {
 			++error_loop_control;
