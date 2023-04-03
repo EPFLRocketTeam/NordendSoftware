@@ -681,7 +681,7 @@ void control_shutdown_start(void) {
 void control_shutdown_run(void) {
 	util_error_t error_shutdown = ER_SUCCESS; // shutdown()
 
-	// TODO define engine shutdown behavior -> none for now
+	//TODO define engine shutdown behavior
 
 	if (error_shutdown)
 		control_abort_start();
