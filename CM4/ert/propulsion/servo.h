@@ -76,9 +76,9 @@ typedef struct servo {
  *
  */
 typedef enum servo_state {
-	SERVO_OPEN,
-	SERVO_PARTIALLY_OPEN,
-	SERVO_CLOSED
+	SERVO_CLOSED = 0b0000,
+	SERVO_PARTIALLY_OPEN = 0b1010,
+	SERVO_OPEN = 0b1111
 } servo_state_t;
 
 /**********************
