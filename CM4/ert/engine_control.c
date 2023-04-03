@@ -46,16 +46,22 @@
  **********************/
 
 #define CONTROL_HEART_BEAT 200
-#define CONTROL_TAKEOFF_THRESH 0 // The tolerance for taking off, in milliseconds
-#define FINAL_COUNTDOWN 10000 // must be changed by wanted countdown duration, in milliseconds
+#define CONTROL_TAKEOFF_THRESH 0 // TODO The tolerance for taking off, in milliseconds
+#define FINAL_COUNTDOWN 10000 // TODO must be changed by wanted countdown duration, in milliseconds
+#define IGNITION_COUNTER_THRESHOLD 10000 // TODO must be changed by wanted nb attempts
+#define SHUTDOWN_TO_APOGEE_TIME 6000
 
 #define CONTROL_ONE_SECOND pdMS_TO_TICKS(1000)
 
-// TODO must define !
 #define SOLENOID_N2O SOLENOID_1
 #define SOLENOID_ETHANOL SOLENOID_2
 #define SOLENOID_PRESSURISATION SOLENOID_3
 #define SOLENOID_PURGE SOLENOID_4
+
+//TODO Find IGNITER GPIO port and pin
+//Igniter pin definition
+#define IGNITER_PORT GPIOX
+#define IGNITER_PIN  1
 
 /**
  * Origin offset (in microseconds), for computing the pulse width. Default is 1500.
@@ -101,6 +107,7 @@ enum od_engine_state {
  */
 static control_t control;
 static uint8_t error_loop_control = 0;
+static uint8_t ignition_insufficient_pressure_counter =0;
 
 /**
  * Last wake time for the timer
@@ -170,11 +177,17 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 		case CONTROL_CALIBRATION:
 			control_calibration_run();
 			break;
-		case CONTROL_VENTS:
-			control_vents_run();
+		case CONTROL_VENT_ETHANOL:
+			control_vent_ethanol_run();
 			break;
-		case CONTROL_SERVOS:
-			control_servos_run();
+		case CONTROL_VENT_N2O:
+			control_vent_n2o_run();
+			break;
+		case CONTROL_SERVOS_N2O:
+			control_servos_n2o_run();
+			break;
+		case CONTROL_SERVOS_ETHANOL:
+			control_servos_ethanol_run();
 			break;
 		case CONTROL_PRESSURISATION:
 			control_pressurisation_run();
@@ -229,14 +242,14 @@ control_sched_t check_flagged_state() {
 
 	// Check scheduled states in the same order as in the control_sched enum
 	if (changes_sched.abort == CMD_ACTIVE) return CONTROL_SCHED_ABORT;
-	if (changes_sched.ventEthanol == CM_ACTIVE) return CONTROL_SCHED_VENT_ETHANOL; // TODO add state and code as required
-	if (changes_sched.ventN20 == CM_ACTIVE) return CONTROL_SCHED_VENT_N2O; // TODO add state and code as required
-	if (changes_sched.calibrate) return CONTROL_SCHED_CALIBRATE; // TODO doesn't exist !!
-	if (changes_sched.servoEthanol == CM_ACTIVE) return CONTROL_SCHED_SERVO_ETHANOL; // todo add states :((
-	if (changes_sched.servoN20 == CM_ACTIVE) return CONTROL_SCHED_SERVO_N2O; // todo add states :((
+	if (changes_sched.ventEthanol == CMD_ACTIVE) return CONTROL_SCHED_VENT_ETHANOL;
+	if (changes_sched.ventN20 == CMD_ACTIVE) return CONTROL_SCHED_VENT_N2O;
+	if (changes_sched.calibrate == CMD_ACTIVE) return CONTROL_SCHED_CALIBRATE;
+	if (changes_sched.servoEthanol == CMD_ACTIVE) return CONTROL_SCHED_SERVOS_ETHANOL;
+	if (changes_sched.servoN20 == CMD_ACTIVE) return CONTROL_SCHED_SERVOS_N2O;
 	if (countdown_requested == IGNITION_CODE) return CONTROL_SCHED_COUNTDOWN;
 	if (changes_sched.pressurization) return CONTROL_SCHED_PRESSURISATION;
-	//	if (changes_sched.shutdown) return CONTROL_SCHED_SHUTDOWN; doesn't exist for Nordend
+	if (changes_sched.shutdown) return CONTROL_SCHED_SHUTDOWN;
 
 	// Default
 	return CONTROL_SCHED_NOTHING;
@@ -250,10 +263,10 @@ void reset_flag(control_sched_t flagged_state) {
 		case CONTROL_SCHED_ABORT:
 			flags.abort = CMD_INACTIVE;
 			break;
-		case CONTROL_SCHED_VENTS:
+		case CONTROL_SCHED_VENT_ETHANOL:
 			flags.ventEthanol = CMD_INACTIVE;
 			break;
-		case CONTROL_SCHED_VENTS:
+		case CONTROL_SCHED_VENT_N2O:
 			flags.ventN20 = CMD_INACTIVE;
 		case CONTROL_SCHED_CALIBRATE:
 			flags.calibrate = CMD_INACTIVE;
@@ -266,6 +279,7 @@ void reset_flag(control_sched_t flagged_state) {
 			break;
 		default: // do nothing
 	}
+	od_write_RF_CMD(&flags);
 }
 
 /**
@@ -379,14 +393,20 @@ control_state_t correlate_state_sched(control_sched_t requested_state) {
 	case CONTROL_SCHED_ABORT:
 		return CONTROL_ABORT;
 		break;
-	case CONTROL_SCHED_VENTS:
-		return CONTROL_VENTS;
+	case CONTROL_SCHED_VENT_N2O:
+		return CONTROL_VENT_N2O;
+		break;
+	case CONTROL_SCHED_VENT_ETHANOL:
+		return CONTROL_VENT_ETHANOL;
 		break;
 	case CONTROL_SCHED_CALIBRATE:
 		return CONTROL_CALIBRATION;
 		break;
-	case CONTROL_SCHED_SERVOS:
-		return CONTROL_SERVOS;
+	case CONTROL_SCHED_SERVOS_N2O:
+		return CONTROL_SERVOS_N2O;
+		break;
+	case CONTROL_SCHED_SERVOS_ETHANOL:
+		return CONTROL_SERVOS_ETHANOL;
 		break;
 	case CONTROL_SCHED_COUNTDOWN:
 		return CONTROL_COUNTDOWN;
@@ -434,11 +454,17 @@ void schedule_next_state(control_state_t next_state) {
 	case CONTROL_CALIBRATION:
 		control_calibration_start();
 		break;
-	case CONTROL_VENTS:
-		control_vents_start();
+	case CONTROL_VENT_N2O:
+		control_vent_n2o_start();
 		break;
-	case CONTROL_SERVOS:
-		control_servos_start();
+	case CONTROL_VENT_ETHANOL:
+		control_vent_ethanol_start();
+		break;
+	case CONTROL_SERVOS_N2O:
+		control_servos_n2o_start();
+		break;
+	case CONTROL_SERVOS_ETHANOL:
+		control_servos_ethanol_start();
 		break;
 	case CONTROL_PRESSURISATION:
 		control_pressurisation_start();
@@ -484,9 +510,7 @@ void schedule_next_state(control_state_t next_state) {
  * @details Used for automatic switching back from certain states.
  */
 void prev_state_start(void) {
-	control_state_t new_prev = control.state;//TODO CHECK IF REALLY NECESSARY
 	schedule_next_state(control.prev_state);
-	control.prev_state = new_prev;//TODO CHECK IF REALLY NECESSARY
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -516,23 +540,14 @@ void control_calibration_run(void) {
 	schedule_next_state(CONTROL_IDLE);
 }
 
-void control_vent_start(void) {
+void control_vent_ethanol_start(void) {
 	control.state = CONTROL_VENTS;
 }
 
-// Reads the N2O vent's state from the OD
-static uint8_t vent_n2o_state(void) {
-	rf_cmd_t state;
-	od_read_ENGINE_STATE(&state);
-	return state->servoN20;
+void control_vent_n2o_start(void) {
+	control.state = CONTROL_VENTS;
 }
 
-// Reads the ethanol vent's state from the OD
-static uint8_t vent_ethanol_state(void) {
-	rf_cmd_t state;
-	od_read_ENGINE_STATE(&state);
-	return state->servoEthanol;
-}
 
 /**
  * @brief Venting state runtime
@@ -540,26 +555,19 @@ static uint8_t vent_ethanol_state(void) {
  * 			This function will open/close the venting valves.
  * 			---->Should we be making an vent-open and vent-close state?
  */
-void control_vent_run(void) {
+void control_vent_ethanol_run(void) {
 	util_error_t error_venting = ER_SUCCESS;
 
-	// TODO is reading the ENGINE_STATE twice from OD too costly of an operation?
-
-	// Read n2o state from OD (closed == 0) and update accordingly
-	if (vent_n2o_state()) {
-		error_venting |= solenoid_on(SOLENOID_N2O);
-	} else {
-		error_venting |= solenoid_off(SOLENOID_N2O);
-	}
-
 	// Read ethanol state from OD (closed == 0) and update accordingly
-	if (vent_ethanol_state()) {
+	rf_cmd_t state;
+	od_read_ENGINE_STATE(&state);
+	state.ventEthanol != state.ventEthanol;
+	
+	if (state.ventEthanol) {
 		error_venting |= solenoid_on(SOLENOID_ETHANOL);
 	} else {
 		error_venting |= solenoid_off(SOLENOID_ETHANOL);
 	}
-
-	//TODO Should this state affect the pressurisation valve ?
 
 	if (error_venting) {
 		schedule_next_state(CONTROL_ERROR);
@@ -569,8 +577,41 @@ void control_vent_run(void) {
 
 }
 
-void control_servo_start(void) {
-	control.state = CONTROL_SERVOS;
+/**
+ * @brief Venting state runtime
+ * @details This state will wait for the venting sequence to finish and jump back to its previous state.
+ * 			This function will open/close the venting valves.
+ * 			---->Should we be making an vent-open and vent-close state?
+ */
+void control_vent_n2o_run(void) {
+	util_error_t error_venting = ER_SUCCESS;
+
+	// Read n2o state from OD (closed == 0) and update accordingly
+	rf_cmd_t state;
+	od_read_ENGINE_STATE(&state);
+	state.ventN20 != state.ventN20;
+	
+	if (state.ventN20) {
+		error_venting |= solenoid_on(SOLENOID_N2O);
+	} else {
+		error_venting |= solenoid_off(SOLENOID_N2O);
+	}
+
+	if (error_venting) {
+		schedule_next_state(CONTROL_ERROR);
+	} else {
+		prev_state_start();
+	}
+
+}
+
+void control_servos_n2o_start(void) {
+	control.state = CONTROL_SERVOS_N2O;
+}
+
+
+void control_servos_ethanol_start(void) {
+	control.state = CONTROL_SERVOS_ETHANOL;
 }
 
 static uint8_t servo_n2o_state_od(rf_cmd_t *state) {
@@ -588,7 +629,8 @@ static uint8_t servo_ethanol_state_od(rf_cmd_t *state) {
  * @brief N2O state runtime
  * @details
  */
-void control_servo_run(void) {
+//TODO Turn on enable_servo_pin
+void control_servos_n2o_run(void) {
 	util_error_t servo_err = ER_SUCCESS;
 	rf_cmd_t eng_state;
 
@@ -640,6 +682,10 @@ void control_servo_run(void) {
 		prev_state_start();
 	}
 }
+//TODO turn on enable pin
+void control_servos_ethanol_run(void){
+	//TODO Write things here
+}
 
 void control_pressurisation_start(void) {
 	control.state = CONTROL_PRESSURISATION;
@@ -648,7 +694,7 @@ void control_pressurisation_start(void) {
 /**
  * @brief Pressurisation state runtime
  * @details This state will wait for the pressurisation sequence to finish and jump back to its previous state.
- * 			This state will open/close the N20 pressurisation valve.
+ * 			This state will open/close the N2O pressurisation valve.
  */
 void control_pressurisation_run(void) {
 	rf_cmd_t eng_state;
@@ -688,7 +734,7 @@ void control_glide_run(void) {
 	// In the future this will be synchronized with the AV state machine
 
 	IDLE_UNTIL_COUNTER_ZERO;
-
+	//TODO Turn off servo_enable pin, reset solenoids to off
 	control_idle_start();
 }
 
@@ -730,8 +776,8 @@ void control_igniter_run(void) {
 	uint8_t error_ignition = 0; // ignition() -> will turn the igniter on (solenoids)
 
 	// Activate ignition
-	// TODO define behavior !
-
+	// TODO when to put igniter's bit to 0 again (loop for 1 second ?)
+	HAL_GPIO_WritePin(IGNITER_PORT, IGNITER_PIN, GPIO_PIN_SET);
 	// Check if good engine start (pressure and temp?), if too many failed abort
 
 	if (error_ignition) {
@@ -739,7 +785,7 @@ void control_igniter_run(void) {
 		return;
 	}
 
-	control_ignition_start();
+	control_powered_start();
 
 }
 
@@ -762,7 +808,17 @@ void control_ignition_run(void) {
 	error_ignition |= servo_set_state(servo_n2o, SERVO_PARTIALLY_OPEN);
 	error_ignition |= servo_set_state(servo_ethanol, SERVO_PARTIALLY_OPEN);
 
-	//TODO Check for pressure in combustion chamber
+	//TODO Check for pressure in combustion chamber and define behavior
+	double engine_pressure;
+	error_ignition != engine_pressure_read(control.i2c_engine_press,&engine_pressure);
+	if(engine_pressure</*wanted_pressure*/){
+		++ignition_insufficient_pressure_counter;
+		if(ignition_insufficient_pressure_counter == IGNITION_COUNTER_THRESHOLD){
+			control_abort_start();
+			return;
+		}
+	}
+		
 	if (error_ignition)
 		control_abort_start();
 	else {
@@ -772,7 +828,13 @@ void control_ignition_run(void) {
 		state->servoN20 = ENGINE_STATE_PARTIALLY_OPEN;
 		state->servo_ethanol = ENGINE_STATE_PARTIALLY_OPEN;
 		od_write_ENGINE_CONTROL(&state);
-
+		if(engine_pressure</*wanted_pressure*/){
+			++ignition_insufficient_counter;
+			if(ignition_insufficient_counter == IGNITION_COUNTER_THRESHOLD){
+				control_abort_start();
+			}
+			return;
+		}
 		control_thrust_start();
 	}
 }
@@ -812,6 +874,7 @@ void control_thrust_run(void) {
 
 void control_shutdown_start(void) {
 	control.state = CONTROL_SHUTDOWN;
+	control.counter = SHUTDOWN_TO_APOGEE_TIME;
 }
 
 /**
@@ -824,11 +887,22 @@ void control_shutdown_run(void) {
 	util_error_t error_shutdown = ER_SUCCESS; // shutdown()
 
 	//TODO define engine shutdown behavior
+	//Wait for APOGEE in other FSM
 
 	if (error_shutdown)
 		control_abort_start();
-	else
-		control_apogee_start();
+	else {
+		// Compute time elapsed since last time, in milliseconds.
+		control->last_time = control->time;
+		control->time = HAL_GetTick();
+
+		control->counter -= control->time - control->last_time;
+
+		// Check if we're ready to reach the top of the sky !
+		if (control->counter <= CONTROL_APOGEE_THRESH) {
+			control_apogee_start();
+		}
+	}
 
 }
 
@@ -838,7 +912,7 @@ void control_apogee_start(void) {
 
 /**
  * @brief	Apogee state runtime
- * @details	This function will open the venting valves (N20 and ethanol).
+ * @details	This function will open the venting valves (N2O and ethanol).
  * 			After the end of the sequence, it will jump to the depressurisation state.
  */
 void control_apogee_run(void) {
@@ -859,14 +933,14 @@ void control_depressurisation_start(void) {
 
 /**
  * @brief	Depressurisation state runtime
- * @details	This function will open the pressurisation valve (N20).
+ * @details	This function will open the pressurisation valve (N2O).
  * 			After the end of the sequence, it will jump to the glide state.
  */
 void control_depressurisation_run(void) {
 	uint8_t error_depressurisation = ER_SUCCESS; // depressurisation() -> open valve
 
-	// TODO update the functions
-	error_depressurisation |= solenoid_on(SOLENOID_PRESSURISATION);
+	// TODO put a timer to close the servo again once the tank is definitely empty
+	solenoid_on(SOLENOID_PRESSURISATION);
 
 	if (error_depressurisation) {
 		control_abort_start();

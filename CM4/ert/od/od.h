@@ -88,6 +88,7 @@ DECLARE_OD_ENTRY(BATTERY_B, uint32_t);
 DECLARE_OD_ENTRY(RF_CMD, rf_cmd_t);
 DECLARE_OD_ENTRY(COUNTDOWN, uint16_t);
 DECLARE_OD_ENTRY(ENGINE_STATE, rf_cmd_t);
+DECLARE_OD_ENTRY(ENGINE_FSM_STATE, uint8_t);
 
 #ifdef __cplusplus
 } // extern "C"
