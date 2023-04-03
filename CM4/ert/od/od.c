@@ -73,7 +73,7 @@ ALLOCATE_OD_ENTRY(BATTERY_A, 15, uint32_t);
 ALLOCATE_OD_ENTRY(BATTERY_B, 16, uint32_t);
 ALLOCATE_OD_ENTRY(RF_CMD, 17, rf_cmd_t);
 ALLOCATE_OD_ENTRY(COUNTDOWN, 18, uint16_t);
-//ALLOCATE_OD_ENTRY(ENGINE_STATE, 18, état de toutes les vannes structure à définir)
+ALLOCATE_OD_ENTRY(ENGINE_STATE, 18, rf_cmd_t);
 
 
 /**
@@ -87,6 +87,7 @@ static const od_entry_t od_entries[OD_MAX_DATAID] = {
 	LINK_OD_ENTRY(BATTERY_B),
 	LINK_OD_ENTRY(RF_CMD),
 	LINK_OD_ENTRY(COUNTDOWN),
+	LINK_OD_ENTRY(ENGINE_STATE)
 };
 
 /**
