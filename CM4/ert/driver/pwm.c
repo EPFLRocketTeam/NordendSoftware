@@ -13,14 +13,16 @@
 #include "pwm.h"
 #include "stm32mp1xx_hal_rcc.h"
 #include <abstraction/gpio.h>
+#include <feedback/debug.h>
 
 /**********************
  *	CONSTANTS
  **********************/
 
-// TODO Check if this returns the /2 or not !! And if this truly corresponds to APB
+// TODO Update with HAL function when ready
 // Get CK_INT for the timers (timers 2 to 7, 12 to 14 only)
-#define CK_INT  HAL_RCC_GetPCLK1Freq() // 200 MHz
+// #define CK_INT  HAL_RCC_GetPCLK1Freq() // 200 MHz
+#define CK_INT (200) // MHz
 
 /**********************
  *	MACROS
@@ -65,7 +67,7 @@ static void init_gpio(GPIO_TypeDef * bank, uint32_t pins, uint32_t alternate) {
 	init_struct.Speed = GPIO_SPEED_FREQ_LOW;
 	init_struct.Pin = pins;
 
-	HAL_GPIO_Init(bank, &init_struct);
+//	HAL_GPIO_Init(bank, &init_struct);
 }
 
 static uint32_t gpio_pin_assign(uint8_t channel_sel,
@@ -96,10 +98,16 @@ static uint8_t channel_is_active(uint8_t channel_sel, uint8_t channel_index) {
 // Converts microseconds to something to put into the CCR register
 static uint32_t usec_to_ccr(pwm_data_t *data, uint32_t usec) {
 	// TODO Check if resolution and calculation holds
+//	debug_log("PSC is %d\n", data->htim.Instance->PSC);
+//	debug_log("I want to have %d microseconds\n", usec);
+
 	uint32_t val_ccr =
-			(data->htim.Instance->ARR * usec * CK_INT)
-					/ ((data->htim.Instance->PSC + 1)
-							* (data->htim.Instance->ARR + 1));
+			usec * (CK_INT) / (data->htim.Instance->PSC + 1);
+//			(data->htim.Instance->ARR * usec * CK_INT)
+//					/ ((data->htim.Instance->PSC + 1)
+//							* (data->htim.Instance->ARR + 1));
+
+//	debug_log("CCR is %d\n", val_ccr);
 	return val_ccr;
 }
 
@@ -112,7 +120,7 @@ static uint32_t ccr_read_to_usec(pwm_data_t *data, uint32_t ccr) {
 }
 
 util_error_t pwm_init(pwm_data_t * data, PWM_Timer_t timer, uint8_t channel_sel) {
-	return pwm_init_arr(data, timer, channel_sel, 0xff); // Using 0xff as default ARR value, not sure what the right choice should be ?
+	return pwm_init_arr(data, timer, channel_sel, 1000000); // Using 1000000 (1M) as default ARR value
 }
 
 util_error_t pwm_init_arr(pwm_data_t *data, PWM_Timer_t timer,
@@ -154,7 +162,8 @@ util_error_t pwm_init_arr(pwm_data_t *data, PWM_Timer_t timer,
 		break;
 	case PWM_TIM5:
 	{
-		data->htim = htim3;
+		data->htim = htim5;
+		debug_log("In timer 5");
 		uint32_t pinsA = gpio_pin_assign(channel_sel, GPIO_PIN_0, GPIO_PIN_1,
 		GPIO_PIN_2, GPIO_PIN_3);
 		init_gpio(GPIOA, pinsA, GPIO_AF2_TIM5);
@@ -189,7 +198,7 @@ util_error_t pwm_init_arr(pwm_data_t *data, PWM_Timer_t timer,
 util_error_t pwm_set_microseconds(pwm_data_t *data, uint32_t usec,
 		uint8_t channel_sel) {
 
-	uint8_t v = usec_to_ccr(data, usec);
+	uint32_t v = usec_to_ccr(data, usec);
 	return pwm_set_duty(data, v, channel_sel);
 }
 
@@ -210,6 +219,24 @@ util_error_t pwm_set_duty(pwm_data_t *data, uint32_t new_duty, uint8_t channel_s
 
 	return ER_SUCCESS;
 }
+
+//util_error_t pwm_set_width(pwm_data_t *data, uint32_t new_duty, uint8_t channel_sel) {
+//	TIM_TypeDef *inst = data->htim.Instance;
+//
+//	if (channel_is_active(channel_sel, 1))
+//		inst->CCR1 = new_duty;
+//
+//	if (channel_is_active(channel_sel, 2))
+//		inst->CCR2 = new_duty;
+//
+//	if (channel_is_active(channel_sel, 3))
+//		inst->CCR3 = new_duty;
+//
+//	if (channel_is_active(channel_sel, 4))
+//		inst->CCR4 = new_duty;
+//
+//	return ER_SUCCESS;
+//}
 
 uint32_t pwm_read_microseconds(pwm_data_t *data, uint8_t channel_index) {
 	uint32_t ccr_val = read_duty(data, channel_index);

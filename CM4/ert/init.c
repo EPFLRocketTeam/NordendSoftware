@@ -130,6 +130,8 @@ void init(void) {
 	// NOT USED DUE TO BUGS!!!!
 	//can_init(WH_COMPUTER);
 
+	debug_log("Beginning of the threads");
+
 #if WH_HAS_FEEDBACK == WH_TRUE
 #if WH_USE_BUZZER == WH_TRUE
 	buzzer_init();

@@ -148,21 +148,37 @@ void servo_thread(__attribute__((unused)) void * arg) {
 	uint32_t max_pulse = 2200;
 	float degrees_per_usec = 0.114;
 
-	servo_init(&servo_ethanol, pwm_data, PWM_SELECT_CH1, min_pulse, max_pulse, SERVO_ETHANOL_OFFSET, degrees_per_usec, 0, 45, 90);
+	//Not working servo_init(&servo_ethanol, pwm_data, PWM_SELECT_CH1, min_pulse, max_pulse, SERVO_ETHANOL_OFFSET, degrees_per_usec, 0, 45, 90);
 
 	// Using channels 1 and 2 -- initialize the PWM channel
-	pwm_init(pwm_data, PWM_TIM5, servo_ethanol.pwm_channel);
+	//pwm_init(pwm_data, PWM_TIM5, servo_ethanol.pwm_channel);
 
+	HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_2);
+
+	htim5.Instance->ARR = 1000000;
 	for (;;) {
+
 		osDelay(1000);
-		servo_set_state(&servo_ethanol, SERVO_CLOSED);
 		led_rgb_set_color(led_red);
-		osDelay(1000);
-		led_rgb_set_color(led_green);
-		servo_set_state(&servo_ethanol, SERVO_PARTIALLY_OPEN);
+		htim5.Instance->CCR1 = 100000;
 		osDelay(1000);
 		led_rgb_set_color(led_blue);
-		servo_set_state(&servo_ethanol, SERVO_OPEN);
+		htim5.Instance->CCR1 = 500000;
+		/*
+		// servo_set_state(&servo_ethanol, SERVO_CLOSED);
+		pwm_set_microseconds(pwm_data, 800, PWM_SELECT_CH1);
+		debug_log("Hello\n");
+		led_rgb_set_color(led_red);
+		osDelay(1000);
+		pwm_set_microseconds(pwm_data, 1500, PWM_SELECT_CH1);
+		led_rgb_set_color(led_green);
+//		servo_set_state(&servo_ethanol, SERVO_PARTIALLY_OPEN);
+		osDelay(1000);
+		pwm_set_microseconds(pwm_data, 2100, PWM_SELECT_CH1);
+		led_rgb_set_color(led_blue);
+		*/
+//		servo_set_state(&servo_ethanol, SERVO_OPEN);
 	}
 }
 

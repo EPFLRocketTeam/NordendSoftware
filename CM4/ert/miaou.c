@@ -117,11 +117,11 @@ void miaou_thread(__attribute__((unused)) void * arg) {
 
 		miaou_packet.packet_nbr = packet_number;
 		miaou_packet.timestamp = HAL_GetTick();
-
-		comunicator_send(	&miaou_comunicator,
-							radio_packet_opcode,
-							radio_packet_size,
-							(uint8_t *) &miaou_packet);
+//
+//		comunicator_send(	&miaou_comunicator,
+//							radio_packet_opcode,
+//							radio_packet_size,
+//							(uint8_t *) &miaou_packet);
 
 
 		debug_log("mioau packet sent!\n");
