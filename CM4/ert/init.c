@@ -136,7 +136,7 @@ void init(void) {
 #if WH_USE_BUZZER == WH_TRUE
 	buzzer_init();
 #endif
-	led_feedback_init();
+	//led_feedback_init();
 #endif
 
 #if WH_HAS_SENSORS == WH_TRUE
