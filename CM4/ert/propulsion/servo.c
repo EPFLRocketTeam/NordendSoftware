@@ -45,6 +45,7 @@ const uint32_t SERVO_ETHANOL_OFFSET = 1500;
  *	MACROS
  **********************/
 
+#define DEG_TO_USEC(degrees, degrees_per_usec) ((uint32_t) degrees / degrees_per_usec)
 
 /**********************
  *	TYPEDEFS
@@ -65,14 +66,9 @@ servo_t servo_ethanol = {0};
 /**********************
  *	DECLARATIONS
  **********************/
-static uint32_t degrees_to_usec(float degrees, float degrees_per_usec) {
-	return (uint32_t) degrees / degrees_per_usec;
-}
-
 
 util_error_t servo_init(
 	servo_t * servo,
-	pwm_data_t * pwm,
 	PWM_Channel_Selection_t pwm_channel,
 	uint32_t min_pulse,
 	uint32_t max_pulse,
@@ -82,7 +78,6 @@ util_error_t servo_init(
 	float partially_open_rotation,
 	float closed_rotation
 ) {
-	servo->pwm_data = pwm;
 	servo->pwm_channel = pwm_channel;
 	servo->min_pulse = min_pulse;
 	servo->max_pulse = max_pulse;
@@ -101,10 +96,10 @@ util_error_t servo_init(
 util_error_t servo_set_rotation(servo_t *servo, float newRotation) {
 	servo->rotation = newRotation;
 
-	uint32_t us = degrees_to_usec(newRotation, servo->degrees_per_usec) + servo->origin;
+	uint32_t us = DEG_TO_USEC(newRotation, servo->degrees_per_usec) + servo->origin;
 	us = clamp_u32(servo->min_pulse, us, servo->max_pulse);
 
-	pwm_set_microseconds(servo->pwm_data, us, servo->pwm_channel);
+	pwm_set_microseconds(us, servo->pwm_channel);
 
 	return ER_SUCCESS;
 }
@@ -153,10 +148,12 @@ void servo_thread(__attribute__((unused)) void * arg) {
 	// Using channels 1 and 2 -- initialize the PWM channel
 	//pwm_init(pwm_data, PWM_TIM5, servo_ethanol.pwm_channel);
 
-	HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_2);
+	// Debug code
+//	HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_1);
+//	HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_2);
+//
+//	htim5.Instance->ARR = 1000000;
 
-	htim5.Instance->ARR = 1000000;
 	for (;;) {
 
 		osDelay(1000);

@@ -130,7 +130,6 @@ servo_state_t servo_get_state(servo_t *servo);
  * @pre
  * @post
  * @param servo The servo instance to initialize
- * @param pwm The PWM instance to attach to the servo instance. The PWM must be initialized using {@link pwm_init} from driver/pwm.
  * @param pwm_channel The channel associated with the servo instance
  * @param min_pulse The minimum allowed pulse that can be sent to the servo, in microseconds
  * @param max_pulse The maximum allowed pulse that can be sent to the servo, in microseconds
@@ -143,7 +142,6 @@ servo_state_t servo_get_state(servo_t *servo);
  */
 util_error_t servo_init(
 		servo_t * servo,
-		pwm_data_t * pwm,
 		PWM_Channel_Selection_t pwm_channel,
 		uint32_t min_pulse,
 		uint32_t max_pulse,
