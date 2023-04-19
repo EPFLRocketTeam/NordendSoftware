@@ -184,47 +184,53 @@ void control_thread(__attribute__((unused)) void * arg) {
 	static const TickType_t period = pdMS_TO_TICKS(CONTROL_HEART_BEAT);
 	last_wake_time = xTaskGetTickCount();
 
-    control_idle_start();
+	control_idle_start();
 
 	uint16_t checkpoint = led_add_checkpoint(led_blue);
 	debug_log("Control start\n");
 
+	int adc_resolution = 16;
+	float ref_voltage = 3.3;
+
+
+	// Determine the offset value for each channel
+	HAL_ADC_Start(&hadc1);
+	HAL_ADC_PollForConversion(&hadc1, 10);
+	uint32_t offset_bat1 = HAL_ADC_GetValue(&hadc1);
+	HAL_ADC_PollForConversion(&hadc1, 10);
+	uint32_t offset_bat2 = HAL_ADC_GetValue(&hadc1);
+
+	// Calculate the fixed offset value for each channel
+	float expected_voltage = 0.0; // expected voltage when input voltage is zero
+	float measured_voltage_bat1 = (float)offset_bat1 / ((1 << adc_resolution) - 1) * ref_voltage * 1000;
+	float measured_voltage_bat2 = (float)offset_bat2 / ((1 << adc_resolution) - 1) * ref_voltage * 1000;
+	float fixed_offset_bat1 = expected_voltage - measured_voltage_bat1;
+	float fixed_offset_bat2 = expected_voltage - measured_voltage_bat2;
 
 	for(;;) {
 
-		//read battery
-		HAL_ADC_Start(&hadc1);
+	  // Start the ADC conversion sequence
+	  HAL_ADC_Start(&hadc1);
 
-		HAL_ADC_PollForConversion(&hadc1, 10);
+	  // Poll for the first conversion completion (Battery 1)
+	  HAL_ADC_PollForConversion(&hadc1, 10);
+	  uint32_t bat1_value = HAL_ADC_GetValue(&hadc1) + fixed_offset_bat1;
+p	  uint32_t bat1_voltage = (float)bat1_value / ((1 << adc_resolution) - 1) * ref_voltage * 1000;
 
-		uint32_t bat1 = HAL_ADC_GetValue(&hadc1);
+	  // Poll for the second conversion completion (Battery 2)
+	  HAL_ADC_PollForConversion(&hadc1, 10);
+	  uint32_t bat2_value = HAL_ADC_GetValue(&hadc1) + fixed_offset_bat2;
+	  uint32_t bat2_voltage = (float)bat2_value / ((1 << adc_resolution) - 1) * ref_voltage * 1000;
 
-		//convert to millivolt
+	  od_write_BATTERY_A(&bat1_voltage);
+	  od_write_BATTERY_B(&bat2_voltage);
+	
+	  led_checkpoint(checkpoint);
+	  //debug_log("Control loop | state: %d\n", control.state);
 
-		od_write_BATTERY_A(&bat1);
+	  control_fcn[control.state]();
 
-		HAL_ADC_Start(&hadc1);
-
-		HAL_ADC_PollForConversion(&hadc1, 10);
-
-		uint32_t bat2 = HAL_ADC_GetValue(&hadc1);
-
-		//convert to millivolt
-
-		od_write_BATTERY_B(&bat2);
-
-
-
-
-
-
-		led_checkpoint(checkpoint);
-		//debug_log("Control loop | state: %d\n", control.state);
-
-
-        control_fcn[control.state]();
-
-		vTaskDelayUntil( &last_wake_time, period );
+	  vTaskDelayUntil( &last_wake_time, period );
 	}
 }
 
