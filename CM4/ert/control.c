@@ -215,7 +215,7 @@ void control_thread(__attribute__((unused)) void * arg) {
 	  // Poll for the first conversion completion (Battery 1)
 	  HAL_ADC_PollForConversion(&hadc1, 10);
 	  uint32_t bat1_value = HAL_ADC_GetValue(&hadc1) + fixed_offset_bat1;
-p	  uint32_t bat1_voltage = (float)bat1_value / ((1 << adc_resolution) - 1) * ref_voltage * 1000;
+	  uint32_t bat1_voltage = (float)bat1_value / ((1 << adc_resolution) - 1) * ref_voltage * 1000;
 
 	  // Poll for the second conversion completion (Battery 2)
 	  HAL_ADC_PollForConversion(&hadc1, 10);
