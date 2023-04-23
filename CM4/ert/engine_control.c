@@ -150,8 +150,39 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 		// lol = !lol (PropulsionControl/engine.c:41)
 	}
 
+	int adc_resolution = 16;
+	float ref_voltage = 3.3;
+
+	// Determine the offset value for each ADC channel
+	HAL_ADC_Start(&hadc1);
+	HAL_ADC_PollForConversion(&hadc1, 10);
+	uint32_t offset_bat1 = HAL_ADC_GetValue(&hadc1);
+	HAL_ADC_PollForConversion(&hadc1, 10);
+	uint32_t offset_bat2 = HAL_ADC_GetValue(&hadc1);
+
+	// Calculate the fixed offset value for each ADC channel
+	float expected_voltage = 0.0; // expected voltage when input voltage is zero
+	float measured_voltage_bat1 = (float)offset_bat1 / ((1 << adc_resolution) - 1) * ref_voltage * 1000;
+	float measured_voltage_bat2 = (float)offset_bat2 / ((1 << adc_resolution) - 1) * ref_voltage * 1000;
+	float fixed_offset_bat1 = expected_voltage - measured_voltage_bat1;
+	float fixed_offset_bat2 = expected_voltage - measured_voltage_bat2;
+
 	for (;;) {
-		// read battery TODO
+	  // Start the ADC conversion sequence
+	  HAL_ADC_Start(&hadc1);
+
+	  // Poll for the first conversion completion (Battery 1)
+	  HAL_ADC_PollForConversion(&hadc1, 10);
+	  uint32_t bat1_value = HAL_ADC_GetValue(&hadc1) + fixed_offset_bat1;
+	  uint32_t bat1_voltage = (float)bat1_value / ((1 << adc_resolution) - 1) * ref_voltage * 1000;
+
+	  // Poll for the second conversion completion (Battery 2)
+	  HAL_ADC_PollForConversion(&hadc1, 10);
+	  uint32_t bat2_value = HAL_ADC_GetValue(&hadc1) + fixed_offset_bat2;
+	  uint32_t bat2_voltage = (float)bat2_value / ((1 << adc_resolution) - 1) * ref_voltage * 1000;
+
+	  od_write_BATTERY_A(&bat1_voltage);
+	  od_write_BATTERY_B(&bat2_voltage);
 
 		// LED Debug checkpoints
 		led_checkpoint(checkpoint);
