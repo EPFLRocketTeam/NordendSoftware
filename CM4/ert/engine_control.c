@@ -107,7 +107,7 @@ enum od_engine_state {
  */
 static control_t control;
 static uint8_t error_loop_control = 0;
-static uint8_t ignition_insufficient_pressure_counter =0;
+static uint16_t ignition_insufficient_pressure_counter =0;
 
 /**
  * Last wake time for the timer
@@ -133,8 +133,10 @@ static const TickType_t period = pdMS_TO_TICKS(CONTROL_HEART_BEAT);
 /**********************
  *	PROTOTYPES
  **********************/
-static void control_sched_check_next(control_state_t *requested_state);
-
+static void control_sched_check_next(control_sched_t *requested_state);
+util_error_t init_eng_ctrl();
+control_sched_t check_flagged_state();
+void reset_flag(control_sched_t flagged_state);
 
 /**********************
  *	DECLARATIONS
@@ -155,7 +157,7 @@ static void control_sched_check_next(control_state_t *requested_state);
  */
 
 void engine_control_thread(__attribute__((unused)) void *arg) {
-	util_error_t init_err = init();
+	util_error_t init_err = init_eng_ctrl();
 
 	// Timer things
 	last_wake_time = xTaskGetTickCount();
@@ -207,12 +209,12 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 
 		//Do task scheduler things
 		control_sched_t flagged_state = CONTROL_SCHED_NOTHING;
-		flagged_state = check_flags_state();
+		flagged_state = check_flagged_state();
 
 		if (flagged_state != CONTROL_SCHED_NOTHING) {
 			reset_flag(flagged_state);
-			control_state_t requested_state = correlate_state_sched(flagged_state);
-			control_sched_check_next(& requested_state);
+			//control_state_t requested_state = correlate_state_sched(flagged_state);
+			control_sched_check_next(& flagged_state);
 		}
 
 		// Call the function associated with the current state.
@@ -314,6 +316,7 @@ void reset_flag(control_sched_t flagged_state) {
 			break;
 		case CONTROL_SCHED_VENT_N2O:
 			flags.ventN20 = CMD_INACTIVE;
+			break;
 		case CONTROL_SCHED_CALIBRATE:
 			flags.calibrate = CMD_INACTIVE;
 			break;
@@ -373,7 +376,7 @@ util_error_t init_eng_ctrl(void) {
 
 	// Assign Ethanol servo to pin 13 (TIM4, CH2) and N2O servo to pin 14 (TIM4, CH3)
 	util_error_t ethanol_err = servo_init(
-			&servo_ethanol,
+			servo_ethanol,
 			&pwm_data,
 			PWM_SELECT_CH2,
 			min_pulse,
@@ -385,7 +388,7 @@ util_error_t init_eng_ctrl(void) {
 			SERVO_ETHANOL_CLOSED);
 
 	util_error_t n2o_err = servo_init(
-			&servo_n2o,
+			servo_n2o,
 			&pwm_data,
 			PWM_SELECT_CH3,
 			min_pulse,
@@ -402,8 +405,8 @@ util_error_t init_eng_ctrl(void) {
 
 	// Initialize servo states
 	util_error_t servo_err = ER_SUCCESS;
-	servo_err |= servo_set_state(& servo_n2o, SERVO_CLOSED);
-	servo_err |= servo_set_state(& servo_ethanol, SERVO_CLOSED);
+	servo_err |= servo_set_state(servo_n2o, SERVO_CLOSED);
+	servo_err |= servo_set_state(servo_ethanol, SERVO_CLOSED);
 
 	// Initialize solenoids
 	util_error_t sol_err = ER_SUCCESS;
@@ -468,11 +471,11 @@ control_state_t correlate_state_sched(control_sched_t requested_state) {
  * @brief Checks if requested state is valid
  * @details Used to check if the next state requested by GS is valid.
  */
-void control_sched_check_next(control_state_t *requested_state) {
-	if (control.state != requested_state) {
+void control_sched_check_next(control_sched_t *requested_state) {
+	if (control.state != correlate_state_sched(*requested_state)) {
 		for (uint8_t i = 0; i < SCHED_ALLOWED_WIDTH; i++) {
-			if (sched_allowed[control.state][i] == requested_state) {
-				schedule_next_state(* requested_state);
+			if (sched_allowed[control.state][i] == *requested_state) {
+				schedule_next_state(correlate_state_sched(* requested_state));
 				return;
 			}
 		}
@@ -570,7 +573,7 @@ void control_calibration_run(void) {
 	util_error_t error_calibration = 0;
 
 	error_calibration |= engine_pressure_calibrate(control.i2c_engine_press);
-	error_calibration |= engine_temperature_calibrate(control.i2c_engine_temp);
+	error_calibration |= temperature_sensor_calibrate(control.i2c_engine_temp);
 
 	if (error_calibration) {
 		schedule_next_state(CONTROL_ERROR);
@@ -601,7 +604,7 @@ void control_vent_ethanol_run(void) {
 	// Read ethanol state from OD (closed == 0) and update accordingly
 	rf_cmd_t state;
 	od_read_ENGINE_STATE(&state);
-	state.ventEthanol != state.ventEthanol;
+	state.ventEthanol = !(state.ventEthanol);
 	
 	if (state.ventEthanol) {
 		error_venting |= solenoid_on(SOLENOID_ETHANOL);
@@ -629,7 +632,7 @@ void control_vent_n2o_run(void) {
 	// Read n2o state from OD (closed == 0) and update accordingly
 	rf_cmd_t state;
 	od_read_ENGINE_STATE(&state);
-	state.ventN20 != state.ventN20;
+	state.ventN20 = !state.ventN20;
 	
 	if (state.ventN20) {
 		error_venting |= solenoid_on(SOLENOID_N2O);
@@ -655,12 +658,12 @@ void control_servos_ethanol_start(void) {
 }
 
 static uint8_t servo_n2o_state_od(rf_cmd_t *state) {
-	od_read_ENGINE_STATE(&state);
+	od_read_ENGINE_STATE(state);
 	return state->servoN20;
 }
 
 static uint8_t servo_ethanol_state_od(rf_cmd_t *state) {
-	od_read_ENGINE_STATE(&state);
+	od_read_ENGINE_STATE(state);
 	return state->servoEthanol;
 }
 
@@ -738,7 +741,7 @@ void control_pressurisation_start(void) {
  */
 void control_pressurisation_run(void) {
 	rf_cmd_t eng_state;
-	od_read_ENGINE_CONTROL(&eng_state);
+	od_read_ENGINE_STATE(&eng_state);
 
 	if (eng_state.pressurization != ENGINE_STATE_CLOSED) {
 		solenoid_off(SOLENOID_PRESSURISATION);
@@ -749,7 +752,7 @@ void control_pressurisation_run(void) {
 	}
 
 	// Update OD entry
-	od_write_ENGINE_CONTROL(&eng_state);
+	od_write_ENGINE_STATE(&eng_state);
 
 	prev_state_start();
 }
@@ -824,7 +827,7 @@ void control_igniter_run(void) {
 		return;
 	}
 
-	control_powered_start();
+	control_thrust_start();
 
 }
 
@@ -849,8 +852,8 @@ void control_ignition_run(void) {
 
 	//TODO Check for pressure in combustion chamber and define behavior
 	double engine_pressure;
-	error_ignition != engine_pressure_read(control.i2c_engine_press,&engine_pressure);
-	if(engine_pressure</*wanted_pressure*/){
+	error_ignition |= engine_pressure_read(control.i2c_engine_press,&engine_pressure);
+	if(engine_pressure<00/*wanted_pressure*/){//TODO determine the required pressure
 		++ignition_insufficient_pressure_counter;
 		if(ignition_insufficient_pressure_counter == IGNITION_COUNTER_THRESHOLD){
 			control_abort_start();
@@ -863,11 +866,11 @@ void control_ignition_run(void) {
 	else {
 		// Update OD state
 		rf_cmd_t state;
-		od_read_ENGINE_CONTROL(&state);
+		od_read_ENGINE_STATE(&state);
 		state.servoN20 = ENGINE_STATE_PARTIALLY_OPEN;
 		state.servoEthanol = ENGINE_STATE_PARTIALLY_OPEN;
-		od_write_ENGINE_CONTROL(&state);
-		if(engine_pressure</*wanted_pressure*/){
+		od_write_ENGINE_STATE(&state);
+		if(engine_pressure<00/*wanted_pressure*/){//TODO determine the expected pressure
 			++ignition_insufficient_pressure_counter;
 			if(ignition_insufficient_pressure_counter == IGNITION_COUNTER_THRESHOLD){
 				control_abort_start();
@@ -902,10 +905,10 @@ void control_thrust_run(void) {
 	else {
 		// Update OD state
 		rf_cmd_t state;
-		od_read_ENGINE_CONTROL(&state);
+		od_read_ENGINE_STATE(&state);
 		state.servoN20 = ENGINE_STATE_OPEN;
 		state.servoEthanol = ENGINE_STATE_OPEN;
-		od_write_ENGINE_CONTROL(&state);
+		od_write_ENGINE_STATE(&state);
 
 		control_shutdown_start();
 	}

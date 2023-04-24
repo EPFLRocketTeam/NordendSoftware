@@ -27,7 +27,7 @@
 #define CH_Vdc 8
 
 //static double const VREF = 2.048;
-const static double LIN_RATIO = (MAX_PRESSURE-MIN_PRESSURE)/(0.8*AA_Vdc);
+static const double LIN_RATIO = (MAX_PRESSURE-MIN_PRESSURE)/(0.8*AA_Vdc);
 
 void engine_sensor_convert_pres(double * data);
 

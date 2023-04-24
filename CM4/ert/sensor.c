@@ -22,7 +22,6 @@
 #include <sensor/accelerometer.h>
 //#include <sensor/gyroscope.h>
 #include <sensor/barometer.h>
-#include <sensor/engine_pressure.h>
 #include <sensor/magnetometer.h>
 #include <od/od.h>
 #include <driver/hostproc.h>
@@ -66,7 +65,6 @@ static accelerometer_data_t i2c_acc_data;
 //static gyroscope_data_t i2c_gyro_data;
 static barometer_data_t i2c_baro_data;
 static barometer_meta_t i2c_baro_meta;
-static double i2c_engine_press_data;
 static magnetometer_data_t i2c_magneto_data;
 
 
@@ -112,7 +110,6 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	util_error_t acc_err = accelerometer_init(i2c_acc);
 	//util_error_t gyro_err = gyroscope_init(i2c_gyro);
 	util_error_t baro_err = barometer_init(i2c_baro, &i2c_baro_meta);
-	util_error_t engine_pressure_err = engine_pressure_init(i2c_engine_press);
 	util_error_t magneto_err = magnetometer_init(i2c_magneto);
 
 	uint16_t checkpoint_acc;

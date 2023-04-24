@@ -17,6 +17,6 @@ typedef struct temperature_data {
 
 util_error_t temperature_sensor_init(device_t * temp_sensor);
 util_error_t temperature_sensor_read(device_t * temp_snsor, temperature_data_t * data);
-
+util_error_t temperature_sensor_calibrate(device_t * temp_sensor);
 
 #endif /* SENSOR_TEMPERATURE_H_ */
