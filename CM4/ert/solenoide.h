@@ -25,18 +25,18 @@ typedef enum Solenoids {
  * @brief 	Initializes the solenoid pin bank with the
  * 			correct pin numbers
  */
-void solenoid_init(void);
+util_error_t solenoid_init(void);
 
 /**
  * @fn 			void solenoid_on(Solenoids_t)
  * @brief 		Sets the given solenoid's pin to 1 (active)
  * @param pin 	the solenoid pin to activate
  */
-void solenoid_on(Solenoids_t pin);
+util_error_t solenoid_on(Solenoids_t pin);
 
 /**
  * @fn 			void solenoid_off(Solenoids_t)
  * @brief 		Sets the given solenoid's pin to 0 (inactive)
  * @param pin	the solenoid pin to reset
  */
-void solenoid_off(Solenoids_t pin);
+util_error_t solenoid_off(Solenoids_t pin);

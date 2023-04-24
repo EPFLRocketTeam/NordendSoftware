@@ -17,7 +17,11 @@
  **********************/
 
 #include <stdint.h>
-#include "util.h"
+#include <util.h>
+#include <RadioPacket/RadioPacket.h>
+#include <solenoide.h>
+#include <propulsion/servo.h>
+
 
 /**********************
  *  CONSTANTS
@@ -79,16 +83,16 @@ typedef struct control
 	control_state_t state;
 	control_state_t prev_state;
 
-	Solenoid_t *solenoid_n2o;
-	Solenoid_t *solenoid_ethanol;
-	Solenoid_t *solenoid_pressurisation;
-	Solenoid_t *solenoid_purge;
+	Solenoids_t *solenoid_n2o;
+	Solenoids_t *solenoid_ethanol;
+	Solenoids_t *solenoid_pressurisation;
+	Solenoids_t *solenoid_purge;
 
 	device_t *i2c_engine_press;
 	device_t *i2c_engine_temp;
 
 	servo_t *servo_ethanol;
-	servot_t *servo_n2o;
+	servo_t *servo_n2o;
 
 	uint32_t counter;
 	uint32_t time;
@@ -182,10 +186,11 @@ extern "C"
 
 	void schedule_next_state(control_state_t next_state);
 	static void prev_state_start(void);
+	control_state_t correlate_state_sched(control_sched_t requested_state);
 
 	void engine_control_thread(void *arg);
 
-	util_error_t init(void);
+	util_error_t init_eng_ctrl(void);
 
 #ifdef __cplusplus
 } // extern "C"

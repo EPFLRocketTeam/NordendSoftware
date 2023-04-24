@@ -20,7 +20,7 @@
 
 #include <device/i2c_sensor.h>
 #include <sensor/accelerometer.h>
-#include <sensor/gyroscope.h>
+//#include <sensor/gyroscope.h>
 #include <sensor/barometer.h>
 #include <sensor/engine_pressure.h>
 #include <sensor/magnetometer.h>
@@ -53,7 +53,7 @@
 
 
 static device_t * i2c_acc;
-static device_t * i2c_gyro;
+//static device_t * i2c_gyro;
 static device_t * i2c_baro;
 static device_t * i2c_engine_press;
 
@@ -64,7 +64,7 @@ static uint8_t i2c_calib;
 //data
 
 static accelerometer_data_t i2c_acc_data;
-static gyroscope_data_t i2c_gyro_data;
+//static gyroscope_data_t i2c_gyro_data;
 static barometer_data_t i2c_baro_data;
 static barometer_meta_t i2c_baro_meta;
 static double i2c_engine_press_data;
@@ -100,7 +100,7 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	debug_log("Sensor i2c start\n");
 	//get devices
 	i2c_acc = i2c_sensor_get_accelerometer();
-	i2c_gyro = i2c_sensor_get_gyroscope();
+	//i2c_gyro = i2c_sensor_get_gyroscope();
 	i2c_baro = i2c_sensor_get_barometer();
 	i2c_magneto = i2c_sensor_get_magnetometer();
 
@@ -109,7 +109,7 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 
 	// Initialize each sensor
 	util_error_t acc_err = accelerometer_init(i2c_acc);
-	util_error_t gyro_err = gyroscope_init(i2c_gyro);
+	//util_error_t gyro_err = gyroscope_init(i2c_gyro);
 	util_error_t baro_err = barometer_init(i2c_baro, &i2c_baro_meta);
 	util_error_t engine_pressure_err = engine_pressure_init(i2c_engine_press);
 	util_error_t magneto_err = magnetometer_init(i2c_magneto);
@@ -121,12 +121,12 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	} else {
 		checkpoint_acc = led_add_checkpoint(led_red);
 	}
-	uint16_t checkpoint_gyro;
-	if(gyro_err == ER_SUCCESS) {
-		checkpoint_gyro = led_add_checkpoint(led_green);
-	} else {
-		checkpoint_gyro = led_add_checkpoint(led_red);
-	}
+	// uint16_t checkpoint_gyro;
+	// if(gyro_err == ER_SUCCESS) {
+	// 	checkpoint_gyro = led_add_checkpoint(led_green);
+	// } else {
+	// 	checkpoint_gyro = led_add_checkpoint(led_red);
+	// }
 	uint16_t checkpoint_baro;
 	if(baro_err == ER_SUCCESS) {
 		checkpoint_baro = led_add_checkpoint(led_green);
@@ -147,7 +147,7 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	for(;;) {
 		led_checkpoint(checkpoint);
 		led_checkpoint(checkpoint_baro);
-		led_checkpoint(checkpoint_gyro);
+		//led_checkpoint(checkpoint_gyro);
 		led_checkpoint(checkpoint_acc);
 		led_checkpoint(checkpoint_magneto);
 
@@ -180,11 +180,11 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 				//TickType_t baro_pres_time = xTaskGetTickCount();
 			}
 
-			if(gyro_err == ER_SUCCESS) {
-				//gyro read or acc read second time
-				gyroscope_read_data(i2c_gyro, &i2c_gyro_data);
-				gyroscope_process_data(&i2c_gyro_data, 10000);
-			}
+			// if(gyro_err == ER_SUCCESS) {
+			// 	//gyro read or acc read second time
+			// 	gyroscope_read_data(i2c_gyro, &i2c_gyro_data);
+			// 	gyroscope_process_data(&i2c_gyro_data, 10000);
+			// }
 
 			// No longer needed
 //			vTaskDelay(baro_delay);
@@ -200,12 +200,12 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 
 #if WH_COMPUTER == A
 			od_write_ACC_I2C_A(&i2c_acc_data);
-			od_write_GYRO_I2C_A(&i2c_gyro_data);
+			//od_write_GYRO_I2C_A(&i2c_gyro_data);
 			od_write_BARO_I2C_A(&i2c_baro_data);
 			od_write_MAG_I2C_A(&i2c_baro_data);
 #else
 			od_write_ACC_I2C_B(&i2c_acc_data);
-			od_write_GYRO_I2C_B(&i2c_gyro_data);
+			//od_write_GYRO_I2C_B(&i2c_gyro_data);
 			od_write_BARO_I2C_B(&i2c_baro_data);
 #endif
 

@@ -47,6 +47,19 @@ const float SERVO_N2O_CLOSED = 90.0;
  **********************/
 
 /**
+ * @struct servo_state
+ * @brief Defines the three possible servo states:
+ * 	open, partially open and closed.
+ *
+ */
+typedef enum servo_state {
+	SERVO_CLOSED = 0b0000,
+	SERVO_PARTIALLY_OPEN = 0b1010,
+	SERVO_OPEN = 0b1111
+} servo_state_t;
+
+
+/**
  * @struct servo
  * @brief Data about the servo's current position.
  * Please do not modify directly, use the provided Servo API functions.
@@ -69,17 +82,6 @@ typedef struct servo {
 	PWM_Channel_Selection_t pwm_channel;  	/*!< Associated PWM channel */
 } servo_t;
 
-/**
- * @struct servo_state
- * @brief Defines the three possible servo states:
- * 	open, partially open and closed.
- *
- */
-typedef enum servo_state {
-	SERVO_CLOSED = 0b0000,
-	SERVO_PARTIALLY_OPEN = 0b1010,
-	SERVO_OPEN = 0b1111
-} servo_state_t;
 
 /**********************
  *  VARIABLES

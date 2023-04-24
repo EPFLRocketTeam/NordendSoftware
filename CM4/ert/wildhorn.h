@@ -50,6 +50,7 @@
 	#define ND_HAS_KRTEK			ND_FALSE
 	#define ND_HAS_PROP_SENSORS 	ND_TRUE
 
+#endif
 
 #define ND_USE_BUZZER	ND_FALSE
 

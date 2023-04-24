@@ -36,7 +36,7 @@
 
 #include <propulsion/servo.h>
 #include <driver/pwm.h>
-#include <solenoide.h>
+
 
 #include <sensor/engine_pressure.h>
 #include <sensor/temperature.h>
@@ -66,12 +66,12 @@
 /**
  * Origin offset (in microseconds), for computing the pulse width. Default is 1500.
  */
-#define SERVO_ETHANOL_OFFSET 1500;
+#define SERVO_ETHANOL_OFFSET 1500
 
 /**
  * Origin offset (in microseconds), for computing the pulse width. Default is 1500.
  */
-#define SERVO_N2O_OFFSET = 1500;
+#define SERVO_N2O_OFFSET 1500
 
 /**
  * @enum od_engine_state
@@ -89,10 +89,10 @@ enum od_engine_state {
  *	MACROS
  **********************/
 
-#define IDLE_UNTIL_COUNTER_ZERO ({control->last_time = control->time;\
-	control->time = HAL_GetTick();\
-	control->counter -= countrol->time - control-last_time;\
-	if (control->counter > 0) return;})
+#define IDLE_UNTIL_COUNTER_ZERO ({control.last_time = control.time;\
+	control.time = HAL_GetTick();\
+	control.counter -= control.time - control.last_time;\
+	if (control.counter > 0) return;})
 
 /**********************
  *	TYPEDEFS
@@ -118,9 +118,23 @@ static const TickType_t period = pdMS_TO_TICKS(CONTROL_HEART_BEAT);
 /*
  * For Status of vent pins -- use OD
  */
+
+//Servo stuff
+	pwm_data_t pwm_data;
+
+	// Specific to the SB2290SG Monster Torque Brushless Servo
+	uint32_t min_pulse = 800;
+	uint32_t max_pulse = 2200;
+	float degrees_per_usec = 0.114;
+
+	servo_t * servo_ethanol;
+	servo_t * servo_n2o;
+
 /**********************
  *	PROTOTYPES
  **********************/
+static void control_sched_check_next(control_state_t *requested_state);
+
 
 /**********************
  *	DECLARATIONS
@@ -150,13 +164,47 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 		// lol = !lol (PropulsionControl/engine.c:41)
 	}
 
+	int adc_resolution = 16;
+	float ref_voltage = 3.3;
+
+	// Determine the offset value for each channel
+	HAL_ADC_Start(&hadc1);
+	HAL_ADC_PollForConversion(&hadc1, 10);
+	uint32_t offset_bat1 = HAL_ADC_GetValue(&hadc1);
+	HAL_ADC_PollForConversion(&hadc1, 10);
+	uint32_t offset_bat2 = HAL_ADC_GetValue(&hadc1);
+
+	// Calculate the fixed offset value for each channel
+	float expected_voltage = 0.0; // expected voltage when input voltage is zero
+	float measured_voltage_bat1 = (float)offset_bat1 / ((1 << adc_resolution) - 1) * ref_voltage * 1000;
+	float measured_voltage_bat2 = (float)offset_bat2 / ((1 << adc_resolution) - 1) * ref_voltage * 1000;
+	float fixed_offset_bat1 = expected_voltage - measured_voltage_bat1;
+	float fixed_offset_bat2 = expected_voltage - measured_voltage_bat2;
+
+
 	for (;;) {
 		// read battery TODO
 
+		// Start the ADC conversion sequence
+	  	HAL_ADC_Start(&hadc1);
+
+	  	// Poll for the first conversion completion (Battery 1)
+	  	HAL_ADC_PollForConversion(&hadc1, 10);
+	  	uint32_t bat1_value = HAL_ADC_GetValue(&hadc1) + fixed_offset_bat1;
+	  	uint32_t bat1_voltage = (float)bat1_value / ((1 << adc_resolution) - 1) * ref_voltage * 1000;
+
+	  	// Poll for the second conversion completion (Battery 2)
+	  	HAL_ADC_PollForConversion(&hadc1, 10);
+	  	uint32_t bat2_value = HAL_ADC_GetValue(&hadc1) + fixed_offset_bat2;
+	  	uint32_t bat2_voltage = (float)bat2_value / ((1 << adc_resolution) - 1) * ref_voltage * 1000;
+
+	  	od_write_BATTERY_A(&bat1_voltage);
+	  	od_write_BATTERY_B(&bat2_voltage);
+
 		// LED Debug checkpoints
-		led_checkpoint(checkpoint);
-		led_checkpoint(checkpoint_engpress);
-		led_checkpoint(checkpoint_engtemp);
+		//led_checkpoint(checkpoint);
+		//led_checkpoint(checkpoint_engpress);
+		//led_checkpoint(checkpoint_engtemp);
 		// debug_log("Control loop | state: %d\n", control.state);
 
 		//Do task scheduler things
@@ -166,7 +214,7 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 		if (flagged_state != CONTROL_SCHED_NOTHING) {
 			reset_flag(flagged_state);
 			control_state_t requested_state = correlate_state_sched(flagged_state);
-			control_sched_check_next(requested_state);
+			control_sched_check_next(& requested_state);
 		}
 
 		// Call the function associated with the current state.
@@ -249,7 +297,7 @@ control_sched_t check_flagged_state() {
 	if (changes_sched.servoN20 == CMD_ACTIVE) return CONTROL_SCHED_SERVOS_N2O;
 	if (countdown_requested == IGNITION_CODE) return CONTROL_SCHED_COUNTDOWN;
 	if (changes_sched.pressurization) return CONTROL_SCHED_PRESSURISATION;
-	if (changes_sched.shutdown) return CONTROL_SCHED_SHUTDOWN;
+	//if (changes_sched.shutdown) return CONTROL_SCHED_SHUTDOWN;
 
 	// Default
 	return CONTROL_SCHED_NOTHING;
@@ -271,13 +319,16 @@ void reset_flag(control_sched_t flagged_state) {
 		case CONTROL_SCHED_CALIBRATE:
 			flags.calibrate = CMD_INACTIVE;
 			break;
-		case CONTROL_SCHED_SERVOS:
+		case CONTROL_SCHED_SERVOS_N2O:
 			break;
+		case CONTROL_SCHED_SERVOS_ETHANOL:
+			break;	
 		case CONTROL_SCHED_COUNTDOWN:
 			break;
 		case CONTROL_SCHED_PRESSURISATION:
 			break;
 		default: // do nothing
+			break;
 	}
 	od_write_RF_CMD(&flags);
 }
@@ -289,7 +340,7 @@ void reset_flag(control_sched_t flagged_state) {
  * @return ER_SUCCESS if everything went well, a non-zero error code otherwise.
  */
 
-util_error_t init(void) {
+util_error_t init_eng_ctrl(void) {
 	// Initialize the value of control
 	control.state = CONTROL_IDLE;
 
@@ -299,8 +350,8 @@ util_error_t init(void) {
 	debug_log("Control start\n");
 
 	// Get sensor devices
-	i2c_engine_press = i2c_sensor_get_ADC();
-	i2c_engine_temp = i2c_sensor_get_ADC();
+	device_t * i2c_engine_press = i2c_sensor_get_ADC();
+	device_t * i2c_engine_temp = i2c_sensor_get_ADC();
 
 	// Initialize sensors
 	util_error_t engine_press_err = engine_pressure_init(i2c_engine_press);
@@ -321,16 +372,6 @@ util_error_t init(void) {
 		checkpoint_engtemp = led_add_checkpoint(led_red);
 	}
 
-	// Initialize servos
-	pwm_data_t pwm_data;
-
-	// Specific to the SB2290SG Monster Torque Brushless Servo
-	uint32_t min_pulse = 800;
-	uint32_t max_pulse = 2200;
-	float degrees_per_usec = 0.114;
-
-	servo_t servo_ethanol;
-	servo_t servo_n2o;
 
 	// Assign Ethanol servo to pin 13 (TIM4, CH2) and N2O servo to pin 14 (TIM4, CH3)
 	util_error_t ethanol_err = servo_init(
@@ -358,13 +399,13 @@ util_error_t init(void) {
 			SERVO_N2O_CLOSED);
 
 	// Using channels 1 and 2 -- initialize the PWM channel
-	pwm_init(pwm_data, PWM_TIM4,
+	pwm_init(& pwm_data, PWM_TIM4,
 			servo_ethanol->pwm_channel | servo_n2o->pwm_channel);
 
 	// Initialize servo states
 	util_error_t servo_err = ER_SUCCESS;
-	servo_err |= servo_set_state(servo_n2o, SERVO_CLOSED);
-	servo_err |= servo_set_state(servo_ethanol, SERVO_CLOSED);
+	servo_err |= servo_set_state(& servo_n2o, SERVO_CLOSED);
+	servo_err |= servo_set_state(& servo_ethanol, SERVO_CLOSED);
 
 	// Initialize solenoids
 	util_error_t sol_err = ER_SUCCESS;
@@ -372,12 +413,13 @@ util_error_t init(void) {
 	sol_err |= solenoid_off(SOLENOID_ETHANOL);
 	sol_err |= solenoid_off(SOLENOID_PRESSURISATION);
 
-	// Initialize engine state for OD – everything 0 (closed)
+	// Initialize engine state for OD - everything 0 (closed)
 	rf_cmd_t engine_state_init = {0};
-	od_write_ENGINE_STATE(&engine_state_t);
+	od_write_ENGINE_STATE(&engine_state_init);
 
-	return led_err | servo_err | sol_err;
+	return servo_err | sol_err;
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //CONTROL STATE CHANGING AND SCHEDULING
@@ -428,11 +470,11 @@ control_state_t correlate_state_sched(control_sched_t requested_state) {
  * @brief Checks if requested state is valid
  * @details Used to check if the next state requested by GS is valid.
  */
-static void control_sched_check_next(control_state_t *requested_state) {
+void control_sched_check_next(control_state_t *requested_state) {
 	if (control.state != requested_state) {
 		for (uint8_t i = 0; i < SCHED_ALLOWED_WIDTH; i++) {
 			if (sched_allowed[control.state][i] == requested_state) {
-				schedule_next_state(requested_state);
+				schedule_next_state(* requested_state);
 				return;
 			}
 		}
@@ -529,8 +571,8 @@ void control_calibration_start(void) {
 void control_calibration_run(void) {
 	util_error_t error_calibration = 0;
 
-	error_calibration |= engine_pressure_calibrate(control->i2c_engine_press);
-	error_calibration |= engine_temperature_calibrate(control->i2c_engine_temp);
+	error_calibration |= engine_pressure_calibrate(control.i2c_engine_press);
+	error_calibration |= engine_temperature_calibrate(control.i2c_engine_temp);
 
 	if (error_calibration) {
 		schedule_next_state(CONTROL_ERROR);
@@ -541,11 +583,11 @@ void control_calibration_run(void) {
 }
 
 void control_vent_ethanol_start(void) {
-	control.state = CONTROL_VENTS;
+	control.state = CONTROL_VENT_ETHANOL;
 }
 
 void control_vent_n2o_start(void) {
-	control.state = CONTROL_VENTS;
+	control.state = CONTROL_VENT_N2O;
 }
 
 
@@ -639,34 +681,34 @@ void control_servos_n2o_run(void) {
 	od_read_RF_CMD(&requested_changes);
 
 	// If change requested, update ethanol servo
-	if (requested_changes->servoEthanol)
+	if (requested_changes.servoEthanol)
 		switch (servo_ethanol_state_od(&eng_state)) {
 			case ENGINE_STATE_CLOSED:
 				servo_err |= servo_set_state(servo_ethanol, SERVO_OPEN);
-				eng_state->servoEthanol = ENGINE_STATE_OPEN;
+				eng_state.servoEthanol = ENGINE_STATE_OPEN;
 				break;
 			case ENGINE_STATE_OPEN:
 				servo_err |= servo_set_state(servo_ethanol, SERVO_CLOSED);
-				eng_state->servoEthanol = ENGINE_STATE_CLOSED;
+				eng_state.servoEthanol = ENGINE_STATE_CLOSED;
 				break;
 			default:
 				servo_err |= servo_set_state(servo_ethanol, SERVO_CLOSED);
 				break;
 		}
 
-	if (!servo_err) od_write_ENGINE_STATE(&state);
+	if (!servo_err) od_write_ENGINE_STATE(&eng_state);//TODO this looks very wrong
 	servo_err = ER_SUCCESS;
 
 	// If change requested, update n2o servo
-	if (requested_changes->servoN20)
+	if (requested_changes.servoN20)
 		switch (servo_n2o_state_od(&eng_state)) {
 			case ENGINE_STATE_CLOSED:
 				servo_err |= servo_set_state(servo_n2o, SERVO_OPEN);
-				eng_state->servoN20 = ENGINE_STATE_OPEN;
+				eng_state.servoN20 = ENGINE_STATE_OPEN;
 				break;
 			case ENGINE_STATE_OPEN:
 				servo_err |= servo_set_state(servo_n2o, SERVO_CLOSED);
-				eng_state->servoN20 = ENGINE_STATE_CLOSED;
+				eng_state.servoN20 = ENGINE_STATE_CLOSED;
 				break;
 			default:
 				servo_err |= servo_set_state(servo_n2o, SERVO_CLOSED);
@@ -677,7 +719,7 @@ void control_servos_n2o_run(void) {
 		control_error_start();
 	else {
 		// Update OD
-		od_write_ENGINE_STATE(&state);
+		od_write_ENGINE_STATE(&eng_state);
 		// Go back to prev state
 		prev_state_start();
 	}
@@ -705,7 +747,6 @@ void control_pressurisation_run(void) {
 		eng_state.pressurization = ENGINE_STATE_CLOSED;
 	} else {
 		solenoid_on(SOLENOID_PRESSURISATION);
-		vent_pressurization_pins = 1;
 		eng_state.pressurization = ENGINE_STATE_OPEN;
 	}
 
@@ -721,7 +762,7 @@ void control_pressurisation_run(void) {
 
 void control_glide_start(void) {
 	control.state = CONTROL_GLIDE;
-	counter.counter = 120 * CONTROL_ONE_SECOND;
+	control.counter = 120 * CONTROL_ONE_SECOND;
 }
 
 /**
@@ -742,7 +783,7 @@ void control_glide_run(void) {
  * @details	Can only be called from Idle and has lowest priority (just in case :D)
  */
 void control_countdown_start(void) {
-	control->counter = FINAL_COUNTDOWN;
+	control.counter = FINAL_COUNTDOWN;
 	schedule_next_state(CONTROL_COUNTDOWN);
 }
 
@@ -752,13 +793,13 @@ void control_countdown_start(void) {
  */
 void control_countdown_run(void) {
 	// Compute time elapsed since last time, in milliseconds.
-	control->last_time = control->time;
-	control->time = HAL_GetTick();
+	control.last_time = control.time;
+	control.time = HAL_GetTick();
 
-	control->counter -= control->time - control->last_time;
+	control.counter -= control.time - control.last_time;
 
 	// Check if we're ready to take off!
-	if (control->counter <= CONTROL_TAKEOFF_THRESH) {
+	if (control.counter <= CONTROL_TAKEOFF_THRESH) {
 		control_igniter_start();
 	}
 }
@@ -825,12 +866,12 @@ void control_ignition_run(void) {
 		// Update OD state
 		rf_cmd_t state;
 		od_read_ENGINE_CONTROL(&state);
-		state->servoN20 = ENGINE_STATE_PARTIALLY_OPEN;
-		state->servo_ethanol = ENGINE_STATE_PARTIALLY_OPEN;
+		state.servoN20 = ENGINE_STATE_PARTIALLY_OPEN;
+		state.servoEthanol = ENGINE_STATE_PARTIALLY_OPEN;
 		od_write_ENGINE_CONTROL(&state);
 		if(engine_pressure</*wanted_pressure*/){
-			++ignition_insufficient_counter;
-			if(ignition_insufficient_counter == IGNITION_COUNTER_THRESHOLD){
+			++ignition_insufficient_pressure_counter;
+			if(ignition_insufficient_pressure_counter == IGNITION_COUNTER_THRESHOLD){
 				control_abort_start();
 			}
 			return;
@@ -852,11 +893,11 @@ void control_thrust_start(void) {
 void control_thrust_run(void) {
 	util_error_t error_thrust = ER_SUCCESS; // thrust() -> full open state of servos
 
-	error_thurst |= servo_set_state(servo_n2o, SERVO_OPEN);
+	error_thrust |= servo_set_state(servo_n2o, SERVO_OPEN);
 	error_thrust |= servo_set_rotation(servo_ethanol, SERVO_OPEN);
 
 	// Idle until the counter reaches zero (delay defined in start)
-	IDLE_UTIL_COUNTER_ZERO;
+	IDLE_UNTIL_COUNTER_ZERO;
 
 	if (error_thrust)
 		control_abort_start();
@@ -864,8 +905,8 @@ void control_thrust_run(void) {
 		// Update OD state
 		rf_cmd_t state;
 		od_read_ENGINE_CONTROL(&state);
-		state->servoN20 = ENGINE_STATE_OPEN;
-		state->servo_ethanol = ENGINE_STATE_OPEN;
+		state.servoN20 = ENGINE_STATE_OPEN;
+		state.servoEthanol = ENGINE_STATE_OPEN;
 		od_write_ENGINE_CONTROL(&state);
 
 		control_shutdown_start();
@@ -893,13 +934,13 @@ void control_shutdown_run(void) {
 		control_abort_start();
 	else {
 		// Compute time elapsed since last time, in milliseconds.
-		control->last_time = control->time;
-		control->time = HAL_GetTick();
+		control.last_time = control.time;
+		control.time = HAL_GetTick();
 
-		control->counter -= control->time - control->last_time;
+		control.counter -= control.time - control.last_time;
 
 		// Check if we're ready to reach the top of the sky !
-		if (control->counter <= CONTROL_APOGEE_THRESH) {
+		if (control.counter <= 0) {
 			control_apogee_start();
 		}
 	}
@@ -989,5 +1030,4 @@ void control_abort_run(void) {
 
 	control_glide_start();
 }
-
 /* END */

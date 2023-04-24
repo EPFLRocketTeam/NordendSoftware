@@ -95,7 +95,7 @@ float servo_get_rotation(servo_t *servo) {
 	return servo->rotation;
 }
 
-servo_set_state(servo_t *servo, servo_state_t new_state) {
+util_error_t servo_set_state(servo_t *servo, servo_state_t new_state) {
 	switch (new_state) {
 		case SERVO_OPEN:
 			servo_set_rotation(servo, servo->open_rotation);
@@ -113,7 +113,7 @@ servo_set_state(servo_t *servo, servo_state_t new_state) {
 	return ER_SUCCESS;
 }
 
-servo_get_state(servo_t *servo) {
+servo_state_t servo_get_state(servo_t *servo) {
 	return servo->state;
 }
 

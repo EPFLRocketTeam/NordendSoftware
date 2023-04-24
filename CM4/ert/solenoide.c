@@ -33,5 +33,5 @@ util_error_t solenoid_on(Solenoids_t solenoid){
 //Set a solenoid's pin to 0
 util_error_t solenoid_off(Solenoids_t solenoid){
 	HAL_GPIO_WritePin(SOLENOID_PORT, solenoid, GPIO_PIN_RESET);
-	return ER_SUCCESS
+	return ER_SUCCESS;
 }
