@@ -55,7 +55,6 @@
 static device_t * i2c_acc;
 //static device_t * i2c_gyro;
 static device_t * i2c_baro;
-static device_t * i2c_engine_press;
 
 static device_t * i2c_magneto;
 
@@ -96,9 +95,11 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	static const TickType_t baro_delay = pdMS_TO_TICKS(10);
 	last_wake_time = xTaskGetTickCount();
 
-	uint16_t checkpoint = led_add_checkpoint(led_green);
+	uint16_t checkpoint = led_add_checkpoint(led_teal);
 	debug_log("Sensor i2c start\n");
-	//get devices
+	
+	
+	//get and initialize accelerometer
 	i2c_acc = i2c_sensor_get_accelerometer();
 	//i2c_gyro = i2c_sensor_get_gyroscope();
 	i2c_baro = i2c_sensor_get_barometer();
@@ -151,6 +152,7 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 		led_checkpoint(checkpoint_acc);
 		led_checkpoint(checkpoint_magneto);
 
+		
 
 		if(1) {
 			if (baro_err == ER_SUCCESS) {
@@ -210,7 +212,7 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 #endif
 
 
-		} else { /* Calibration */
+		} else { // Calibration
 			//calibration steps
 
 			//normally not necessary...
@@ -230,6 +232,9 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 //					i2c_acc_data.processed[0], i2c_acc_data.processed[1],
 //					i2c_acc_data.processed[2], i2c_baro_data.pressure,
 //					i2c_baro_data.temperature);
+
+
+
 
 
 		vTaskDelayUntil( &last_wake_time, period );
