@@ -33,6 +33,7 @@
 #include <hostcom.h>
 #include <miaou.h>
 #include <sensor/gnss.h>
+#include <propulsion/servo.h>
 
 
 /**********************
@@ -40,6 +41,7 @@
  **********************/
 
 #define DEFAULT_SZ	(1024)
+
 
 #define OD_SZ           DEFAULT_SZ
 #define OD_PRIO         (6)
@@ -57,6 +59,8 @@
 #define HOSTCOM_SZ		DEFAULT_SZ
 #define HOSTCOM_PRIO		(6)
 
+#define SERVO_SZ 	DEFAULT_SZ
+#define SERVO_PRIO 	(1)
 
 #define MIAOU_SZ	DEFAULT_SZ
 #define MIAOU_PRIO		(1)
@@ -100,9 +104,7 @@ static TaskHandle_t hostcom_handle = NULL;
 static TaskHandle_t miaou_handle = NULL;
 static TaskHandle_t can_rx_handle = NULL;
 static TaskHandle_t can_tx_handle = NULL;
-static TaskHandle_t propulsion_sensor_i2c_handle = NULL;
-
-
+static TaskHandle_t servo_handle = NULL;
 
 /**********************
  *	PROTOTYPES
@@ -134,11 +136,13 @@ void init(void) {
 	// NOT USED DUE TO BUGS!!!!
 	//can_init(WH_COMPUTER);
 
-#if ND_HAS_FEEDBACK == ND_TRUE
-#if ND_USE_BUZZER == ND_TRUE
+	debug_log("Beginning of the threads");
+
+#if WH_HAS_FEEDBACK == WH_TRUE
+#if WH_USE_BUZZER == WH_TRUE
 	buzzer_init();
 #endif
-	led_feedback_init();
+	//led_feedback_init();
 #endif
 
 #if ND_HAS_SENSORS == ND_TRUE
@@ -149,10 +153,10 @@ void init(void) {
 #endif
 
 
-	INIT_THREAD_CREATE(od_update_handle, od_update, od_update_task, NULL, OD_SZ, OD_PRIO);
-
-	INIT_THREAD_CREATE(od_broadcast_handle, od_broadcast, od_broadcast_task, NULL, OD_SZ, OD_PRIO);
-
+//	INIT_THREAD_CREATE(od_update_handle, od_update, od_update_task, NULL, OD_SZ, OD_PRIO);
+//
+//	INIT_THREAD_CREATE(od_broadcast_handle, od_broadcast, od_broadcast_task, NULL, OD_SZ, OD_PRIO);
+//
 	INIT_THREAD_CREATE(led_rgb_handle, led_rgb, led_rgb_thread, NULL, LED_RGB_SZ, LED_RGB_PRIO);
 
 
@@ -160,9 +164,11 @@ void init(void) {
 	INIT_THREAD_CREATE(engine_control_handle, engine_control, engine_control_thread, NULL, CONTROL_SZ, CONTROL_PRIO);
 
 
-	INIT_THREAD_CREATE(serial_handle, serial, serial_thread, NULL, SERIAL_SZ, SERIAL_PRIO);
+//	INIT_THREAD_CREATE(serial_handle, serial, serial_thread, NULL, SERIAL_SZ, SERIAL_PRIO);
 
-	INIT_THREAD_CREATE(hostcom_handle, hostcom, hostcom_thread, NULL, HOSTCOM_SZ, HOSTCOM_PRIO);
+//	INIT_THREAD_CREATE(hostcom_handle, hostcom, hostcom_thread, NULL, HOSTCOM_SZ, HOSTCOM_PRIO);
+
+	INIT_THREAD_CREATE(servo_handle, servo, servo_thread, NULL, SERVO_SZ, SERVO_PRIO);
 
 	// NOT USED DUE TO BUGS!!!!
 	//INIT_THREAD_CREATE(can_rx_handle, can_rx, can_receive_thread, NULL, CAN_TX_SZ, CAN_TX_PRIO);

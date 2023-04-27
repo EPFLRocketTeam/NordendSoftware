@@ -23,19 +23,6 @@
  *  CONSTANTS
  **********************/
 
-/**
- * Open/closed constants for the valves of first servo.
- */
-const float SERVO_ETHANOL_OPEN = 0;
-const float SERVO_ETHANOL_IGNITION = 45.0; /*!< Partially open (ignition phase) */
-const float SERVO_ETHANOL_CLOSED = 90.0;
-
-/**
- * Open/closed constants for the valves of second servo.
- */
-const float SERVO_N2O_OPEN = 0;
-const float SERVO_N2O_IGNITION = 45.0; /*!< Partially open (ignition phase) */
-const float SERVO_N2O_CLOSED = 90.0;
 
 /**********************
  *  MACROS
@@ -45,6 +32,19 @@ const float SERVO_N2O_CLOSED = 90.0;
 /**********************
  *  TYPEDEFS
  **********************/
+
+
+/**
+ * @struct servo_state
+ * @brief Defines the three possible servo states:
+ * 	open, partially open and closed.
+ *
+ */
+typedef enum servo_state {
+	SERVO_OPEN,
+	SERVO_PARTIALLY_OPEN,
+	SERVO_CLOSED
+} servo_state_t;
 
 /**
  * @struct servo_state
@@ -80,8 +80,9 @@ typedef struct servo {
 
 	pwm_data_t * pwm_data; 					/*!< Attached PWM driver data structure */
 	PWM_Channel_Selection_t pwm_channel;  	/*!< Associated PWM channel */
-} servo_t;
 
+	servo_state_t state;
+} servo_t;
 
 /**********************
  *  VARIABLES
@@ -143,7 +144,6 @@ servo_state_t servo_get_state(servo_t *servo);
  * @pre
  * @post
  * @param servo The servo instance to initialize
- * @param pwm The PWM instance to attach to the servo instance. The PWM must be initialized using {@link pwm_init} from driver/pwm.
  * @param pwm_channel The channel associated with the servo instance
  * @param min_pulse The minimum allowed pulse that can be sent to the servo, in microseconds
  * @param max_pulse The maximum allowed pulse that can be sent to the servo, in microseconds
@@ -156,7 +156,6 @@ servo_state_t servo_get_state(servo_t *servo);
  */
 util_error_t servo_init(
 		servo_t * servo,
-		pwm_data_t * pwm,
 		PWM_Channel_Selection_t pwm_channel,
 		uint32_t min_pulse,
 		uint32_t max_pulse,
@@ -166,6 +165,9 @@ util_error_t servo_init(
 		float partially_open_rotation,
 		float closed_rotation
 	);
+
+
+void servo_thread(__attribute__((unused)) void * arg);
 
 
 #ifdef __cplusplus
