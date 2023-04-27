@@ -49,7 +49,7 @@ static const uint32_t DEFAULT_ARR_VALUE = 1000000;
  *	PROTOTYPES
  **********************/
 
-static uint8_t channel_is_selected(uint8_t channel_sel, uint8_t channel_index);
+static uint8_t channel_is_selected(uint8_t channel_sel, uint8_t index);
 
 
 /**********************
@@ -57,8 +57,8 @@ static uint8_t channel_is_selected(uint8_t channel_sel, uint8_t channel_index);
  **********************/
 
 // Returns 1 if the given channel number is activated according to channel_sel, 0 if not.
-static uint8_t channel_is_selected(uint8_t channel_sel, uint8_t channel_index) {
-	return (channel_sel >> (channel_index - 1)) & 1;
+static uint8_t channel_is_selected(uint8_t channel_sel, uint8_t index) {
+	return (channel_sel >> (index - 1)) & 1;
 }
 
 util_error_t pwm_init(void) {
@@ -68,7 +68,7 @@ util_error_t pwm_init(void) {
 
 	htim5.Instance->ARR = DEFAULT_ARR_VALUE;
 
-	return ERR_SUCCESS;
+	return ER_SUCCESS;
 }
 
 util_error_t pwm_set_period(uint16_t us) {
@@ -78,7 +78,7 @@ util_error_t pwm_set_period(uint16_t us) {
 
 util_error_t pwm_set_microseconds(uint32_t usec, uint8_t channel_sel) {
 
-	uint32_t v = USEC_TO_CCR(us);
+	uint32_t v = USEC_TO_CCR(usec);
 
 	if (channel_is_selected(channel_sel, 1))
 		INSTANCE->CCR1 = v;
@@ -86,19 +86,19 @@ util_error_t pwm_set_microseconds(uint32_t usec, uint8_t channel_sel) {
 	if (channel_is_selected(channel_sel, 2))
 		INSTANCE->CCR2 = v;
 
-	return ERR_SUCCESS;
+	return ER_SUCCESS;
 }
 
 
-uint32_t pwm_read_microseconds(pwm_data_t *data, uint8_t channel_index) {
+uint32_t pwm_read_microseconds(uint8_t channel_sel) {
 	uint32_t ccr_val = 0;
 
-	switch (channel_index) {
+	switch (channel_sel) {
 	case 1:
-		ccr_val = inst->CCR1;
+		ccr_val = INSTANCE->CCR1;
 		break;
 	case 2:
-		ccr_val = inst->CCR2;
+		ccr_val = INSTANCE->CCR2;
 		break;
 	default:
 		return 0;

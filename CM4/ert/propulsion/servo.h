@@ -1,4 +1,4 @@
-/*  Title       : Template
+/**  Title       : Template
  *  Filename    : template.h
  *  Author      : Julian Marmier
  *  Date        : 20.01.2021
@@ -8,8 +8,6 @@
 
 #ifndef SERVO_H
 #define SERVO_H
-
-
 
 /**********************
  *  INCLUDES
@@ -23,6 +21,22 @@
  *  CONSTANTS
  **********************/
 
+/**
+ * Origin offset (in microseconds), for computing the pulse width. Default is 1500.
+ */
+#define SERVO_ETHANOL_OFFSET (1500)
+#define SERVO_ETHANOL_OPEN (90)
+#define SERVO_ETHANOL_IGNITION (45)
+#define SERVO_ETHANOL_CLOSED (0)
+
+
+/**
+ * Origin offset (in microseconds), for computing the pulse width. Default is 1500.
+ */
+#define SERVO_N2O_OFFSET (1500)
+#define SERVO_N2O_OPEN (90)
+#define SERVO_N2O_IGNITION (45)
+#define SERVO_N2O_CLOSED (0)
 
 /**********************
  *  MACROS
@@ -32,19 +46,6 @@
 /**********************
  *  TYPEDEFS
  **********************/
-
-
-/**
- * @struct servo_state
- * @brief Defines the three possible servo states:
- * 	open, partially open and closed.
- *
- */
-typedef enum servo_state {
-	SERVO_OPEN,
-	SERVO_PARTIALLY_OPEN,
-	SERVO_CLOSED
-} servo_state_t;
 
 /**
  * @struct servo_state
@@ -78,10 +79,8 @@ typedef struct servo {
 	float partially_open_rotation;			/*!< Partially open state rotation */
 	float closed_rotation;					/*!< Closed state rotation */
 
-	pwm_data_t * pwm_data; 					/*!< Attached PWM driver data structure */
 	PWM_Channel_Selection_t pwm_channel;  	/*!< Associated PWM channel */
 
-	servo_state_t state;
 } servo_t;
 
 /**********************

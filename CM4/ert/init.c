@@ -105,6 +105,7 @@ static TaskHandle_t miaou_handle = NULL;
 static TaskHandle_t can_rx_handle = NULL;
 static TaskHandle_t can_tx_handle = NULL;
 static TaskHandle_t servo_handle = NULL;
+static TaskHandle_t propulsion_sensor_i2c_handle = NULL;
 
 /**********************
  *	PROTOTYPES

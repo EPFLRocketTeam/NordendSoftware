@@ -36,12 +36,6 @@ typedef enum PWM_Channel_Selection {
 	PWM_SELECT_CH2 = 0b10,
 } PWM_Channel_Selection_t;
 
-//typedef struct pwm_data {
-//	TIM_HandleTypeDef htim;			/*!< One of htim2…htim7 */
-//	float usec;						/*!< The current microseconds */
-//	uint8_t channels; 				/*!< One-hot encoding to represent which channels to activate for this particular instance. */
-//} pwm_data_t;
-
 /**********************
  *  VARIABLES
  **********************/

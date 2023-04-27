@@ -60,18 +60,9 @@
 
 //TODO Find IGNITER GPIO port and pin
 //Igniter pin definition
-#define IGNITER_PORT GPIOX
+#define IGNITER_PORT GPIOG
 #define IGNITER_PIN  1
 
-/**
- * Origin offset (in microseconds), for computing the pulse width. Default is 1500.
- */
-#define SERVO_ETHANOL_OFFSET 1500
-
-/**
- * Origin offset (in microseconds), for computing the pulse width. Default is 1500.
- */
-#define SERVO_N2O_OFFSET 1500
 
 /**
  * @enum od_engine_state
@@ -120,7 +111,6 @@ static const TickType_t period = pdMS_TO_TICKS(CONTROL_HEART_BEAT);
  */
 
 //Servo stuff
-	pwm_data_t pwm_data;
 
 	// Specific to the SB2290SG Monster Torque Brushless Servo
 	uint32_t min_pulse = 800;
@@ -377,8 +367,7 @@ util_error_t init_eng_ctrl(void) {
 	// Assign Ethanol servo to pin 13 (TIM4, CH2) and N2O servo to pin 14 (TIM4, CH3)
 	util_error_t ethanol_err = servo_init(
 			servo_ethanol,
-			&pwm_data,
-			PWM_SELECT_CH2,
+			PWM_SELECT_CH1,
 			min_pulse,
 			max_pulse,
 			SERVO_ETHANOL_OFFSET,
@@ -389,8 +378,7 @@ util_error_t init_eng_ctrl(void) {
 
 	util_error_t n2o_err = servo_init(
 			servo_n2o,
-			&pwm_data,
-			PWM_SELECT_CH3,
+			PWM_SELECT_CH2,
 			min_pulse,
 			max_pulse,
 			SERVO_N2O_OFFSET,
@@ -400,8 +388,7 @@ util_error_t init_eng_ctrl(void) {
 			SERVO_N2O_CLOSED);
 
 	// Using channels 1 and 2 -- initialize the PWM channel
-	pwm_init(& pwm_data, PWM_TIM4,
-			servo_ethanol->pwm_channel | servo_n2o->pwm_channel);
+	pwm_init();
 
 	// Initialize servo states
 	util_error_t servo_err = ER_SUCCESS;
