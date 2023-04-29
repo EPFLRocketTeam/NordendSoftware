@@ -21,6 +21,11 @@
 #include <protocol/structures.h>
 #include <RadioPacket/RadioPacket.h>
 
+#include "sensor/accelerometer.h"
+#include "sensor/magnetometer.h"
+#include "sensor/temperature.h"
+#include "sensor/barometer.h"
+
 /**********************
  *  CONSTANTS
  **********************/
@@ -89,6 +94,12 @@ DECLARE_OD_ENTRY(RF_CMD, rf_cmd_t);
 DECLARE_OD_ENTRY(COUNTDOWN, uint16_t);
 DECLARE_OD_ENTRY(ENGINE_STATE, rf_cmd_t);
 DECLARE_OD_ENTRY(ENGINE_FSM_STATE, uint8_t);
+DECLARE_OD_ENTRY(ACC_I2C_A, accelerometer_data_t);
+DECLARE_OD_ENTRY(ACC_I2C_B, accelerometer_data_t);
+DECLARE_OD_ENTRY(BARO_A, barometer_data_t);
+DECLARE_OD_ENTRY(BARO_B, barometer_data_t);
+DECLARE_OD_ENTRY(MAG_I2C_A, magnetometer_data_t);
+DECLARE_OD_ENTRY(MAG_I2C_B, magnetometer_data_t);
 
 #ifdef __cplusplus
 } // extern "C"

@@ -349,20 +349,25 @@ util_error_t init_eng_ctrl(void) {
 	util_error_t engine_temp_err = temperature_sensor_init(i2c_engine_temp);
 
 	// Sensor initialisation checkpoints
-	uint16_t checkpoint_engpress;
+	uint16_t checkpoint_engpress = 0;
 	if (engine_press_err == ER_SUCCESS) {
 		checkpoint_engpress = led_add_checkpoint(led_green);
 	} else {
 		checkpoint_engpress = led_add_checkpoint(led_red);
 	}
 
-	uint16_t checkpoint_engtemp;
+	uint16_t checkpoint_engtemp = 0;
 	if (engine_temp_err == ER_SUCCESS) {
 		checkpoint_engtemp = led_add_checkpoint(led_green);
 	} else {
 		checkpoint_engtemp = led_add_checkpoint(led_red);
 	}
 
+	servo_t servo_ethanol_inst = {0};
+	servo_t servo_n2o_inst = {0};
+
+	servo_ethanol = &servo_ethanol_inst;
+	servo_n2o = &servo_n2o_inst;
 
 	// Assign Ethanol servo to pin 13 (TIM4, CH2) and N2O servo to pin 14 (TIM4, CH3)
 	util_error_t ethanol_err = servo_init(
@@ -405,7 +410,7 @@ util_error_t init_eng_ctrl(void) {
 	rf_cmd_t engine_state_init = {0};
 	od_write_ENGINE_STATE(&engine_state_init);
 
-	return servo_err | sol_err;
+	return ethanol_err | n2o_err | servo_err | sol_err;
 }
 
 
@@ -546,6 +551,12 @@ void prev_state_start(void) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // MANUAL STATE RUNTIME FUNCTIONS
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+void control_idle_start(void) {
+	schedule_next_state(CONTROL_IDLE);
+}
+
+void control_idle_run(void) {}
 
 void control_calibration_start(void) {
 	control.state = CONTROL_CALIBRATION;

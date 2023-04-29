@@ -47,11 +47,11 @@
  *	PROTOTYPES
  **********************/
 
-static gnss_context_t gnss_decoder = {0};
+//static gnss_context_t gnss_decoder = {0};
 
 static uint16_t checkpoint;
 
-static float last_alt = 100;
+//static float last_alt = 100;
 
 #define WEIRD_THRESH 100
 

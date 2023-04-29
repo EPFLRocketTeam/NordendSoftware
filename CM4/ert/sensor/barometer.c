@@ -301,9 +301,9 @@ util_error_t barometer_init(device_t *baro, barometer_meta_t *meta) {
 	meta->par_p6 = ldexpf(create_u16(data[14], data[13]), -6);
 	meta->par_p7 = ldexpf((int8_t) data[15], -8);
 	meta->par_p8 = ldexpf((int8_t) data[16], -15);
-	meta->par_p9 = ldexpf(create_i16(data[19], data[18]), -48);
-	meta->par_p7 = ldexpf((int8_t) data[20], -48);
-	meta->par_p8 = ldexpf((int8_t) data[21], -65); //TODO this casts a warning during compile
+	meta->par_p9 = ldexpf(create_i16(data[18], data[17]), -48);
+	meta->par_p7 = ldexpf((int8_t) data[19], -48);
+	meta->par_p8 = ldexpf((int8_t) data[20], -65); //TODO this casts a warning during compile
 
 	// Set the IIR filter coefficient to 2
 	util_error_t errIIR = device_write_u8(baro, CONFIG, 0x02);

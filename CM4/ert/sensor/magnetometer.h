@@ -22,6 +22,7 @@ typedef struct magnetometer_data {
     uint16_t magneto_z_axis;
 }magnetometer_data_t;
 
+util_error_t magnetometer_init(device_t * magneto);
 util_error_t magnetometer_read_X_axis(device_t * magneto, magnetometer_data_t * data);
 util_error_t magnetometer_read_Y_axis(device_t * magneto, magnetometer_data_t * data);
 util_error_t magnetometer_read_Z_axis(device_t * magneto, magnetometer_data_t * data);

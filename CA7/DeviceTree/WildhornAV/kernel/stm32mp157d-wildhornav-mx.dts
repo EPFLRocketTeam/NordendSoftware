@@ -184,7 +184,6 @@
 		pins {
 			pinmux = <STM32_PINMUX('A', 7, ANALOG)>, /* ADC1_INP7 */
 					 <STM32_PINMUX('C', 0, ANALOG)>, /* ADC1_INP10 */
-					 <STM32_PINMUX('C', 3, ANALOG)>, /* ADC1_INP13 */
 					 <STM32_PINMUX('C', 4, ANALOG)>, /* ADC1_INP4 */
 					 <STM32_PINMUX('C', 5, ANALOG)>, /* ADC1_INP8 */
 					 <STM32_PINMUX('F', 11, ANALOG)>; /* ADC1_INP2 */
@@ -287,13 +286,6 @@
 		pins {
 			pinmux = <STM32_PINMUX('B', 11, RSVD)>, /* USART3_RX */
 					 <STM32_PINMUX('D', 8, RSVD)>; /* USART3_TX */
-		};
-	};
-
-	m4_usart6_pins_mx: m4_usart6_mx-0 {
-		pins {
-			pinmux = <STM32_PINMUX('G', 9, RSVD)>, /* USART6_RX */
-					 <STM32_PINMUX('G', 14, RSVD)>; /* USART6_TX */
 		};
 	};
 
@@ -763,15 +755,6 @@
 
 	/* USER CODE BEGIN m4_usart3 */
 	/* USER CODE END m4_usart3 */
-};
-
-&m4_usart6{
-	pinctrl-names = "default";
-	pinctrl-0 = <&m4_usart6_pins_mx>;
-	status = "okay";
-
-	/* USER CODE BEGIN m4_usart6 */
-	/* USER CODE END m4_usart6 */
 };
 
 &mdma1{

@@ -87,6 +87,8 @@ bool new_set_of_data(device_t * magneto) {
     uint8_t infoSet;
 
     util_error_t error = device_read(magneto, STATUS_REG, &infoSet, 1);
+    // Error
+    if (error) return false;
 
     if ((infoSet & 00001000) == 00001000) {
         return true;

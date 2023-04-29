@@ -82,8 +82,6 @@ void prop_sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	//get devices
 	i2c_engine_press = i2c_sensor_get_engine_pressure();
 
-
-
 	//init
 	util_error_t engine_press_err = engine_pressure_init(i2c_engine_press);
 
