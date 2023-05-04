@@ -73,6 +73,8 @@ util_error_t pwm_init(void) {
 
 util_error_t pwm_set_period(uint16_t us) {
 	htim5.Instance->ARR = USEC_TO_CCR(us);
+
+	return ER_SUCCESS;
 }
 
 

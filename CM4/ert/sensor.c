@@ -103,9 +103,6 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	i2c_baro = i2c_sensor_get_barometer();
 	i2c_magneto = i2c_sensor_get_magnetometer();
 
-
-
-
 	// Initialize each sensor
 	util_error_t acc_err = accelerometer_init(i2c_acc);
 	//util_error_t gyro_err = gyroscope_init(i2c_gyro);
@@ -153,7 +150,8 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 
 		if(1) {
 			if (baro_err == ER_SUCCESS) {
-				barometer_read(i2c_baro, &i2c_baro_data, &i2c_baro_meta);
+				barometer_read(i2c_baro, &i2c_baro_meta, &i2c_baro_data);
+//				hostcom_data_baro_send(HAL_GetTick(), i2c_baro_data.pressure);
 			}
 
 			if(acc_err == ER_SUCCESS) {
@@ -172,13 +170,6 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 
 			vTaskDelay(baro_delay);
 
-			if(baro_err == ER_SUCCESS) {
-				//baro read & start pres
-				barometer_read_temp(i2c_baro, &i2c_baro_meta);
-				barometer_convert_pres(i2c_baro);
-				//TickType_t baro_pres_time = xTaskGetTickCount();
-			}
-
 			// if(gyro_err == ER_SUCCESS) {
 			// 	//gyro read or acc read second time
 			// 	gyroscope_read_data(i2c_gyro, &i2c_gyro_data);
@@ -188,20 +179,14 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 			// No longer needed
 //			vTaskDelay(baro_delay);
 
-			if(baro_err == ER_SUCCESS) {
-				//baro read
-				barometer_read_pres(i2c_baro, &i2c_baro_meta);
-				barometer_convert(&i2c_baro_meta, &i2c_baro_data);
-				hostcom_data_baro_send(HAL_GetTick(), i2c_baro_data.pressure);
-			}
 
 			//store everything
 
 #if WH_COMPUTER == A
 			od_write_ACC_I2C_A(&i2c_acc_data);
 			//od_write_GYRO_I2C_A(&i2c_gyro_data);
-			od_write_BARO_I2C_A(&i2c_baro_data);
-			od_write_MAG_I2C_A(&i2c_baro_data);
+			od_write_BARO_A(&i2c_baro_data);
+			od_write_MAG_I2C_A(&i2c_magneto_data);
 #else
 			od_write_ACC_I2C_B(&i2c_acc_data);
 			//od_write_GYRO_I2C_B(&i2c_gyro_data);

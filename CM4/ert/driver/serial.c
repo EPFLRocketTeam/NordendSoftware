@@ -28,7 +28,7 @@
 
 #define S1_UART 			huart2
 #define S2_UART 			huart3
-#define S3_UART 			huart6
+//#define S3_UART 			huart6
 
 #define SERIAL_DMA_LEN 32
 
@@ -71,9 +71,9 @@ static device_interface_t s2_interface;
 
 static device_interface_t s1_interface;
 
-static serial_interface_context_t s3_interface_context = {
-		.uart = &S3_UART
-};
+//static serial_interface_context_t s3_interface_context = {
+//		.uart = &S3_UART
+//};
 
 __attribute__((unused))
 static serial_interface_context_t s2_interface_context = {
@@ -173,7 +173,7 @@ util_error_t serial_init(void)
 
 	//feedback or krtek
 	//**CAN** REPLACEMENT
-	error |= serial_interface_init(&s3_interface, &s3_interface_context);
+//	error |= serial_interface_init(&s3_interface, &s3_interface_context);
 
 
 

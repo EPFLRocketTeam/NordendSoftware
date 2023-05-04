@@ -63,6 +63,23 @@
 #define IGNITER_PORT GPIOG
 #define IGNITER_PIN  1
 
+#define IGNITER_ON_TIME 1000 // Time in ms to keep the igniter pin ON
+#define IGNITER_OFF_TIME 3000 // Time in ms to wait after turning the igniter pin OFF before
+
+#define N2O_SERVO_CLOSE_TIME 13000 // Time in ms
+#define ETHANOL_SERVO_OPEN_TIME 30000 // Time in ms
+
+#define DEPRESSURISATION_TIME 5000 // Time in ms
+
+/**
+ * Origin offset (in microseconds), for computing the pulse width. Default is 1500.
+ */
+#define SERVO_ETHANOL_OFFSET 1500
+
+/**
+ * Origin offset (in microseconds), for computing the pulse width. Default is 1500.
+ */
+#define SERVO_N2O_OFFSET 1500
 
 /**
  * @enum od_engine_state
@@ -349,20 +366,25 @@ util_error_t init_eng_ctrl(void) {
 	util_error_t engine_temp_err = temperature_sensor_init(i2c_engine_temp);
 
 	// Sensor initialisation checkpoints
-	uint16_t checkpoint_engpress;
+	uint16_t checkpoint_engpress = 0;
 	if (engine_press_err == ER_SUCCESS) {
 		checkpoint_engpress = led_add_checkpoint(led_green);
 	} else {
 		checkpoint_engpress = led_add_checkpoint(led_red);
 	}
 
-	uint16_t checkpoint_engtemp;
+	uint16_t checkpoint_engtemp = 0;
 	if (engine_temp_err == ER_SUCCESS) {
 		checkpoint_engtemp = led_add_checkpoint(led_green);
 	} else {
 		checkpoint_engtemp = led_add_checkpoint(led_red);
 	}
 
+	servo_t servo_ethanol_inst = {0};
+	servo_t servo_n2o_inst = {0};
+
+	servo_ethanol = &servo_ethanol_inst;
+	servo_n2o = &servo_n2o_inst;
 
 	// Assign Ethanol servo to pin 13 (TIM4, CH2) and N2O servo to pin 14 (TIM4, CH3)
 	util_error_t ethanol_err = servo_init(
@@ -405,7 +427,7 @@ util_error_t init_eng_ctrl(void) {
 	rf_cmd_t engine_state_init = {0};
 	od_write_ENGINE_STATE(&engine_state_init);
 
-	return servo_err | sol_err;
+	return ethanol_err | n2o_err | servo_err | sol_err;
 }
 
 
@@ -547,6 +569,12 @@ void prev_state_start(void) {
 // MANUAL STATE RUNTIME FUNCTIONS
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+void control_idle_start(void) {
+	schedule_next_state(CONTROL_IDLE);
+}
+
+void control_idle_run(void) {}
+
 void control_calibration_start(void) {
 	control.state = CONTROL_CALIBRATION;
 }
@@ -637,11 +665,13 @@ void control_vent_n2o_run(void) {
 
 void control_servos_n2o_start(void) {
 	control.state = CONTROL_SERVOS_N2O;
+	control.counter = 0;
 }
 
 
 void control_servos_ethanol_start(void) {
 	control.state = CONTROL_SERVOS_ETHANOL;
+	control.counter = 0;
 }
 
 static uint8_t servo_n2o_state_od(rf_cmd_t *state) {
@@ -655,21 +685,43 @@ static uint8_t servo_ethanol_state_od(rf_cmd_t *state) {
 }
 
 /**
- * @fn void control_n2o_run(void)
- * @brief N2O state runtime
- * @details
+ * @brief Servo control for N2O state runtime
+ * @details This function controls the N2O and ethanol servo valve
+ * It reads requested changes from RF_CMD struct and updates the servos accordingly
+ * If a servo update fails, the function calls control_error_start.
+ * The control.counter is used to determine when to close the N2O valve and open the ethanol valve.
+ * Once the servo states are updated, the function updates the ENGINE_STATE in the OD and goes back to the previous state.
  */
 //TODO Turn on enable_servo_pin
 void control_servos_n2o_run(void) {
+	// Save current time for counter
+	control.last_time = control.time;
+
+	// Flags if the servos are open or closed
+	static bool ethanol_servo_opened = false;
+	static bool n2o_servo_closed = false;
+
+	// Initialize error status
 	util_error_t servo_err = ER_SUCCESS;
+
+	// Initialize engine state
 	rf_cmd_t eng_state;
 
-	// Check if changes were requested
+	// Read requested changes from RF_CMD
 	rf_cmd_t requested_changes;
 	od_read_RF_CMD(&requested_changes);
 
-	// If change requested, update ethanol servo
-	if (requested_changes.servoEthanol)
+	// Open ethanol servo if counter exceeds ETHANOL_SERVO_OPEN_TIME
+	if (control.counter >= ETHANOL_SERVO_OPEN_TIME && !ethanol_servo_opened) {
+		// Open ethanol servo valve
+		servo_err |= servo_set_state(servo_ethanol, SERVO_OPEN);
+		eng_state.servoEthanol = ENGINE_STATE_OPEN;
+		ethanol_servo_opened = true;
+	}
+
+	// Update ethanol servo if requested
+	if (requested_changes.servoEthanol) {
+		// Switch ethanol valve state based on current ENGINE_STATE
 		switch (servo_ethanol_state_od(&eng_state)) {
 			case ENGINE_STATE_CLOSED:
 				servo_err |= servo_set_state(servo_ethanol, SERVO_OPEN);
@@ -680,15 +732,30 @@ void control_servos_n2o_run(void) {
 				eng_state.servoEthanol = ENGINE_STATE_CLOSED;
 				break;
 			default:
+				// Close ethanol servo valve by default
 				servo_err |= servo_set_state(servo_ethanol, SERVO_CLOSED);
 				break;
 		}
+	}
 
-	if (!servo_err) od_write_ENGINE_STATE(&eng_state);//TODO this looks very wrong
+	if (!servo_err) {
+		od_write_ENGINE_STATE(&eng_state); //TODO this looks very wrong
+	}
+
+	// Reset servo error status
 	servo_err = ER_SUCCESS;
 
-	// If change requested, update n2o servo
-	if (requested_changes.servoN20)
+	// Close N2O servo if counter exceeds N2O_SERVO_CLOSE_TIME
+	if (control.counter >= N2O_SERVO_CLOSE_TIME && !n2o_servo_closed) {
+		// Close N2O servo valve
+		servo_err |= servo_set_state(servo_n2o, SERVO_CLOSED);
+		eng_state.servoN20 = ENGINE_STATE_CLOSED;
+		n2o_servo_closed = true;
+	}
+
+	// Update N2O servo if requested
+	if (requested_changes.servoN20) {
+		// Switch N2O valve state based on current ENGINE_STATE
 		switch (servo_n2o_state_od(&eng_state)) {
 			case ENGINE_STATE_CLOSED:
 				servo_err |= servo_set_state(servo_n2o, SERVO_OPEN);
@@ -699,19 +766,27 @@ void control_servos_n2o_run(void) {
 				eng_state.servoN20 = ENGINE_STATE_CLOSED;
 				break;
 			default:
+				// Close N2O servo valve by default
 				servo_err |= servo_set_state(servo_n2o, SERVO_CLOSED);
 				break;
 		}
+	}
 
-	if (servo_err)
+	// If there were no errors, update the engine state in the OD
+	if (servo_err) {
 		control_error_start();
-	else {
+	} else {
 		// Update OD
 		od_write_ENGINE_STATE(&eng_state);
 		// Go back to prev state
 		prev_state_start();
 	}
+
+	// Update the control time and counter
+	control.time = HAL_GetTick();
+	control.counter += control.time - control.last_time;
 }
+
 //TODO turn on enable pin
 void control_servos_ethanol_run(void){
 	//TODO Write things here
@@ -763,7 +838,11 @@ void control_glide_run(void) {
 	// In the future this will be synchronized with the AV state machine
 
 	IDLE_UNTIL_COUNTER_ZERO;
-	//TODO Turn off servo_enable pin, reset solenoids to off
+
+	// Turn solenoids off
+	solenoid_off(SOLENOID_N2O);
+	solenoid_off(SOLENOID_ETHANOL);
+
 	control_idle_start();
 }
 
@@ -792,7 +871,9 @@ void control_countdown_run(void) {
 	}
 }
 
+
 void control_igniter_start(void) {
+	control.counter = IGNITER_ON_TIME + IGNITER_OFF_TIME;
 	control.state = CONTROL_IGNITER;
 }
 
@@ -802,20 +883,34 @@ void control_igniter_start(void) {
  * 			This state will wait for ignition to end and will jump to powered.
  */
 void control_igniter_run(void) {
-	uint8_t error_ignition = 0; // ignition() -> will turn the igniter on (solenoids)
+	uint8_t error_ignition = 0;
 
-	// Activate ignition
-	// TODO when to put igniter's bit to 0 again (loop for 1 second ?)
-	HAL_GPIO_WritePin(IGNITER_PORT, IGNITER_PIN, GPIO_PIN_SET);
-	// Check if good engine start (pressure and temp?), if too many failed abort
+	// Save the current time
+	control.last_time = control.time;
 
+	// Check if the counter is higher than the off time
+	// If it is, set the igniter's pin to high, else set it to low
+	if (control.counter >= IGNITER_OFF_TIME) {
+		HAL_GPIO_WritePin(IGNITER_PORT, IGNITER_PIN, GPIO_PIN_SET);
+	} else {
+		HAL_GPIO_WritePin(IGNITER_PORT, IGNITER_PIN, GPIO_PIN_RESET);
+	}
+	
+	// Check if there was an error in the ignition process
 	if (error_ignition) {
 		control_abort_start();
 		return;
 	}
 
-	control_thrust_start();
+	// Check if the counter has reached zero
+	// If it has, start the control thrust process
+	if (control.counter <= 0) {
+		control_thrust_start();
+	}
 
+	// Save the current time and reduce the counter
+	control.time = HAL_GetTick();
+	control.counter -= control.time - control.last_time;
 }
 
 void control_ignition_start(void) {
@@ -875,6 +970,7 @@ void control_thrust_start(void) {
 
 /**
  * @brief	Thrust state runtime
+
  * @details	This state will open the servos to their 'fully open' position.
  * 			After a delay, it will jump to the shutdown state.
  */
@@ -972,9 +1068,9 @@ void control_depressurisation_run(void) {
 	solenoid_on(SOLENOID_PRESSURISATION);
 
 	if (error_depressurisation) {
-		control_abort_start();
+	  control_abort_start();
 	} else {
-		control_glide_start();
+	  control_glide_start();
 	}
 }
 
