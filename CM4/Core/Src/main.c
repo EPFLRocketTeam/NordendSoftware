@@ -125,7 +125,6 @@ int main(void)
   MX_TIM3_Init();
   MX_SPI1_Init();
   MX_SPI2_Init();
-  MX_SPI3_Init();
   MX_TIM2_Init();
   MX_TIM14_Init();
   MX_TIM16_Init();
