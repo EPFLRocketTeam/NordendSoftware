@@ -1,0 +1,39 @@
+diff --git a/CA7/DeviceTree/WildhornAV/kernel/stm32mp157d-wildhornav-mx.dts b/CA7/DeviceTree/WildhornAV/kernel/stm32mp157d-wildhornav-mx.dts
+index 1559f7b..2e34c49 100755
+--- a/CA7/DeviceTree/WildhornAV/kernel/stm32mp157d-wildhornav-mx.dts
++++ b/CA7/DeviceTree/WildhornAV/kernel/stm32mp157d-wildhornav-mx.dts
+@@ -366,7 +366,7 @@
+ 		pins1 {
+ 			u-boot,dm-pre-reloc;
+ 			pinmux = <STM32_PINMUX('E', 0, AF8)>; /* UART8_RX */
+-			bias-disable;
++			bias-pull-up;
+ 		};
+ 		pins2 {
+ 			u-boot,dm-pre-reloc;
+diff --git a/CA7/DeviceTree/WildhornAV/tf-a/stm32mp157d-wildhornav-mx.dts b/CA7/DeviceTree/WildhornAV/tf-a/stm32mp157d-wildhornav-mx.dts
+index 5db1400..05ebb1e 100755
+--- a/CA7/DeviceTree/WildhornAV/tf-a/stm32mp157d-wildhornav-mx.dts
++++ b/CA7/DeviceTree/WildhornAV/tf-a/stm32mp157d-wildhornav-mx.dts
+@@ -107,7 +107,7 @@
+ 	uart8_pins_mx: uart8_mx-0 {
+ 		pins1 {
+ 			pinmux = <STM32_PINMUX('E', 0, AF8)>; /* UART8_RX */
+-			bias-disable;
++			bias-pull-up;
+ 		};
+ 		pins2 {
+ 			pinmux = <STM32_PINMUX('E', 1, AF8)>; /* UART8_TX */
+diff --git a/CA7/DeviceTree/WildhornAV/u-boot/stm32mp157d-wildhornav-mx.dts b/CA7/DeviceTree/WildhornAV/u-boot/stm32mp157d-wildhornav-mx.dts
+index 1559f7b..2e34c49 100755
+--- a/CA7/DeviceTree/WildhornAV/u-boot/stm32mp157d-wildhornav-mx.dts
++++ b/CA7/DeviceTree/WildhornAV/u-boot/stm32mp157d-wildhornav-mx.dts
+@@ -366,7 +366,7 @@
+ 		pins1 {
+ 			u-boot,dm-pre-reloc;
+ 			pinmux = <STM32_PINMUX('E', 0, AF8)>; /* UART8_RX */
+-			bias-disable;
++			bias-pull-up;
+ 		};
+ 		pins2 {
+ 			u-boot,dm-pre-reloc;
