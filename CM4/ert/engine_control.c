@@ -173,6 +173,9 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 	float fixed_offset_bat1 = expected_voltage - measured_voltage_bat1;
 	float fixed_offset_bat2 = expected_voltage - measured_voltage_bat2;
 
+	osDelay(10000);
+	control_countdown_start();
+
 
 	for (;;) {
 		// Start the ADC conversion sequence
@@ -206,6 +209,8 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 			//control_state_t requested_state = correlate_state_sched(flagged_state);
 			control_sched_check_next(& flagged_state);
 		}
+
+		debug_log("Current state : %d\n", control.state);
 
 		// Call the function associated with the current state.
 		switch (control.state) {
@@ -480,6 +485,7 @@ void control_sched_check_next(control_sched_t *requested_state) {
  * @details Used to switch to the next desired state. <=====3
  */
 void schedule_next_state(control_state_t next_state) {
+	debug_log("Now switching to %d", next_state);
 	control.prev_state = control.state;
 	switch (next_state)
 	{
