@@ -357,28 +357,9 @@ util_error_t init_eng_ctrl(void) {
 	uint16_t checkpoint = led_add_checkpoint(led_blue);
 	debug_log("Control start\n");
 
-	// Get sensor devices
-	device_t * i2c_engine_press = i2c_sensor_get_ADC();
-	device_t * i2c_engine_temp = i2c_sensor_get_ADC();
 
-	// Initialize sensors
-	util_error_t engine_press_err = engine_pressure_init(i2c_engine_press);
-	util_error_t engine_temp_err = temperature_sensor_init(i2c_engine_temp);
 
-	// Sensor initialisation checkpoints
-	uint16_t checkpoint_engpress = 0;
-	if (engine_press_err == ER_SUCCESS) {
-		checkpoint_engpress = led_add_checkpoint(led_green);
-	} else {
-		checkpoint_engpress = led_add_checkpoint(led_red);
-	}
 
-	uint16_t checkpoint_engtemp = 0;
-	if (engine_temp_err == ER_SUCCESS) {
-		checkpoint_engtemp = led_add_checkpoint(led_green);
-	} else {
-		checkpoint_engtemp = led_add_checkpoint(led_red);
-	}
 
 	servo_t servo_ethanol_inst = {0};
 	servo_t servo_n2o_inst = {0};
@@ -587,8 +568,7 @@ void control_calibration_start(void) {
 void control_calibration_run(void) {
 	util_error_t error_calibration = 0;
 
-	error_calibration |= engine_pressure_calibrate(control.i2c_engine_press);
-	error_calibration |= temperature_sensor_calibrate(control.i2c_engine_temp);
+
 
 	if (error_calibration) {
 		schedule_next_state(CONTROL_ERROR);
@@ -1005,8 +985,7 @@ void control_shutdown_start(void) {
 /**
  * @brief	Shutdown state runtime
  * @details	This function will stop the engine, depending on which algorithm is chosen (before or during the apogee, tbd).
- * 			After a delay, it will jump to the apogee state.
- * 			Nordend (2023) : engine doesn't have enough power to reach apogee without a full combustion so shutdown goes to glide() 
+ * 			After a delay, it will jump to the apogee state. 
  */
 void control_shutdown_run(void) {
 	util_error_t error_shutdown = ER_SUCCESS; // shutdown()

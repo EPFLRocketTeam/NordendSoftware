@@ -69,11 +69,11 @@ static i2c_sensor_context_t i2c_ADC_device_context = {
 };
 
 // Propulsion sensors
-static device_t i2c_engine_pressure_device;
+// static device_t i2c_engine_pressure_device;
 
-static i2c_sensor_context_t i2c_engine_pressure_device_context = {
-		.device_address = 0xD0 // TODO no clue
-};
+// static i2c_sensor_context_t i2c_engine_pressure_device_context = {
+// 		.device_address = 0xD0 // TODO no clue
+// };
 
 /**********************
  *	PROTOTYPES
@@ -93,9 +93,9 @@ device_t * i2c_sensor_get_accelerometer(void) {
 	return &i2c_accelerometer_device;
 }
 
-device_t * i2c_sensor_get_engine_pressure(void) {
-	return &i2c_engine_pressure_device;
-}
+// device_t * i2c_sensor_get_engine_pressure(void) {
+// 	return &i2c_engine_pressure_device;
+// }
 
 //  device_t * i2c_sensor_get_gyroscope(void) {
 // 	return &i2c_gyroscope_device;
@@ -122,7 +122,7 @@ util_error_t i2c_sensor_init(void) {
 	device_create((void*) &i2c_barometer_device, &i2c_barometer_device_context, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
 	device_create((void*) &i2c_ADC_device, &i2c_ADC_device_context, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
 	device_create((void*) &i2c_magnetometer_device, &i2c_magnetometer_device_context, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
-	device_create((void*) &i2c_engine_pressure_device, &i2c_engine_pressure_device_context, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
+	//device_create((void*) &i2c_engine_pressure_device, &i2c_engine_pressure_device_context, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
 
 	return ER_SUCCESS;
 

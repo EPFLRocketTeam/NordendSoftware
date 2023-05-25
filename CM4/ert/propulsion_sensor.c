@@ -19,6 +19,7 @@
 
 #include <device/i2c_sensor.h>
 #include <sensor/engine_pressure.h>
+#include <sensor/temperature.h>
 #include <driver/hostproc.h>
 #include <hostcom.h>
 #include <feedback/led.h>
@@ -46,6 +47,7 @@
  **********************/
 
 static device_t * i2c_engine_press;
+static device_t * i2c_engine_temp;
 
 
 static uint8_t i2c_calib;
@@ -53,7 +55,7 @@ static uint8_t i2c_calib;
 //data
 
 static double i2c_engine_press_data;
-
+static double i2c_engine_temp_data;
 
 
 /**********************
@@ -77,27 +79,53 @@ void prop_sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	static const TickType_t period = pdMS_TO_TICKS(I2C_SENSOR_HEART_BEAT);
 	last_wake_time = xTaskGetTickCount();
 
-	uint16_t checkpoint = led_add_checkpoint(led_green);
+	uint16_t checkpoint = led_add_checkpoint(led_blue);
 	debug_log("Propulsion sensor i2c start\n");
-	//get devices
-	i2c_engine_press = i2c_sensor_get_engine_pressure();
+	// Get sensor devices
+	i2c_engine_press = i2c_sensor_get_ADC();
+	i2c_engine_temp = i2c_sensor_get_ADC();
 
-	//init
+	// Initialize sensors
 	util_error_t engine_press_err = engine_pressure_init(i2c_engine_press);
+	util_error_t engine_temp_err = temperature_sensor_init(i2c_engine_temp);
 
-	uint16_t checkpoint_press;
-	if(engine_press_err == ER_SUCCESS) {
-		checkpoint_press = led_add_checkpoint(led_green);
+	// Sensor initialisation checkpoints
+	uint16_t checkpoint_engpress = 0;
+	if (engine_press_err == ER_SUCCESS) {
+		checkpoint_engpress = led_add_checkpoint(led_green);
 	} else {
-		checkpoint_press = led_add_checkpoint(led_red);
+		checkpoint_engpress = led_add_checkpoint(led_red);
 	}
+
+	uint16_t checkpoint_engtemp = 0;
+	if (engine_temp_err == ER_SUCCESS) {
+		checkpoint_engtemp = led_add_checkpoint(led_green);
+	} else {
+		checkpoint_engtemp = led_add_checkpoint(led_red);
+	}
+	
 	//manual calibration only:
 	i2c_calib = 0;
+
+	//Sensor calibration
+	util_error_t error_calibration = 0;
+	error_calibration |= engine_pressure_calibrate(control.i2c_engine_press);
+	error_calibration |= temperature_sensor_calibrate(control.i2c_engine_temp);
+	
+	uint16_t checkpoint_calib = 0;
+	if (error_calibration == ER_SUCCESS) {
+		checkpoint_calib = led_add_checkpoint(led_green);
+	} else {
+		checkpoint_calib = led_add_checkpoint(led_red);
+	}
 
 	//mainloop
 	for(;;) {
 		led_checkpoint(checkpoint);
-		led_checkpoint(checkpoint_press);
+		led_checkpoint(checkpoint_engpress);
+		led_checkpoint(checkpoint_engtemp);
+		led_checkpoint(checkpoint_calib);
+
 
 
 		if(1) {
@@ -105,7 +133,12 @@ void prop_sensor_i2c_thread(__attribute__((unused)) void * arg) {
                 //read engine pressure
 				engine_pressure_read(i2c_engine_press, &i2c_engine_press_data);
 			}
+			if(engine_temp_err == ER_SUCCESS) {
+				temperature_read(i2c_engine_temp, &i2c_engine_temp_data);
+			}
 			//store everything
+			od_write_ENG_PRESS_I2C(&i2c_engine_press_data);
+			od_write_ENG_TEMP_I2C(&i2c_engine_press_data);
 
 /*to be determined as to what we're supposed to replace it with*/
 			

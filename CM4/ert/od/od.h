@@ -100,6 +100,8 @@ DECLARE_OD_ENTRY(BARO_A, barometer_data_t);
 DECLARE_OD_ENTRY(BARO_B, barometer_data_t);
 DECLARE_OD_ENTRY(MAG_I2C_A, magnetometer_data_t);
 DECLARE_OD_ENTRY(MAG_I2C_B, magnetometer_data_t);
+DECLARE_OD_ENTRY(ENG_TEMP_I2C, engine_temp_data_t);
+DECLARE_OD_ENTRY(ENG_PRESS_I2C, engine_press_data_t);
 
 #ifdef __cplusplus
 } // extern "C"
