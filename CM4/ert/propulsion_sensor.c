@@ -55,7 +55,7 @@ static uint8_t i2c_calib;
 //data
 
 static double i2c_engine_press_data;
-static double i2c_engine_temp_data;
+static temperature_data_t i2c_engine_temp_data;
 
 
 /**********************
@@ -109,8 +109,8 @@ void prop_sensor_i2c_thread(__attribute__((unused)) void * arg) {
 
 	//Sensor calibration
 	util_error_t error_calibration = 0;
-	error_calibration |= engine_pressure_calibrate(control.i2c_engine_press);
-	error_calibration |= temperature_sensor_calibrate(control.i2c_engine_temp);
+	error_calibration |= engine_pressure_calibrate(i2c_engine_press);
+	error_calibration |= temperature_sensor_calibrate(i2c_engine_temp);
 	
 	uint16_t checkpoint_calib = 0;
 	if (error_calibration == ER_SUCCESS) {
@@ -129,15 +129,16 @@ void prop_sensor_i2c_thread(__attribute__((unused)) void * arg) {
 
 
 		if(1) {
+			debug_log("Getting data\n");
             if(engine_press_err == ER_SUCCESS) {
                 //read engine pressure
 				engine_pressure_read(i2c_engine_press, &i2c_engine_press_data);
 			}
 			if(engine_temp_err == ER_SUCCESS) {
-				temperature_read(i2c_engine_temp, &i2c_engine_temp_data);
+				temperature_sensor_read(i2c_engine_temp, &i2c_engine_temp_data);
 			}
 			//store everything
-			od_write_ENG_PRESS_I2C(&i2c_engine_press_data);
+			od_write_ENG_PRESS_I2C_A(&i2c_engine_press_data);
 			od_write_ENG_TEMP_I2C(&i2c_engine_press_data);
 
 /*to be determined as to what we're supposed to replace it with*/

@@ -1062,7 +1062,8 @@ void control_error_start(void) {
  */
 void control_error_run(void) {
 	// TODO memorize_in_object_dictionnary_what_went_wrong_for_next_time()
-
+	//control_state_t y = control.prev_state; 
+	od_write_ENGINE_ERROR(&control.prev_state);
 	if (control.prev_state == CONTROL_CALIBRATION)
 		if (error_loop_control != 4) {
 			++error_loop_control;
