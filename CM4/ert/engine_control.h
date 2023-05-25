@@ -74,7 +74,7 @@ typedef enum control_state
 	CONTROL_DEPRESSURISATION = 14,
 	/** Ground (automatic) error */
 	CONTROL_ERROR = 15,
-	/** Flight or radio-triggered) error */
+	/** Flight or radio-triggered error */
 	CONTROL_ABORT = 16
 } control_state_t;
 

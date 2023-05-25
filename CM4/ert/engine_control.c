@@ -72,16 +72,6 @@
 #define DEPRESSURISATION_TIME 5000 // Time in ms
 
 /**
- * Origin offset (in microseconds), for computing the pulse width. Default is 1500.
- */
-#define SERVO_ETHANOL_OFFSET 1500
-
-/**
- * Origin offset (in microseconds), for computing the pulse width. Default is 1500.
- */
-#define SERVO_N2O_OFFSET 1500
-
-/**
  * @enum od_engine_state
  * @brief  Represents the possible values of an engine state OD entry
  */
@@ -576,7 +566,7 @@ void prev_state_start(void) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 void control_idle_start(void) {
-	schedule_next_state(CONTROL_IDLE);
+	control.state = CONTROL_IDLE;
 }
 
 void control_idle_run(void) {}
@@ -857,7 +847,7 @@ void control_glide_run(void) {
  */
 void control_countdown_start(void) {
 	control.counter = FINAL_COUNTDOWN;
-	schedule_next_state(CONTROL_COUNTDOWN);
+	control.state = CONTROL_COUNTDOWN;
 }
 
 /**
