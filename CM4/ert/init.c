@@ -35,6 +35,8 @@
 #include <sensor/gnss.h>
 #include <propulsion/servo.h>
 
+#include <feedback/debug.h>
+
 
 /**********************
  *	CONSTANTS
@@ -169,7 +171,7 @@ void init(void) {
 
 //	INIT_THREAD_CREATE(hostcom_handle, hostcom, hostcom_thread, NULL, HOSTCOM_SZ, HOSTCOM_PRIO);
 
-	INIT_THREAD_CREATE(servo_handle, servo, servo_thread, NULL, SERVO_SZ, SERVO_PRIO);
+//	INIT_THREAD_CREATE(servo_handle, servo, servo_thread, NULL, SERVO_SZ, SERVO_PRIO);
 
 	// NOT USED DUE TO BUGS!!!!
 	//INIT_THREAD_CREATE(can_rx_handle, can_rx, can_receive_thread, NULL, CAN_TX_SZ, CAN_TX_PRIO);

@@ -72,16 +72,6 @@
 #define DEPRESSURISATION_TIME 5000 // Time in ms
 
 /**
- * Origin offset (in microseconds), for computing the pulse width. Default is 1500.
- */
-#define SERVO_ETHANOL_OFFSET 1500
-
-/**
- * Origin offset (in microseconds), for computing the pulse width. Default is 1500.
- */
-#define SERVO_N2O_OFFSET 1500
-
-/**
  * @enum od_engine_state
  * @brief  Represents the possible values of an engine state OD entry
  */
@@ -190,6 +180,9 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 	float fixed_offset_bat1 = expected_voltage - measured_voltage_bat1;
 	float fixed_offset_bat2 = expected_voltage - measured_voltage_bat2;
 
+	osDelay(10000);
+	control_countdown_start();
+
 
 	for (;;) {
 		// Start the ADC conversion sequence
@@ -223,6 +216,8 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 			//control_state_t requested_state = correlate_state_sched(flagged_state);
 			control_sched_check_next(& flagged_state);
 		}
+
+		debug_log("Current state : %d\n", control.state);
 
 		// Call the function associated with the current state.
 		switch (control.state) {
@@ -478,6 +473,7 @@ void control_sched_check_next(control_sched_t *requested_state) {
  * @details Used to switch to the next desired state. <=====3
  */
 void schedule_next_state(control_state_t next_state) {
+	debug_log("Now switching to %d", next_state);
 	control.prev_state = control.state;
 	switch (next_state)
 	{
@@ -551,7 +547,7 @@ void prev_state_start(void) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 void control_idle_start(void) {
-	schedule_next_state(CONTROL_IDLE);
+	control.state = CONTROL_IDLE;
 }
 
 void control_idle_run(void) {}
@@ -831,7 +827,7 @@ void control_glide_run(void) {
  */
 void control_countdown_start(void) {
 	control.counter = FINAL_COUNTDOWN;
-	schedule_next_state(CONTROL_COUNTDOWN);
+	control.state = CONTROL_COUNTDOWN;
 }
 
 /**
