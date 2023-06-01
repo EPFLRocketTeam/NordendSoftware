@@ -46,6 +46,7 @@ static device_t i2c_accelerometer_device;
 //static device_t i2c_gyroscope_device;
 static device_t i2c_barometer_device;
 static device_t i2c_ADC_device;
+static device_t i2c_ADC_device_2;
 static device_t i2c_magnetometer_device;
 
 static i2c_sensor_context_t i2c_accelerometer_device_context = {
@@ -65,6 +66,10 @@ static i2c_sensor_context_t i2c_barometer_device_context = {
 };
 
 static i2c_sensor_context_t i2c_ADC_device_context = {
+		.device_address = 0xD0 //TODO see which address this truly is based on sensor board config
+};
+
+static i2c_sensor_context_t i2c_ADC_device_2_context = {
 		.device_address = 0xD0 //TODO see which address this truly is based on sensor board config
 };
 
@@ -109,8 +114,17 @@ device_t * i2c_sensor_get_barometer(void) {
 	return &i2c_barometer_device;
 }
 
-device_t * i2c_sensor_get_ADC(void) {
-	return &i2c_ADC_device;
+device_t * i2c_sensor_get_ADC(uint8_t adc_number) {
+	switch (adc_number)
+	{
+	case 1:
+		return &i2c_ADC_device_2
+		break;
+	case 0:
+		return &i2c_ADC_device
+	default:
+		break;
+	}
 }
 
 util_error_t i2c_sensor_init(void) {
