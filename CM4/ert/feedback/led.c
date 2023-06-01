@@ -221,7 +221,7 @@ void led_rgb_thread(__attribute__((unused)) void * arg) {
 		}
 		osDelay(500);
 		led_rgb_set_color(led_black);
-		debug_log("In led thread, hello\n", "");
+		//debug_log("In led thread, hello\n", "");
 		osDelay(500);
 	}
 }

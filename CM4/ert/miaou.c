@@ -149,7 +149,7 @@ void miaou_thread(__attribute__((unused)) void * arg) {
 							(uint8_t *) &miaou_packet);
 
 
-		debug_log("mioau packet sent!\n");
+		//debug_log("mioau packet sent!\n");
 
 
 		vTaskDelayUntil( &last_wake_time, period );

@@ -180,7 +180,7 @@ void init(void) {
 	UNUSED(can_tx_handle);
 
 #if ND_HAS_RADIO
-	//INIT_THREAD_CREATE(miaou_handle, miaou, miaou_thread, NULL, MIAOU_SZ, MIAOU_PRIO);
+	INIT_THREAD_CREATE(miaou_handle, miaou, miaou_thread, NULL, MIAOU_SZ, MIAOU_PRIO);
 #else
 	UNUSED(miaou_handle);
 #endif

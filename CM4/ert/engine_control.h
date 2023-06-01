@@ -94,7 +94,7 @@ typedef struct control
 	servo_t *servo_ethanol;
 	servo_t *servo_n2o;
 
-	uint32_t counter;
+	int32_t counter;
 	uint32_t time;
 	uint32_t last_time;
 } control_t;

@@ -161,6 +161,7 @@ void prop_sensor_i2c_thread(__attribute__((unused)) void * arg) {
             if(engine_press_err_A == ER_SUCCESS) {
                 //read engine pressure
 				engine_pressure_read(i2c_engine_press_A, &i2c_engine_press_data_A);
+				debug_log("Pressure A %d\n");
 			}
 			if(engine_temp_err == ER_SUCCESS) {
 				temperature_sensor_read(i2c_engine_temp, &i2c_engine_temp_data);

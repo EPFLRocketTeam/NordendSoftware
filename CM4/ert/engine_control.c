@@ -180,10 +180,7 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 	float fixed_offset_bat1 = expected_voltage - measured_voltage_bat1;
 	float fixed_offset_bat2 = expected_voltage - measured_voltage_bat2;
 
-	osDelay(10000);
-	control_countdown_start();
-
-
+	
 	for (;;) {
 		// Start the ADC conversion sequence
 	  	HAL_ADC_Start(&hadc1);
@@ -563,8 +560,8 @@ void control_calibration_start(void) {
  */
 void control_calibration_run(void) {
 	util_error_t error_calibration = 0;
-
-
+	debug_log("In calibration :D");
+	osDelay(10000);
 
 	if (error_calibration) {
 		schedule_next_state(CONTROL_ERROR);
@@ -840,7 +837,7 @@ void control_countdown_run(void) {
 	control.time = HAL_GetTick();
 
 	control.counter -= control.time - control.last_time;
-
+	debug_log("Remaining countdown time = %d\n" , control.counter);
 	// Check if we're ready to take off!
 	if (control.counter <= CONTROL_TAKEOFF_THRESH) {
 		control_igniter_start();
