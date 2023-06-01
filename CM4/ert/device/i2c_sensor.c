@@ -66,23 +66,13 @@ static i2c_sensor_context_t i2c_barometer_device_context = {
 };
 
 static i2c_sensor_context_t i2c_ADC_A_device_context = {
-		.device_address = 0xD0 //TODO see which address this truly is based on sensor board config
+		.device_address = 0b11010000 //TODO see which address this truly is based on sensor board config
 };
 
 static i2c_sensor_context_t i2c_ADC_B_device_context = {
-		.device_address = 0xD0 //TODO see which address this truly is based on sensor board config
+		.device_address = 0x11010010 //TODO see which address this truly is based on sensor board config
 };
 
-static i2c_sensor_context_t i2c_ADC_device_2_context = {
-		.device_address = 0xD0 //TODO see which address this truly is based on sensor board config
-};
-
-// Propulsion sensors
-// static device_t i2c_engine_pressure_device;
-
-// static i2c_sensor_context_t i2c_engine_pressure_device_context = {
-// 		.device_address = 0xD0 // TODO no clue
-// };
 
 /**********************
  *	PROTOTYPES

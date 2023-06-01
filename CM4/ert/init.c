@@ -164,7 +164,7 @@ void init(void) {
 
 
 //always start the control thread
-	INIT_THREAD_CREATE(engine_control_handle, engine_control, engine_control_thread, NULL, CONTROL_SZ, CONTROL_PRIO);
+	//INIT_THREAD_CREATE(engine_control_handle, engine_control, engine_control_thread, NULL, CONTROL_SZ, CONTROL_PRIO);
 
 
 //	INIT_THREAD_CREATE(serial_handle, serial, serial_thread, NULL, SERIAL_SZ, SERIAL_PRIO);
@@ -196,11 +196,11 @@ void init(void) {
 	UNUSED(sensor_i2c_handle);
 #endif
 
-//#if ND_HAS_PROP_SENSORS
-	//INIT_THREAD_CREATE(propulsion_sensor_i2c_handle, prop_sensor_i2c, prop_sensor_i2c_thread, NULL, PROP_SENSOR_SZ, PROP_SENSOR_PRIO);
-//#else
-//	UNUSED(propulsion_sensor_i2c_handle);
-//#endif
+#if ND_HAS_PROP_SENSORS
+	INIT_THREAD_CREATE(propulsion_sensor_i2c_handle, prop_sensor_i2c, prop_sensor_i2c_thread, NULL, PROP_SENSOR_SZ, PROP_SENSOR_PRIO);
+#else
+	UNUSED(propulsion_sensor_i2c_handle);
+#endif
 
 
 

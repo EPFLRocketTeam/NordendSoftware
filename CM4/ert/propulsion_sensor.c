@@ -133,11 +133,11 @@ void prop_sensor_i2c_thread(__attribute__((unused)) void * arg) {
 
 	//Sensor calibration
 	util_error_t error_calibration = 0;
-	error_calibration |= engine_pressure_calibrate(control.i2c_engine_press/*_A*/);
-	error_calibration |= temperature_sensor_calibrate(control.i2c_engine_temp);
+	error_calibration |= engine_pressure_calibrate(i2c_engine_press_A);
+	error_calibration |= temperature_sensor_calibrate(i2c_engine_temp);
 	
-	error_calibration |= engine_pressure_calibrate(control.i2c_engine_press_B);
-	error_calibration |= engine_pressure_calibrate(control.i2c_engine_press_C);
+	error_calibration |= engine_pressure_calibrate(i2c_engine_press_B);
+	error_calibration |= engine_pressure_calibrate(i2c_engine_press_C);
 	
 	
 	uint16_t checkpoint_calib = 0;
@@ -158,9 +158,9 @@ void prop_sensor_i2c_thread(__attribute__((unused)) void * arg) {
 
 		if(1) {
 			debug_log("Getting data\n");
-            if(engine_press_err == ER_SUCCESS) {
+            if(engine_press_err_A == ER_SUCCESS) {
                 //read engine pressure
-				engine_pressure_read(i2c_engine_press, &i2c_engine_press_data);
+				engine_pressure_read(i2c_engine_press_A, &i2c_engine_press_data_A);
 			}
 			if(engine_temp_err == ER_SUCCESS) {
 				temperature_sensor_read(i2c_engine_temp, &i2c_engine_temp_data);
@@ -168,8 +168,8 @@ void prop_sensor_i2c_thread(__attribute__((unused)) void * arg) {
 			if(engine_press_err_B == ER_SUCCESS) {
 				engine_pressure_read(i2c_engine_press_B, &i2c_engine_press_data_B);
 			}
-			if(engine_press_err_B == ER_SUCCESS) {
-				engine_pressure_read(i2c_engine_temp_C, &i2c_engine_temp_data_C);
+			if(engine_press_err_C == ER_SUCCESS) {
+				engine_pressure_read(i2c_engine_press_C, &i2c_engine_press_data_C);
 			}
 			//store everything
 			od_write_ENG_PRESS_I2C_A(&i2c_engine_press_data_A);

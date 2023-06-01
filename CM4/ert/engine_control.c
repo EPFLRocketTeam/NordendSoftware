@@ -909,7 +909,7 @@ void control_ignition_run(void) {
 	error_ignition |= servo_set_state(servo_ethanol, SERVO_PARTIALLY_OPEN);
 
 	//TODO Check for pressure in combustion chamber and define behavior
-	double engine_pressure;
+	double engine_pressure;	//TODO change lecture pression
 	error_ignition |= engine_pressure_read(control.i2c_engine_press,&engine_pressure);
 	if(engine_pressure<00/*wanted_pressure*/){//TODO determine the required pressure
 		++ignition_insufficient_pressure_counter;
