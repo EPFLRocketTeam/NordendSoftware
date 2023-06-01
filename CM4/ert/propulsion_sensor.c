@@ -86,20 +86,20 @@ void prop_sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	uint16_t checkpoint = led_add_checkpoint(led_blue);
 	debug_log("Propulsion sensor i2c start\n");
 	// Get sensor devices
-	i2c_engine_press_A = i2c_sensor_get_ADC();
-	i2c_engine_temp = i2c_sensor_get_ADC();
-	/*
-	i2c_engine_press_B = i2c_sensor_get_ADC();
-	i2c_engine_press_C = i2c_sensor_get_ADC();
-	*/
+	i2c_engine_press_A = i2c_sensor_get_ADC_A();
+	i2c_engine_temp = i2c_sensor_get_ADC_A();
+	
+	i2c_engine_press_B = i2c_sensor_get_ADC_B();
+	i2c_engine_press_C = i2c_sensor_get_ADC_B();
+	
 
 	// Initialize sensors
 	util_error_t engine_press_err_A = engine_pressure_init(i2c_engine_press_A);
 	util_error_t engine_temp_err = temperature_sensor_init(i2c_engine_temp);
-	/*
+	
 	util_error_t engine_press_err_B = engine_pressure_init(i2c_engine_press_B);
 	util_error_t engine_press_err_C = engine_pressure_init(i2c_engine_press_C);
-	*/
+	
 
 	// Sensor initialisation checkpoints
 	uint16_t checkpoint_engpress = 0;
@@ -135,10 +135,10 @@ void prop_sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	util_error_t error_calibration = 0;
 	error_calibration |= engine_pressure_calibrate(control.i2c_engine_press/*_A*/);
 	error_calibration |= temperature_sensor_calibrate(control.i2c_engine_temp);
-	/*
+	
 	error_calibration |= engine_pressure_calibrate(control.i2c_engine_press_B);
 	error_calibration |= engine_pressure_calibrate(control.i2c_engine_press_C);
-	*/
+	
 	
 	uint16_t checkpoint_calib = 0;
 	if (error_calibration == ER_SUCCESS) {

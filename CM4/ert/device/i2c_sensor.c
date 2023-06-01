@@ -45,7 +45,8 @@
 static device_t i2c_accelerometer_device;
 //static device_t i2c_gyroscope_device;
 static device_t i2c_barometer_device;
-static device_t i2c_ADC_device;
+static device_t i2c_ADC_A_device;
+static device_t i2c_ADC_B_device;
 static device_t i2c_magnetometer_device;
 
 static i2c_sensor_context_t i2c_accelerometer_device_context = {
@@ -64,7 +65,11 @@ static i2c_sensor_context_t i2c_barometer_device_context = {
 		.device_address = 0xee
 };
 
-static i2c_sensor_context_t i2c_ADC_device_context = {
+static i2c_sensor_context_t i2c_ADC_A_device_context = {
+		.device_address = 0xD0 //TODO see which address this truly is based on sensor board config
+};
+
+static i2c_sensor_context_t i2c_ADC_B_device_context = {
 		.device_address = 0xD0 //TODO see which address this truly is based on sensor board config
 };
 
@@ -109,8 +114,12 @@ device_t * i2c_sensor_get_barometer(void) {
 	return &i2c_barometer_device;
 }
 
-device_t * i2c_sensor_get_ADC(void) {
-	return &i2c_ADC_device;
+device_t * i2c_sensor_get_ADC_A(void) {
+	return &i2c_ADC_A_device;
+}
+
+device_t * i2c_sensor_get_ADC_B(void) {
+	return &i2c_ADC_B_device;
 }
 
 util_error_t i2c_sensor_init(void) {
@@ -120,7 +129,8 @@ util_error_t i2c_sensor_init(void) {
 	//device_create((void*) &i2c_gyroscope_device, &i2c_gyroscope_device_context, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
 	device_create((void*) &i2c_accelerometer_device, &i2c_accelerometer_device_context, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
 	device_create((void*) &i2c_barometer_device, &i2c_barometer_device_context, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
-	device_create((void*) &i2c_ADC_device, &i2c_ADC_device_context, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
+	device_create((void*) &i2c_ADC_A_device, &i2c_ADC_A_device_context, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
+	device_create((void*) &i2c_ADC_B_device, &i2c_ADC_B_device_context, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
 	device_create((void*) &i2c_magnetometer_device, &i2c_magnetometer_device_context, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
 	//device_create((void*) &i2c_engine_pressure_device, &i2c_engine_pressure_device_context, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
 
