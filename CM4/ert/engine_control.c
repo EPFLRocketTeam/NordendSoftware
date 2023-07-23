@@ -105,7 +105,7 @@ enum od_engine_state {
  */
 static control_t control;
 static uint8_t error_loop_control = 0;
-static uint16_t ignition_insufficient_pressure_counter =0;
+static uint16_t ignition_insufficient_pressure_counter = 0;
 
 /**
  * Last wake time for the timer
@@ -166,6 +166,10 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 	int adc_resolution = 16;
 	float ref_voltage = 3.3;
 
+	/* WTF is this doing ????
+	 * what is the adc offset ??
+	 * Iacopo 23jul2023
+	 */
 	// Determine the offset value for each ADC channel
 	HAL_ADC_Start(&hadc1);
 	HAL_ADC_PollForConversion(&hadc1, 10);
@@ -294,7 +298,7 @@ control_sched_t check_flagged_state() {
 	if (changes_sched.calibrate == CMD_ACTIVE) return CONTROL_SCHED_CALIBRATE;
 	if (changes_sched.servoEthanol == CMD_ACTIVE) return CONTROL_SCHED_SERVOS_ETHANOL;
 	if (changes_sched.servoN20 == CMD_ACTIVE) return CONTROL_SCHED_SERVOS_N2O;
-	if (countdown_requested == IGNITION_CODE) return CONTROL_SCHED_COUNTDOWN;
+	if (changes_sched.ignition == CMD_ACTIVE) return CONTROL_SCHED_COUNTDOWN;
 	if (changes_sched.pressurization) return CONTROL_SCHED_PRESSURISATION;
 	//if (changes_sched.shutdown) return CONTROL_SCHED_SHUTDOWN;
 
@@ -557,6 +561,7 @@ void control_calibration_start(void) {
  * @brief	Calibration state runtime
  * @details This state will wait for the calibration sequence to finish and jump
  * 			back to Idle or go to Error.
+ * 			-- there is nothing to calibrate...
  */
 void control_calibration_run(void) {
 	util_error_t error_calibration = 0;

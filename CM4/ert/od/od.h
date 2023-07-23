@@ -19,7 +19,6 @@
 
 #include "sensor/gnss.h"
 #include <protocol/structures.h>
-#include <RadioPacket/RadioPacket.h>
 
 #include "sensor/accelerometer.h"
 #include "sensor/magnetometer.h"

@@ -16,7 +16,7 @@
 #include <miaou.h>
 #include <device/comunicator.h>
 #include <od/od.h>
-#include <RadioPacket/RadioPacket.h>
+#include <ERT_RF_Protocol_Interface/PacketDefinition.h>
 #include <sensor/gnss.h>
 #include <driver/serial.h>
 #include <device/device.h>
@@ -64,24 +64,43 @@ static radio_packet_t miaou_packet;
 
 void miaou_handler(uint8_t opcode, uint16_t len, uint8_t * _data) {
 
-	if(opcode == RF_PREFIX) {
-		if(len == sizeof(PacketAV_uplink_t)) {
-			PacketAV_uplink_t data;
-			memcpy(&data, _data, sizeof(PacketAV_uplink_t));
-			rf_cmd_t cmd = data.cmd;
-			//uint8_t cmd_counter = data.cmd_counter;
-			uint16_t cmd_countdown = data.cmd_countdown;
+	if(opcode == MIAOU_RF) {
+		if(len == av_uplink_size) {
+			av_uplink_t data;
+			memcpy(&data, _data, av_uplink_size);
 
-#if ND_COMPUTER == ND_A
-			od_write_RF_CMD(&cmd);
-			od_write_COUNTDOWN(&cmd_countdown);
+			rf_cmd_t radio_orders = {0};
 
-#else
-			od_write_RF_CMD(&cmd);
-			od_write_COUNTDOWN(&cmd_countdown);
-#endif
+			switch(data.order_id) {
+			case IGNITION:
+				radio_orders.ignition = (data.order_value == IGNITION_CODE) ? CMD_ACTIVE : CMD_INACTIVE;
+			case ABORT:
+				if(data.order_value == ACTIVE) {
 
-	}
+				}
+			case AV_CMD_VALVE_N2O:
+				if(data.order_value == ACTIVE) {
+
+				}
+			case AV_CMD_VALVE_FUEL:
+				if(data.order_value == ACTIVE) {
+
+				}
+			case AV_CMD_VENT_N2O:
+				if(data.order_value == ACTIVE) {
+
+				}
+			case AV_CMD_VENT_FUEL:
+				if(data.order_value == ACTIVE) {
+
+				}
+			}
+
+			od_write_RF_CMD(&radio_orders);
+
+		}
+	} else if(opcode == MIAOU_GNSS) {
+
 }
 
 /*

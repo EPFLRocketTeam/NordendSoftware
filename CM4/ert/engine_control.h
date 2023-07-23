@@ -18,7 +18,6 @@
 
 #include <stdint.h>
 #include <util.h>
-#include <RadioPacket/RadioPacket.h>
 #include <solenoide.h>
 #include <propulsion/servo.h>
 
@@ -77,6 +76,27 @@ typedef enum control_state
 	/** Flight or radio-triggered error */
 	CONTROL_ABORT = 16
 } control_state_t;
+
+
+#define CMD_ACTIVE  	0xF
+#define CMD_INACTIVE 	0x0
+
+#define IGNITION_CODE   0X434C //CL
+
+
+typedef struct __attribute__((__packed__)) rf_cmd {
+	unsigned int ignition: 4;
+	unsigned int calibrate: 4;
+	unsigned int ventN20 : 4;
+	unsigned int ventEthanol : 4;
+	unsigned int servoN20 : 4;
+	unsigned int servoEthanol : 4;
+	unsigned int pressurization : 4;
+	unsigned int abort : 4;
+	unsigned int error : 4;
+	unsigned int other : 4;
+} rf_cmd_t;
+
 
 typedef struct control
 {
