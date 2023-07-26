@@ -46,7 +46,7 @@
  **********************/
 
 static comunicator_t miaou_comunicator;
-static radio_packet_t miaou_packet;
+static av_downlink_t miaou_packet;
 
 
 /**********************
@@ -68,35 +68,6 @@ void miaou_handler(uint8_t opcode, uint16_t len, uint8_t * _data) {
 		if(len == av_uplink_size) {
 			av_uplink_t data;
 			memcpy(&data, _data, av_uplink_size);
-
-			rf_cmd_t radio_orders = {0};
-
-			switch(data.order_id) {
-			case IGNITION:
-				radio_orders.ignition = (data.order_value == IGNITION_CODE) ? CMD_ACTIVE : CMD_INACTIVE;
-			case ABORT:
-				if(data.order_value == ACTIVE) {
-
-				}
-			case AV_CMD_VALVE_N2O:
-				if(data.order_value == ACTIVE) {
-
-				}
-			case AV_CMD_VALVE_FUEL:
-				if(data.order_value == ACTIVE) {
-
-				}
-			case AV_CMD_VENT_N2O:
-				if(data.order_value == ACTIVE) {
-
-				}
-			case AV_CMD_VENT_FUEL:
-				if(data.order_value == ACTIVE) {
-
-				}
-			}
-
-			od_write_RF_CMD(&radio_orders);
 
 		}
 	} else if(opcode == MIAOU_GNSS) {
@@ -164,7 +135,7 @@ void miaou_thread(__attribute__((unused)) void * arg) {
 
 		comunicator_send(	&miaou_comunicator,
 							0x00, //radio_packet_opcode,
-							sizeof(radio_packet_t), //radio_packet_size,
+							sizeof(av_downlink_t), //radio_packet_size,
 							(uint8_t *) &miaou_packet);
 
 

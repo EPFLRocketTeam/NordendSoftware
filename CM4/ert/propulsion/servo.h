@@ -38,6 +38,9 @@
 #define SERVO_N2O_IGNITION (45)
 #define SERVO_N2O_CLOSED (0)
 
+
+
+
 /**********************
  *  MACROS
  **********************/
@@ -54,9 +57,9 @@
  *
  */
 typedef enum servo_state {
-	SERVO_CLOSED = 0b0000,
-	SERVO_PARTIALLY_OPEN = 0b1010,
-	SERVO_OPEN = 0b1111
+	SERVO_CLOSED,
+	SERVO_PARTIALLY_OPEN,
+	SERVO_OPEN
 } servo_state_t;
 
 

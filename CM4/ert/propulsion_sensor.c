@@ -59,7 +59,7 @@ static uint8_t i2c_calib;
 static double i2c_engine_press_data_A;
 static double i2c_engine_press_data_B;
 static double i2c_engine_press_data_C;
-static double i2c_engine_temp_data;
+static temperature_data_t i2c_engine_temp_data;
 
 
 /**********************
