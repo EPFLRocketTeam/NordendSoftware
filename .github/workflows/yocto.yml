@@ -36,6 +36,9 @@ jobs:
       # Sources the compilation environment & compiles ERT image core
       - name: Compile ERT image core
         run: |
+          cd CA7/DeviceTree
+          python3 dts_patcher.py
+          cd -
           cd distribution-package
           MACHINE=stm32mp1-wildhornav DISTRO=openstlinux-ert EULA_stm32mp1wildhornav=1 source layers/meta-st/scripts/envsetup.sh --no-ui
           bitbake ert-image-core

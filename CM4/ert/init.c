@@ -137,7 +137,7 @@ void init(void) {
 	od_init();
 
 	// NOT USED DUE TO BUGS!!!!
-	//can_init(WH_COMPUTER);
+	can_init(WH_COMPUTER);
 
 	debug_log("Beginning of the threads");
 
