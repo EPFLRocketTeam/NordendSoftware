@@ -137,7 +137,7 @@ void init(void) {
 	od_init();
 
 	// NOT USED DUE TO BUGS!!!!
-	can_init(WH_COMPUTER);
+	can_init(ND_COMPUTER);
 
 	debug_log("Beginning of the threads");
 
@@ -156,9 +156,9 @@ void init(void) {
 #endif
 
 
-//	INIT_THREAD_CREATE(od_update_handle, od_update, od_update_task, NULL, OD_SZ, OD_PRIO);
+	INIT_THREAD_CREATE(od_update_handle, od_update, od_update_task, NULL, OD_SZ, OD_PRIO);
 //
-//	INIT_THREAD_CREATE(od_broadcast_handle, od_broadcast, od_broadcast_task, NULL, OD_SZ, OD_PRIO);
+	INIT_THREAD_CREATE(od_broadcast_handle, od_broadcast, od_broadcast_task, NULL, OD_SZ, OD_PRIO);
 //
 	INIT_THREAD_CREATE(led_rgb_handle, led_rgb, led_rgb_thread, NULL, LED_RGB_SZ, LED_RGB_PRIO);
 
@@ -173,11 +173,10 @@ void init(void) {
 
 //	INIT_THREAD_CREATE(servo_handle, servo, servo_thread, NULL, SERVO_SZ, SERVO_PRIO);
 
-	// NOT USED DUE TO BUGS!!!!
-	//INIT_THREAD_CREATE(can_rx_handle, can_rx, can_receive_thread, NULL, CAN_TX_SZ, CAN_TX_PRIO);
-	UNUSED(can_rx_handle);
-	//INIT_THREAD_CREATE(can_tx_handle, can_tx, can_transmit_thread, NULL, CAN_RX_SZ, CAN_RX_PRIO);
-	UNUSED(can_tx_handle);
+	INIT_THREAD_CREATE(can_rx_handle, can_rx, can_receive_thread, NULL, CAN_TX_SZ, CAN_TX_PRIO);
+
+	INIT_THREAD_CREATE(can_tx_handle, can_tx, can_transmit_thread, NULL, CAN_RX_SZ, CAN_RX_PRIO);
+
 
 #if ND_HAS_RADIO
 	INIT_THREAD_CREATE(miaou_handle, miaou, miaou_thread, NULL, MIAOU_SZ, MIAOU_PRIO);

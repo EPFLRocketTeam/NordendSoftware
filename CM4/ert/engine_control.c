@@ -346,7 +346,8 @@ void control_igniter_run(void) {
 		HAL_GPIO_WritePin(IGNITER_PORT, IGNITER_PIN, GPIO_PIN_RESET);
 	}
 
-	//TIMER WAIT
+	//TODO: TIMER WAIT HERE
+
 
 	control_ignition_start();
 }
