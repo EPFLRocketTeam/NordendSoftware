@@ -22,6 +22,7 @@
 #include <od/od.h>
 
 #include <cmsis_os.h>
+#include <queue.h>
 
 #include <driver/serial.h>
 #include <device/device.h>
@@ -45,6 +46,83 @@
  *	CONSTANTS
  **********************/
 
+
+
+/**
+ * ENGINE CONTROL SEQUENCE
+ * 
+ * The engine control sequence is managed by a state machine. 
+ * Here is a description of the state machine
+ * 
+ * IDLE
+ * - The engine is not ready for fire and is not doing anything.
+ * - Can move to ARMED with the ARM command.
+ * 
+ * CALIBRATION
+ * - Calibration of engine's sensors.
+ * 
+ * MANUAL OPERATION
+ * - Parking state for when the engine is manually controlled.
+ * - Whenever the engine receives a manual operation command, it gets locked to this state.
+ * - This is meant to avoid messing up the sequence, when manual valve operation is used.
+ * - Can move back to IDLE by issuing the RECOVER command.
+ * 
+ * ARMED
+ * - From this state, the system can be safely pressured.
+ * - Can move to PRESSURED with the PRESSURE command.
+ * 
+ * PRESSURED
+ * - The engine is pressured and ready for ignition.
+ * - Can move to IGNITER with the IGNITE command.
+ * 
+ * IGNITER
+ * - The igniter is fired.
+ * - After IGNITER_COUNTER is elapsed, we move to IGNITION.
+ * 
+ * IGNITION
+ * - Fuel and Oxydizer valves are partially opened.
+ * - After IGNITION_COUNTER is elapsed, we move to THRUST.
+ * 
+ * THRUST
+ * - Fuel and Oxydizer valves are fully opened.
+ * - After THRUST_COUNTER is elapsed, we move to SHUTDOWN.
+ * 
+ * SHUTDOWN
+ * - Fuel Valve is closed.
+ * - After SHUTDOWN_COUNTER is elapsed, we move to GLIDE.
+ * 
+ * GLIDE
+ * - Engine is depressured (sol_press closed and sol_purge open).
+ * - Recovery is signaled that the burn is finished.
+ * 
+ * ERROR
+ * - Automatically triggered error state.
+ * - Can move to IDLE with the RECOVER command.
+ * 
+ * ABORT
+ * - Manually triggered error state.
+ * - Can move to IDLE with the RECOVER command.
+ * 
+ * 
+ * Accepted commands for the engine control system:
+ * ARM 			-> Arm the system
+ * PRESSURE 	-> Pressure the system
+ * IGNITE		-> Ignite the system
+ * RECOVER		-> Recover from parking state
+ * VENT_N2O		-> open/close the N2O venting valve
+ * VENT_ETH		-> open/close the ETH venting valve
+ * MAN_PRESS	-> open/close the Pressurant valve
+ * MAN_PURGE	-> open/close the Purge valve
+ * VALVE_N2O	-> open/close the N2O main valve
+ * VALVE_ETH	-> open/close the ETH main valve
+ */
+
+
+#define COMMAND_QUEUE_LENGTH 	16
+
+
+
+
 #define CONTROL_HEART_BEAT 200
 #define CONTROL_TAKEOFF_THRESH 0 // TODO The tolerance for taking off, in milliseconds
 #define FINAL_COUNTDOWN 10000 // TODO must be changed by wanted countdown duration, in milliseconds
@@ -66,10 +144,6 @@
 
 #define DEPRESSURISATION_TIME 5000 // Time in ms
 
-/**
- * @enum od_engine_state
- * @brief  Represents the possible values of an engine state OD entry
- */
 
 
 /**********************
@@ -85,6 +159,12 @@
  *	TYPEDEFS
  **********************/
 
+
+typedef struct command {
+	control_command_t cmd; 
+	int32_t parameter;
+}command_t;
+
 typedef struct control
 {
 	control_state_t state;
@@ -99,6 +179,10 @@ typedef struct control
 
 	servo_t servo_ethanol;
 	servo_t servo_n2o;
+
+	StaticQueue_t command_queue_params;
+	QueueHandle_t command_queue;
+	uint8_t command_queue_storage[sizeof(command_t)*COMMAND_QUEUE_LENGTH];
 
 	int32_t counter;
 	uint32_t time;
@@ -127,15 +211,42 @@ static const TickType_t period = pdMS_TO_TICKS(CONTROL_HEART_BEAT);
 //Servo stuff
 
 // Specific to the SB2290SG Monster Torque Brushless Servo
-uint32_t min_pulse = 800;
-uint32_t max_pulse = 2200;
-float degrees_per_usec = 0.114;
+#define min_pulse 800
+#define max_pulse 2200
+#define degrees_per_usec 0.114f
 
 
 /**********************
  *	PROTOTYPES
  **********************/
+
+void control_idle_start(void);
+void control_calibration_start(void);
+void control_pressured_start(void);
+void control_armed_start(void);
+void control_igniter_start(void);
+void control_ignition_start(void);
+void control_thrust_start(void);
+void control_shutdown_start(void);
+void control_glide_start(void);
+void control_error_start(void);
+void control_abort_start(void);
+
+void control_idle_run(void);
+void control_calibration_run(void);
+void control_pressured_run(void);
+void control_armed_run(void);
+void control_igniter_run(void);
+void control_ignition_run(void);
+void control_thrust_run(void);
+void control_shutdown_run(void);
+void control_glide_run(void);
+void control_error_run(void);
+void control_abort_run(void);
+
 util_error_t init_engine_control();
+
+void engine_control_command_pop(control_command_t * cmd, int32_t * parameter);
 
 /**********************
  *	DECLARATIONS
@@ -227,6 +338,13 @@ util_error_t init_engine_control(void) {
 	// Initialize the value of control
 	control.state = CONTROL_IDLE;
 
+	//init command queue
+	control.command_queue = xQueueCreateStatic( 
+								COMMAND_QUEUE_LENGTH,
+                                sizeof(command_t),
+                                control.command_queue_storage,
+                                &control.command_queue_params);
+
 	// Assign Ethanol servo to pin 13 (TIM4, CH2) and N2O servo to pin 14 (TIM4, CH3)
 	util_error_t ethanol_err = servo_init(
 			&control.servo_ethanol,
@@ -273,6 +391,36 @@ util_error_t init_engine_control(void) {
 
 
 	return ethanol_err | n2o_err | servo_err | sol_err;
+}
+
+
+void engine_control_command_push(control_command_t cmd, int32_t parameter) {
+	command_t command;
+	command.cmd = cmd;
+	command.parameter = parameter;
+
+	//post to the queue without timeout
+	xQueueSend(control.command_queue, (void*) &command, 0);
+
+	//we dont care if posted successfully or not for now...
+}
+
+int engine_control_command_pop(control_command_t * cmd, int32_t * parameter) {
+	command_t command;
+	if(xQueueReceive(control.command_queue, &command, 0) == pdPASS) {
+		*cmd = command.cmd;
+		*parameter = command.parameter;
+		//return 1 if a command has been received
+		return 1;
+	} else {
+		//return 0 if no commands have been received
+		return 0;
+	}
+}
+
+
+void control_read_commands(void) {
+
 }
 
 

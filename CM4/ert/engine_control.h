@@ -69,25 +69,22 @@ typedef enum control_state
 
 
 
-
-
-
-
-typedef enum control_sched
-{
-	// In order of priority -- cardinality is implicit
-	CONTROL_SCHED_ABORT,
-	CONTROL_SCHED_VENT_N2O,
-	CONTROL_SCHED_VENT_ETHANOL,
-	CONTROL_SCHED_CALIBRATE,
-	CONTROL_SCHED_SERVOS_N2O,
-	CONTROL_SCHED_SERVOS_ETHANOL,
-	CONTROL_SCHED_COUNTDOWN,
-	CONTROL_SCHED_SHUTDOWN, // unused in Nordend
-	CONTROL_SCHED_PRESSURISATION,
-	// CONTROL_SCHED_DEPRESSURISATION, -> if needed to be radio-triggered
-	CONTROL_SCHED_NOTHING
-} control_sched_t;
+/**
+ * The commands are processed through a message queue so that none can be missed.
+ */
+typedef enum control_command {
+	COMMAND_ARM,
+	COMMAND_PRESSURE,
+	COMMAND_IGNITE,
+	COMMAND_RECOVER,
+	COMMAND_VENT_N2O,
+	COMMAND_VENT_ETH,
+	COMMAND_MAN_PRESS,
+	COMMAND_MAN_PURGE,
+	COMMAND_VALVE_N2O,
+	COMMAND_VALVE_ETH,
+	COMMAND_ABORT
+} control_command_t;
 
 
 /**********************
@@ -99,33 +96,10 @@ typedef enum control_sched
  **********************/
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
-void control_idle_start(void);
-void control_calibration_start(void);
-void control_pressured_start(void);
-void control_armed_start(void);
-void control_igniter_start(void);
-void control_ignition_start(void);
-void control_thrust_start(void);
-void control_shutdown_start(void);
-void control_glide_start(void);
-void control_error_start(void);
-void control_abort_start(void);
-
-void control_idle_run(void);
-void control_calibration_run(void);
-void control_pressured_run(void);
-void control_armed_run(void);
-void control_igniter_run(void);
-void control_ignition_run(void);
-void control_thrust_run(void);
-void control_shutdown_run(void);
-void control_glide_run(void);
-void control_error_run(void);
-void control_abort_run(void);
+void engine_control_command_push(control_command_t cmd, int32_t parameter);
 
 void engine_control_thread(void *arg);
 
