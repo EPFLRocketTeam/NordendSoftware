@@ -9,7 +9,7 @@
 #ifndef ADC_ENGINE_H
 #define ADC_ENGINE_H
 
-#include <sensor/ADC.h>
+#include <sensor/adc.h>
 
 util_error_t engine_pressure_init(device_t * eng_press);
 util_error_t engine_pressure_read(device_t * eng_press, double * data);

@@ -78,8 +78,6 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 
-	//wait for debugger connection
-	//for(uint32_t i = 0; i < 0x01fffffe; i++);
 
   /* USER CODE END 1 */
 
@@ -100,7 +98,7 @@ int main(void)
   else
   {
     /* IPCC initialisation */
-     MX_IPCC_Init();
+    MX_IPCC_Init();
     /* OpenAmp initialisation ---------------------------------*/
     MX_OPENAMP_Init(RPMSG_REMOTE, NULL);
   }

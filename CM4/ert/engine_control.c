@@ -260,7 +260,7 @@ void control_vent_n2o(int32_t param);
 
 util_error_t init_engine_control();
 
-void engine_control_command_pop(control_command_t * cmd, int32_t * parameter);
+int engine_control_command_pop(control_command_t * cmd, int32_t * parameter);
 
 /**********************
  *	DECLARATIONS
@@ -281,7 +281,7 @@ void engine_control_command_pop(control_command_t * cmd, int32_t * parameter);
  */
 
 void engine_control_thread(__attribute__((unused)) void *arg) {
-	util_error_t init_err = init_engine_control();
+	init_engine_control();
 
 	uint16_t checkpoint = led_add_checkpoint(led_blue);
 	debug_log("Control start\n");
@@ -291,7 +291,7 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 
 	
 	for (;;) {
-
+		led_checkpoint(checkpoint);
 		debug_log("Current state : %d\n", control.state);
 
 		// Call the function associated with the current state.
@@ -431,8 +431,8 @@ int engine_control_command_pop(control_command_t * cmd, int32_t * parameter) {
 		return 1;
 	} else {
 		//return 0 if no commands have been received
-		*cmd = NULL;
-		*parameter = NULL;
+		*cmd = COMMAND_NONE;
+		*parameter = 0;
 		return 0;
 	}
 }
@@ -657,7 +657,7 @@ void control_pressured_run(void) {
 	received_command = control_read_commands(expected_cmds, 1, NULL);
 
 	if(received_command == COMMAND_IGNITE) { //ignition command
-		control_ignite_start();
+		control_igniter_start();
 	}
 
 }
@@ -684,8 +684,8 @@ void control_igniter_run(void) {
 	control_command_t expected_cmds[] = {
 		COMMAND_NONE
 	};
-	control_command_t received_command;
-	received_command = control_read_commands(expected_cmds, 1, NULL);
+
+	control_read_commands(expected_cmds, 1, NULL);
 
 	RETURN_UNTIL_COUNTER_ZERO;
 
@@ -709,8 +709,8 @@ void control_ignition_run(void) {
 	control_command_t expected_cmds[] = {
 		COMMAND_NONE
 	};
-	control_command_t received_command;
-	received_command = control_read_commands(expected_cmds, 1, NULL);
+
+	control_read_commands(expected_cmds, 1, NULL);
 
 	RETURN_UNTIL_COUNTER_ZERO;
 
@@ -737,8 +737,8 @@ void control_thrust_run(void) {
 	control_command_t expected_cmds[] = {
 		COMMAND_NONE
 	};
-	control_command_t received_command;
-	received_command = control_read_commands(expected_cmds, 1, NULL);
+
+	control_read_commands(expected_cmds, 1, NULL);
 
 	RETURN_UNTIL_COUNTER_ZERO;
 
@@ -757,12 +757,11 @@ void control_shutdown_run(void) {
 	control_command_t expected_cmds[] = {
 		COMMAND_NONE
 	};
-	control_command_t received_command;
-	received_command = control_read_commands(expected_cmds, 1, NULL);
+	control_read_commands(expected_cmds, 1, NULL);
 
 	RETURN_UNTIL_COUNTER_ZERO;
 
-	control_start_glide();
+	control_glide_start();
 }
 
 void control_glide_start(void) {

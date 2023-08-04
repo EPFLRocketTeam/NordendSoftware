@@ -8,7 +8,7 @@
 #ifndef SENSOR_TEMPERATURE_H_
 #define SENSOR_TEMPERATURE_H_
 
-#include <sensor/ADC.h>
+#include <sensor/adc.h>
 #include <util.h>
 
 typedef struct temperature_data {

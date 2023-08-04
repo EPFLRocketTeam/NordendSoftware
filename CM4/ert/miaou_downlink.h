@@ -9,8 +9,8 @@
  * @{
  */
 
-#ifndef MIAOU_H
-#define MIAOU_H
+#ifndef MIAOU_DOWNLINK_H
+#define MIAOU_DOWNLINK_H
 
 
 
@@ -48,16 +48,13 @@
 extern "C"{
 #endif
 
-
-
-void miaou_thread(__attribute__((unused)) void * arg);
-//void miaou_handler(uint8_t opcode, uint16_t len, uint8_t * _data);
+void miaou_downlink_thread(__attribute__((unused)) void * arg);
 
 #ifdef __cplusplus
 } // extern "C"
 #endif /* __cplusplus */
 
-#endif /* TEMPLATE_H */
+#endif /* MIAOU_DOWNLINK_H */
 
 /** @} */
 

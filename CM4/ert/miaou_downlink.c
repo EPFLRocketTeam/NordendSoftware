@@ -13,7 +13,6 @@
  *	INCLUDES
  **********************/
 
-#include <miaou.h>
 #include <device/comunicator.h>
 #include <od/od.h>
 #include <ERT_RF_Protocol_Interface/PacketDefinition.h>
@@ -22,6 +21,7 @@
 #include <device/device.h>
 #include <feedback/led.h>
 #include <feedback/debug.h>
+#include <miaou_downlink.h>
 #include <string.h>
 
 /**********************
@@ -45,7 +45,7 @@
  *	VARIABLES
  **********************/
 
-static comunicator_t miaou_comunicator;
+static comunicator_t miaou_downlink_comunicator;
 static av_downlink_t miaou_packet;
 
 
@@ -58,66 +58,36 @@ static av_downlink_t miaou_packet;
  *	DECLARATIONS
  **********************/
 
-//TODO :
-//- write miaou handler (different opcodes, different boards, write in od, radio & gnss)
-//- for now only one packet, will add 3/5 later
 
-void miaou_handler(uint8_t opcode, uint16_t len, uint8_t * _data) {
-
-	if(opcode == MIAOU_RF) {
-		if(len == av_uplink_size) {
-			av_uplink_t data;
-			memcpy(&data, _data, av_uplink_size);
-
-		}
-	} else if(opcode == MIAOU_GNSS) {
+void miaou_downlink_handler(uint8_t opcode, uint16_t len, uint8_t * _data) {
 
 }
 
-/*
-	if(opcode = TRANSFER_DATA_GNSS_RMC) {  //utliliser le gnss data type ou en créer un autre parce que le code de décodage tourne sur miaou??
-		if(len == sizeof(transfer_data_gnss_rmc_t)) {
-			transfer_data_gnss_rmc_t data;
-			memcpy(&data, _data, sizeof(transfer_data_gnss_rmc_t));
-			od_write_(&data);
-	}
-}
-	if(opcode = TRANSFER_DATA_GNSS_OTHER) {
-		if(len == sizeof()) {
 
-	}
-}
-*/
-}
-
-
-void miaou_thread(__attribute__((unused)) void * arg) {
+void miaou_downlink_thread(__attribute__((unused)) void * arg) {
 	static TickType_t last_wake_time;
 	static const TickType_t period = pdMS_TO_TICKS(MIAOU_HEART_BEAT);
 	last_wake_time = xTaskGetTickCount();
 
-	// initialise la réception de données par serial, géré après par le thread serial
+
 
 	device_interface_t * miaou_interface = serial_get_s1_interface();
 
-	comunicator_init(&miaou_comunicator, miaou_interface, miaou_handler);
+	comunicator_init(&miaou_downlink_comunicator, miaou_interface, miaou_downlink_handler);
 
-	serial_register_handler(miaou_interface, communicator_handler, &miaou_comunicator);
+	serial_register_handler(miaou_interface, communicator_handler, &miaou_downlink_comunicator);
 
 	uint16_t checkpoint = led_add_checkpoint(led_orange);
 
 	static int32_t packet_number = 0;
 
-	// transission données
+	// transission donnees
 
 	for(;;) {
 
 		led_checkpoint(checkpoint);
 
 		packet_number += 1;
-
-	//	miaou_packet.prefix = 'R'<<24 | 'F'<<16 | 'B'<<8 | 'G';
-
 
 		gnss_data_t gnss_data;
 		od_read_GNSS(&gnss_data);
@@ -133,7 +103,7 @@ void miaou_thread(__attribute__((unused)) void * arg) {
 		miaou_packet.packet_nbr = packet_number;
 		miaou_packet.timestamp = HAL_GetTick();
 
-		comunicator_send(	&miaou_comunicator,
+		comunicator_send(	&miaou_downlink_comunicator,
 							0x00, //radio_packet_opcode,
 							sizeof(av_downlink_t), //radio_packet_size,
 							(uint8_t *) &miaou_packet);

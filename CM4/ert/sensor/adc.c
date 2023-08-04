@@ -10,7 +10,7 @@
  *	INCLUDES
  **********************/
 
-#include <sensor/ADC.h>
+#include <sensor/adc.h>
 #include <device/i2c_sensor.h>
 #include <util.h>
 

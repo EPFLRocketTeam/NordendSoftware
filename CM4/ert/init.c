@@ -12,7 +12,7 @@
 
 
 #include <cmsis_os.h>
-#include <wildhorn.h>
+#include <nordend.h>
 #include <feedback/led.h>
 #include <feedback/buzzer.h>
 #include <driver/serial.h>
@@ -31,11 +31,11 @@
 #include <device/comunicator.h>
 #include <engine_control.h>
 #include <hostcom.h>
-#include <miaou.h>
 #include <sensor/gnss.h>
 #include <propulsion/servo.h>
 
 #include <feedback/debug.h>
+#include <miaou_downlink.h>
 
 
 /**********************
@@ -100,14 +100,11 @@ static TaskHandle_t od_update_handle = NULL;
 static TaskHandle_t od_broadcast_handle = NULL;
 static TaskHandle_t engine_control_handle = NULL;
 static TaskHandle_t led_rgb_handle = NULL;
-static TaskHandle_t sensor_i2c_handle = NULL;
 static TaskHandle_t serial_handle = NULL;
 static TaskHandle_t hostcom_handle = NULL;
 static TaskHandle_t miaou_handle = NULL;
 static TaskHandle_t can_rx_handle = NULL;
 static TaskHandle_t can_tx_handle = NULL;
-static TaskHandle_t servo_handle = NULL;
-static TaskHandle_t propulsion_sensor_i2c_handle = NULL;
 
 /**********************
  *	PROTOTYPES
@@ -128,77 +125,70 @@ static TaskHandle_t propulsion_sensor_i2c_handle = NULL;
 void init(void) {
 
 	//initialize serial
+	// A + B
 	serial_init();
 
 	//initialize hostproc comm
+	// A + B
 	hostproc_init();
 
 	// initialize object dictionary
+	// A + B
 	od_init();
 
-	// NOT USED DUE TO BUGS!!!!
+	// initialize the can drivers
+	// A + B
 	can_init(ND_COMPUTER);
 
-	debug_log("Beginning of the threads");
-
-#if WH_HAS_FEEDBACK == WH_TRUE
-#if WH_USE_BUZZER == WH_TRUE
-	buzzer_init();
-#endif
-	//led_feedback_init();
-#endif
 
 #if ND_HAS_SENSORS == ND_TRUE
+	//init the sensors
 	//spi_init();
-	i2c_init();
+	i2c_s2_init();
 	//spi_sensor_init();
 	i2c_sensor_init();
 #endif
 
-
+	//Object dictionnary threads
 	INIT_THREAD_CREATE(od_update_handle, od_update, od_update_task, NULL, OD_SZ, OD_PRIO);
-//
+
 	INIT_THREAD_CREATE(od_broadcast_handle, od_broadcast, od_broadcast_task, NULL, OD_SZ, OD_PRIO);
-//
-	INIT_THREAD_CREATE(led_rgb_handle, led_rgb, led_rgb_thread, NULL, LED_RGB_SZ, LED_RGB_PRIO);
 
-
-//always start the control thread
-	//INIT_THREAD_CREATE(engine_control_handle, engine_control, engine_control_thread, NULL, CONTROL_SZ, CONTROL_PRIO);
-
-
-//	INIT_THREAD_CREATE(serial_handle, serial, serial_thread, NULL, SERIAL_SZ, SERIAL_PRIO);
-
-//	INIT_THREAD_CREATE(hostcom_handle, hostcom, hostcom_thread, NULL, HOSTCOM_SZ, HOSTCOM_PRIO);
-
-//	INIT_THREAD_CREATE(servo_handle, servo, servo_thread, NULL, SERVO_SZ, SERVO_PRIO);
-
+	// Object dictionnary transmission and reception threads
 	INIT_THREAD_CREATE(can_rx_handle, can_rx, can_receive_thread, NULL, CAN_TX_SZ, CAN_TX_PRIO);
 
 	INIT_THREAD_CREATE(can_tx_handle, can_tx, can_transmit_thread, NULL, CAN_RX_SZ, CAN_RX_PRIO);
 
 
-#if ND_HAS_RADIO
-	INIT_THREAD_CREATE(miaou_handle, miaou, miaou_thread, NULL, MIAOU_SZ, MIAOU_PRIO);
+	// RGB Led control thread
+	INIT_THREAD_CREATE(led_rgb_handle, led_rgb, led_rgb_thread, NULL, LED_RGB_SZ, LED_RGB_PRIO);
+
+
+#if ND_HAS_PROPULSION == ND_TRUE
+	INIT_THREAD_CREATE(engine_control_handle, engine_control, engine_control_thread, NULL, CONTROL_SZ, CONTROL_PRIO);
+#else
+	UNUSED(engine_control_handle);
+#endif
+
+#if ND_HAS_RECOVERY == ND_TRUE
+	//HERE PLACE THE RECOVERY THREAD INIT @CHARLOTTE
+#endif
+
+	INIT_THREAD_CREATE(serial_handle, serial, serial_thread, NULL, SERIAL_SZ, SERIAL_PRIO);
+
+	INIT_THREAD_CREATE(hostcom_handle, hostcom, hostcom_thread, NULL, HOSTCOM_SZ, HOSTCOM_PRIO);
+
+
+
+
+#if ND_HAS_UPLINK == ND_TRUE
+	miaou_uplink_init();
+#endif
+
+#if ND_HAS_DOWNLINK == ND_TRUE
+	INIT_THREAD_CREATE(miaou_handle, miaou, miaou_downlink_thread, NULL, MIAOU_SZ, MIAOU_PRIO);
 #else
 	UNUSED(miaou_handle);
-#endif
-
-#if ND_HAS_GNSS
-	gnss_init();
-#endif
-
-#if ND_HAS_SENSORS
-//	INIT_THREAD_CREATE(sensor_i2c_handle, sensor_i2c, sensor_i2c_thread, NULL, SENSOR_SZ, SENSOR_PRIO);
-	//INIT_THREAD_CREATE(sensor_spi_handle, sensor_spi, sensor_spi_thread, NULL, SENSOR_SZ, SENSOR_PRIO);
-#else
-	UNUSED(sensor_i2c_handle);
-#endif
-
-#if ND_HAS_PROP_SENSORS
-	INIT_THREAD_CREATE(propulsion_sensor_i2c_handle, prop_sensor_i2c, prop_sensor_i2c_thread, NULL, PROP_SENSOR_SZ, PROP_SENSOR_PRIO);
-#else
-	UNUSED(propulsion_sensor_i2c_handle);
 #endif
 
 

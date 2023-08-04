@@ -19,7 +19,7 @@
 #include <stdint.h>
 #include <util.h>
 #include <propulsion/servo.h>
-#include "solenoid.h"
+#include <solenoid.h>
 
 
 /**********************
@@ -71,6 +71,22 @@ typedef enum control_state
 
 /**
  * The commands are processed through a message queue so that none can be missed.
+ *
+COMMANDE             	PARAMETRE
+-----------------------------------------
+COMMAND_NONE       	| 	aucun
+COMMAND_ARM			|	aucun
+COMMAND_DISARM		|	aucun
+COMMAND_PRESSURE	|	aucun
+COMMAND_IGNITE		|	aucun
+COMMAND_RECOVER		|	aucun
+COMMAND_VENT_N2O	|	ouvert/ferme
+COMMAND_VENT_ETH	|	ouvert/ferme
+COMMAND_MAN_PRESS	|	ouvert/ferme
+COMMAND_MAN_PURGE	|	ouvert/ferme
+COMMAND_VALVE_N2O	|	angle en degres
+COMMAND_VALVE_ETH	|	angle en degres
+COMMAND_ABORT 		|	aucun
  */
 typedef enum control_command {
 	COMMAND_NONE,

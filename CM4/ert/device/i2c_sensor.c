@@ -118,7 +118,7 @@ device_t * i2c_sensor_get_ADC_B(void) {
 
 util_error_t i2c_sensor_init(void) {
 
-	device_interface_t * i2c_sensor_interface = i2c_get_sensor_interface();
+	device_interface_t * i2c_sensor_interface = i2c_get_s2_interface();
 
 	//device_create((void*) &i2c_gyroscope_device, &i2c_gyroscope_device_context, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
 	device_create((void*) &i2c_accelerometer_device, &i2c_accelerometer_device_context, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);

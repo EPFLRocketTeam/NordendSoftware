@@ -3,11 +3,11 @@
  *  Author      : iacopo sprenger
  *  Date        : 22.04.2022
  *  Version     : 0.1
- *  Description : wildhorn rocket parameters
+ *  Description : nordend rocket parameters
  */
 
-#ifndef WILDHORN_H
-#define WILDHORN_H
+#ifndef NORDEND_H
+#define NORDEND_H
 
 /*MUST BE CHANGE IN 2023*/
 
@@ -24,8 +24,8 @@
 
 //present sockets
 
-#define ND_TRUE		1
-#define ND_FALSE 	0
+#define ND_TRUE		    1
+#define ND_FALSE 	    0
 #define ND_A			0
 #define ND_B			1
 
@@ -36,23 +36,24 @@
 #define ND_COMPUTER	ND_B
 
 #if ND_COMPUTER == ND_A
+/* S1 */
+	#define ND_HAS_UPLINK			ND_TRUE
+	#define ND_HAS_DOWNLINK			ND_FALSE
+/* S2 */
 	#define ND_HAS_SENSORS			ND_TRUE
-	#define ND_HAS_RADIO			ND_TRUE
-	#define ND_HAS_FEEDBACK 		ND_FALSE
-	#define ND_HAS_PROPULSION		ND_FALSE
-	#define ND_HAS_KRTEK			ND_TRUE
-	#define ND_HAS_PROP_SENSORS 	ND_TRUE
-#else
-	#define ND_HAS_SENSORS			ND_TRUE
-	#define ND_HAS_RADIO			ND_TRUE
-	#define ND_HAS_FEEDBACK 		ND_TRUE
+/* S3 */
 	#define ND_HAS_PROPULSION		ND_TRUE
-	#define ND_HAS_KRTEK			ND_FALSE
-	#define ND_HAS_PROP_SENSORS 	ND_TRUE
-
+	#define ND_HAS_RECOVERY			ND_FALSE
+#else
+/* S1 */
+	#define ND_HAS_UPLINK			ND_FALSE
+	#define ND_HAS_DOWNLINK			ND_TRUE
+/* S2 */
+	#define ND_HAS_SENSORS			ND_TRUE
+/* S3 */
+	#define ND_HAS_PROPULSION		ND_FALSE
+	#define ND_HAS_RECOVERY			ND_TRUE
 #endif
-
-#define ND_USE_BUZZER	ND_FALSE
 
 
 /**********************
@@ -83,6 +84,6 @@ extern "C"{
 } // extern "C"
 #endif /* __cplusplus */
 
-#endif /* WILDHORN_H */
+#endif /* NORDEND_H */
 
 /* END */

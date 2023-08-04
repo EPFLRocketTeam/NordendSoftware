@@ -11,7 +11,7 @@
 util_error_t solenoid_init(solenoid_t * valve, uint8_t norm_open, GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin) {
 	valve->norm_open = norm_open;
 	valve->GPIOx = GPIOx;
-	valve->GPIO_Pin;
+	valve->GPIO_Pin = GPIO_Pin;
 	gpio_config_t conf = {0};
 	conf.bias = GPIO_BIAS_LOW;
 	conf.drive = GPIO_DRIVE_PP;
