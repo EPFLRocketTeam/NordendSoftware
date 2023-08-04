@@ -18,14 +18,6 @@ typedef struct accelerometer_data {
 	uint32_t timestamp;
 }accelerometer_data_t;
 
-#define GYRO_AXIS_COUNT 3
-
-typedef struct gyroscope_data {
-	int16_t raw[GYRO_AXIS_COUNT];
-	int16_t	processed[GYRO_AXIS_COUNT];
-	uint32_t timestamp;
-}gyroscope_data_t;
-
 typedef struct barometer_data {
 	int32_t pressure;
 	int32_t temperature;
@@ -46,10 +38,6 @@ typedef struct gnss_data {
 #define ACC_SPI_A	1       // accelerometer_data_t
 #define ACC_I2C_B	2       // accelerometer_data_t
 #define ACC_SPI_B	3       // accelerometer_data_t
-#define GYRO_I2C_A	4       // gyroscope_data_t
-#define GYRO_SPI_A	5       // gyroscope_data_t
-#define GYRO_I2C_B	6       // gyroscope_data_t
-#define GYRO_SPI_B	7       // gyroscope_data_t
 #define BARO_I2C_A	8       // barometer_data_t
 #define BARO_SPI_A	9 		// barometer_data_t
 #define BARO_I2C_B	10		// barometer_data_t
@@ -89,28 +77,6 @@ void sync_handle_acc(uint8_t opcode, uint16_t len, uint8_t * _data) {
 	}
 }
 
-void sync_handle_gyro(uint8_t opcode, uint16_t len, uint8_t * _data) {
-	if(len == sizeof(gyroscope_data_t)) {
-		gyroscope_data_t data;
-		memcpy(&data, _data, sizeof(gyroscope_data_t));
-		switch(opcode) {
-		case GYRO_I2C_A:
-			fprintf(fp, "GYRO_I2C_A,");
-			break;
-		case GYRO_I2C_B:
-			fprintf(fp, "GYRO_I2C_B,");
-			break;
-		}
-		fprintf(fp, "%d,%d,%d,%d,%d,%d,%d\n",
-				data.raw[0],
-				data.raw[1],
-				data.raw[2],
-				data.processed[0],
-				data.processed[1],
-				data.processed[2],
-				data.timestamp);
-	}
-}
 
 void sync_handle_baro(uint8_t opcode, uint16_t len, uint8_t * _data) {
 	if(len == sizeof(barometer_data_t)) {
@@ -171,10 +137,6 @@ void sync_handle_data(uint8_t opcode, uint16_t len, uint8_t * _data) {
 	case	ACC_I2C_A 	:
 	case	ACC_I2C_B	:
 		sync_handle_acc(opcode, len, _data);
-		break;
-	case	GYRO_I2C_A	:
-	case	GYRO_I2C_B	:
-		sync_handle_gyro(opcode, len, _data);
 		break;
 	case	BARO_I2C_A	:
 	case	BARO_I2C_B	:

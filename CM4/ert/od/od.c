@@ -10,7 +10,6 @@
  *	INCLUDES
  **********************/
 
-#include "od.h"
 #include <cmsis_os2.h>
 #include <FreeRTOS.h>
 #include <device/comunicator.h>
@@ -21,6 +20,7 @@
 
 #include <string.h>
 #include <assert.h>
+#include "od.h"
 
 /**********************
  *	CONSTANTS
@@ -66,46 +66,52 @@ static void od_unsafe_write(uint8_t data_id, uint8_t *src);
 /**
  * Object dictionary entries
  */
-ALLOCATE_OD_ENTRY(ACC_I2C_A, 0, accelerometer_data_t);
-ALLOCATE_OD_ENTRY(ACC_SPI_A, 1, accelerometer_data_t);
-ALLOCATE_OD_ENTRY(ACC_I2C_B, 2, accelerometer_data_t);
-ALLOCATE_OD_ENTRY(ACC_SPI_B, 3, accelerometer_data_t);
-ALLOCATE_OD_ENTRY(GYRO_I2C_A, 4, gyroscope_data_t);
-ALLOCATE_OD_ENTRY(GYRO_SPI_A, 5, gyroscope_data_t);
-ALLOCATE_OD_ENTRY(GYRO_I2C_B, 6, gyroscope_data_t);
-ALLOCATE_OD_ENTRY(GYRO_SPI_B, 7, gyroscope_data_t);
-ALLOCATE_OD_ENTRY(BARO_I2C_A, 8, barometer_data_t);
-ALLOCATE_OD_ENTRY(BARO_SPI_A, 9, barometer_data_t);
-ALLOCATE_OD_ENTRY(BARO_I2C_B, 10, barometer_data_t);
-ALLOCATE_OD_ENTRY(BARO_SPI_B, 11, barometer_data_t);
 ALLOCATE_OD_ENTRY(KALMAN_DATA_A, 12, transfer_data_res_t);
 ALLOCATE_OD_ENTRY(KALMAN_DATA_B, 13, transfer_data_res_t);
 ALLOCATE_OD_ENTRY(GNSS, 14, gnss_data_t);
 ALLOCATE_OD_ENTRY(BATTERY_A, 15, uint32_t);
 ALLOCATE_OD_ENTRY(BATTERY_B, 16, uint32_t);
+//ALLOCATE_OD_ENTRY(RF_CMD, 17, rf_cmd_t);
+ALLOCATE_OD_ENTRY(COUNTDOWN, 18, uint16_t);
+//ALLOCATE_OD_ENTRY(ENGINE_STATE, 19, rf_cmd_t);
+ALLOCATE_OD_ENTRY(ENGINE_FSM_STATE, 20, uint8_t);
+ALLOCATE_OD_ENTRY(ACC_I2C_A, 21, accelerometer_data_t);
+ALLOCATE_OD_ENTRY(ACC_I2C_B, 22, accelerometer_data_t);
+ALLOCATE_OD_ENTRY(BARO_A, 23, barometer_data_t);
+ALLOCATE_OD_ENTRY(BARO_B, 24, barometer_data_t);
+ALLOCATE_OD_ENTRY(MAG_I2C_A, 25, magnetometer_data_t);
+ALLOCATE_OD_ENTRY(MAG_I2C_B, 26, magnetometer_data_t);
+ALLOCATE_OD_ENTRY(ENG_TEMP_I2C, 27, temperature_data_t);
+ALLOCATE_OD_ENTRY(ENG_PRESS_I2C_A, 28, double);
+ALLOCATE_OD_ENTRY(ENG_PRESS_I2C_B, 29, double);
+ALLOCATE_OD_ENTRY(ENG_PRESS_I2C_C, 30, double);
+ALLOCATE_OD_ENTRY(ENGINE_ERROR, 31, uint8_t);
 
 
 /**
  * The object dictionary
  */
 static const od_entry_t od_entries[OD_MAX_DATAID] = {
-    LINK_OD_ENTRY(ACC_I2C_A),
-	LINK_OD_ENTRY(ACC_SPI_A),
-	LINK_OD_ENTRY(ACC_I2C_B),
-	LINK_OD_ENTRY(ACC_SPI_B),
-	LINK_OD_ENTRY(GYRO_I2C_A),
-	LINK_OD_ENTRY(GYRO_SPI_A),
-	LINK_OD_ENTRY(GYRO_I2C_B),
-	LINK_OD_ENTRY(GYRO_SPI_B),
-	LINK_OD_ENTRY(BARO_I2C_A),
-	LINK_OD_ENTRY(BARO_SPI_A),
-	LINK_OD_ENTRY(BARO_I2C_B),
-	LINK_OD_ENTRY(BARO_SPI_B),
 	LINK_OD_ENTRY(KALMAN_DATA_A),
 	LINK_OD_ENTRY(KALMAN_DATA_B),
 	LINK_OD_ENTRY(GNSS),
 	LINK_OD_ENTRY(BATTERY_A),
-	LINK_OD_ENTRY(BATTERY_B)
+	LINK_OD_ENTRY(BATTERY_B),
+	//LINK_OD_ENTRY(RF_CMD),
+	LINK_OD_ENTRY(COUNTDOWN),
+	//LINK_OD_ENTRY(ENGINE_STATE),
+	LINK_OD_ENTRY(ENGINE_FSM_STATE),
+	LINK_OD_ENTRY(ACC_I2C_A),
+	LINK_OD_ENTRY(ACC_I2C_B),
+	LINK_OD_ENTRY(BARO_A),
+	LINK_OD_ENTRY(BARO_B),
+	LINK_OD_ENTRY(MAG_I2C_A),
+	LINK_OD_ENTRY(MAG_I2C_B),
+	LINK_OD_ENTRY(ENG_TEMP_I2C),
+	LINK_OD_ENTRY(ENG_PRESS_I2C_A),
+	LINK_OD_ENTRY(ENG_PRESS_I2C_B),
+	LINK_OD_ENTRY(ENG_PRESS_I2C_C),
+	LINK_OD_ENTRY(ENGINE_ERROR),
 };
 
 /**
@@ -188,10 +194,10 @@ void od_can_handler(uint8_t opcode, uint16_t len, uint8_t * data) {
 			memcpy(&_data, data, sizeof(gnss_data_t));
 			hostcom_data_gnss_send(HAL_GetTick(), (int32_t) _data.altitude);
 			static uint8_t first = 1;
-			if(first) {
-				barometer_set_alt(_data.altitude);
-				first = 0;
-			}
+//			if(first) {
+//				barometer_set_alt(_data.altitude);
+//				first = 0;
+//			}
 		}
 		//valid data
 		if(len == od_entries[opcode].size) {

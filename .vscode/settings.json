@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "od.h": "c",
+        "servo.h": "c",
+        "gnss.h": "c"
+    }
+}

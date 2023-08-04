@@ -78,8 +78,6 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 
-	//wait for debugger connection
-	//for(uint32_t i = 0; i < 0x01fffffe; i++);
 
   /* USER CODE END 1 */
 
@@ -100,7 +98,7 @@ int main(void)
   else
   {
     /* IPCC initialisation */
-     MX_IPCC_Init();
+    MX_IPCC_Init();
     /* OpenAmp initialisation ---------------------------------*/
     MX_OPENAMP_Init(RPMSG_REMOTE, NULL);
   }
@@ -111,6 +109,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_ADC1_Init();
   MX_DAC1_Init();
   MX_FDCAN1_Init();
@@ -120,12 +119,9 @@ int main(void)
   MX_TIM5_Init();
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
-  MX_USART6_UART_Init();
   MX_TIM3_Init();
   MX_SPI1_Init();
   MX_SPI2_Init();
-  MX_DMA_Init();
-  MX_SPI3_Init();
   MX_TIM2_Init();
   MX_TIM14_Init();
   MX_TIM16_Init();

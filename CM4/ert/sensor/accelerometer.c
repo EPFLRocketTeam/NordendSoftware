@@ -1,8 +1,8 @@
 /*  Title		: Accelerometer
  *  Filename	: accelerometer.c
- *	Author		: iacopo sprenger
- *	Date		: 10.06.2022
- *	Version		: 0.1
+ *	Author		: iacopo sprenger, Thilo Chalas, Luciano Calcoen
+ *	Date		: 08.11.2022
+ *	Version		: 0.2
  *	Description	: accelerometer setup and acquisition
  */
 
@@ -17,30 +17,36 @@
  *	CONSTANTS
  **********************/
 
-#define WHO_AM_I		0x0F
-#define WHO_AM_I_MAGIC	0x32
-#define CTRL_REG1		0x20
-#define CTRL_REG2		0x21
-#define CTRL_REG3		0x22
-#define CTRL_REG4		0x23
-#define CTRL_REG5		0x24
-#define HP_FILTER_RESET	0x25
-#define REFERENCE		0x26
-#define STATUS_REG		0x27
-#define OUT_X_L			0x28
-#define OUT_X_H			0x29
-#define OUT_Y_L			0x2A
-#define OUT_Y_H			0x2B
-#define OUT_Z_L			0x2C
-#define OUT_Z_H			0x2D
-#define INT1_CFG		0x30
-#define INT1_SRC		0x31
-#define INT1_THS		0x32
-#define INT1_DURATION	0x33
-#define INT2_CFG		0x34
-#define INT2_SRC		0x35
-#define INT2_THS		0x36
-#define INT2_DURATION	0x37
+#define WHO_AM_I		    0x00 //DEVICE ID
+#define WHO_AM_I_MAGIC	    0xe5 //I guess this is supposed to be the 0x00 register's reset value?
+#define THRESH_SHOCK        0x1d //SEE ADXL375 datasheet for details
+#define OFSX                0x1e //SEE ADXL375 datasheet for details
+#define OFSY                0x1f //SEE ADXL375 datasheet for details
+#define OFSZ                0x20 //SEE ADXL375 datasheet for details
+#define DUR                 0x21 //SEE ADXL375 datasheet for details
+#define LATENT              0x22 //SEE ADXL375 datasheet for details
+#define WINDOW              0x23 //SEE ADXL375 datasheet for details
+#define THRESH_ACT          0x24 //SEE ADXL375 datasheet for details
+#define THRESH_INACT        0x25 //SEE ADXL375 datasheet for details
+#define TIME_INACT          0x26 //SEE ADXL375 datasheet for details
+#define ACT_INACT_CTL       0x27 //SEE ADXL375 datasheet for details
+#define SHOCK_AXES          0x2a //SEE ADXL375 datasheet for details
+#define ACT_SHOCK_STATUS    0x2b //SEE ADXL375 datasheet for details
+#define BW_RATE             0x2c //SEE ADXL375 datasheet for details
+#define POWER_CTL           0x2d //SEE ADXL375 datasheet for details
+#define INT_ENABLE          0x2e //SEE ADXL375 datasheet for details
+#define INT_MAP             0x2f //SEE ADXL375 datasheet for details
+#define INT_SOURCE          0x30 //SEE ADXL375 datasheet for details
+#define DATA_FORMAT         0x31 //SEE ADXL375 datasheet for details
+#define DATAX0              0x32 //SEE ADXL375 datasheet for details
+#define DATAX1              0x33 //SEE ADXL375 datasheet for details
+#define DATAY0              0x34 //SEE ADXL375 datasheet for details
+#define DATAY1              0x35 //SEE ADXL375 datasheet for details
+#define DATAZ0              0x36 //SEE ADXL375 datasheet for details
+#define DATAZ1              0x37 //SEE ADXL375 datasheet for details
+#define FIFO_CTL            0x38 //SEE ADXL375 datasheet for details
+#define FIFO_STATUS         0x39 //SEE ADXL375 datasheet for details
+
 
 
 /**********************
@@ -69,6 +75,7 @@
  *	DECLARATIONS
  **********************/
 
+//acceleromter calibration to be coded later
 util_error_t accelerometer_calibrate(device_t * acc, accelerometer_data_t * data) {
 	UNUSED(acc);
 	UNUSED(data);
@@ -85,10 +92,10 @@ util_error_t accelerometer_read_data(device_t * acc, accelerometer_data_t * data
 	//i2c_sensor_context_t * context = (i2c_sensor_context_t *) acc->context;
 	util_error_t error = ER_SUCCESS;
 	uint8_t tmp[6];
-	error |= device_read(acc, OUT_X_L, tmp, 6);
-	data->raw[ACC_X] = tmp[0] | (tmp[1]<<8);
-	data->raw[ACC_Y] = tmp[2] | (tmp[3]<<8);
-	data->raw[ACC_Z] = tmp[4] | (tmp[5]<<8);
+	error |= device_read(acc, DATAX0, tmp, 6);
+	data->raw[ACC_X] = tmp[1] | (tmp[0]<<8);
+	data->raw[ACC_Y] = tmp[3] | (tmp[2]<<8);
+	data->raw[ACC_Z] = tmp[5] | (tmp[4]<<8);
 	data->timestamp = HAL_GetTick();
 
 	return error;
@@ -107,13 +114,20 @@ util_error_t accelerometer_init(device_t * acc) {
 	}
 
 	//initialize sensor
-	//enable all axis of the accelerometer at 50Hz
-	error |= device_write_u8(acc, CTRL_REG1, 0b00100111);
-	//enable internal high pass filter with cutoff=8
-	error |= device_write_u8(acc, CTRL_REG2, 0b00010000);
-	//enable DBU and change endianess, +/- 100g
-	error |= device_write_u8(acc, CTRL_REG4, 0b11000000);
+	//Set the accelerometer offset values (set to 0, should be calibrated later? maybe?)
+	error |= device_write_u8(acc, OFSX, 0b00000000);
+    error |= device_write_u8(acc, OFSY, 0b00000000);
+    error |= device_write_u8(acc, OFSZ, 0b00000000);
+    //Set the data output rate (for now set to default 100Hz but we might be able to do better?)
+    error |= device_write_u8(acc, BW_RATE, 0b00001010);
+    //Activate measurement mode
+    error |= device_write_u8(acc, POWER_CTL, 0b00001000);
+    //Set the data format (same as default)
+    error |= device_write_u8(acc, DATA_FORMAT, 0b00001011);
+    //Setup the FIFO sampling mode
+    error |= device_write_u8(acc, FIFO_CTL, 0b10000000);
 
+	//Maybe add a self test routine in this part
 
 	return error;
 }

@@ -44,15 +44,6 @@
 
 
 
-
-static device_t spi_accelerometer_device;
-static device_t spi_gyroscope_device;
-static device_t spi_barometer_device;
-
-static spi_sensor_context_t spi_accelerometer_device_context;
-static spi_sensor_context_t spi_gyroscope_device_context;
-static spi_sensor_context_t spi_barometer_device_context;
-
 /**********************
  *	PROTOTYPES
  **********************/
@@ -67,25 +58,11 @@ util_error_t spi_sensor_write_reg_HAL(void* context, device_interface_t * interf
  *	DECLARATIONS
  **********************/
 
-device_t * spi_sensor_get_accelerometer(void) {
-	return &spi_accelerometer_device;
-}
-
-device_t * spi_sensor_get_gyroscope(void) {
-	return &spi_gyroscope_device;
-}
-
-device_t * spi_sensor_get_barometer(void) {
-	return &spi_barometer_device;
-}
 
 util_error_t spi_sensor_init(void) {
 
 	device_interface_t * spi_sensor_interface = spi_get_sensor_interface();
 
-	device_create((void*) &spi_accelerometer_device, &spi_accelerometer_device_context, spi_sensor_interface, spi_sensor_read_reg, spi_sensor_write_reg);
-	device_create((void*) &spi_gyroscope_device, &spi_gyroscope_device_context, spi_sensor_interface, spi_sensor_read_reg, spi_sensor_write_reg);
-	device_create((void*) &spi_barometer_device, &spi_barometer_device_context, spi_sensor_interface, spi_sensor_read_reg, spi_sensor_write_reg);
 
 	return ER_SUCCESS;
 

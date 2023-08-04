@@ -31,3 +31,6 @@
 [submodule "CM4/doc/doxygen-awesome-css"]
 	path = CM4/doc/doxygen-awesome-css
 	url = https://github.com/jothepro/doxygen-awesome-css.git
+[submodule "CM4/ert/ERT_RF_Protocol_Interface"]
+	path = CM4/ert/ERT_RF_Protocol_Interface
+	url = https://github.com/EPFLRocketTeam/ERT_RF_Protocol_Interface.git

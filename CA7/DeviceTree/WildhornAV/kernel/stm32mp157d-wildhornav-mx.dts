@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: (GPL-2.0+ OR BSD-3-Clause) */
 /*
- * Copyright (C) STMicroelectronics 2022 - All Rights Reserved
+ * Copyright (C) STMicroelectronics 2023 - All Rights Reserved
  * Author: STM32CubeMX code generation for STMicroelectronics.
  */
 
@@ -184,7 +184,6 @@
 		pins {
 			pinmux = <STM32_PINMUX('A', 7, ANALOG)>, /* ADC1_INP7 */
 					 <STM32_PINMUX('C', 0, ANALOG)>, /* ADC1_INP10 */
-					 <STM32_PINMUX('C', 3, ANALOG)>, /* ADC1_INP13 */
 					 <STM32_PINMUX('C', 4, ANALOG)>, /* ADC1_INP4 */
 					 <STM32_PINMUX('C', 5, ANALOG)>, /* ADC1_INP8 */
 					 <STM32_PINMUX('F', 11, ANALOG)>; /* ADC1_INP2 */
@@ -248,14 +247,6 @@
 		};
 	};
 
-	m4_spi3_pins_mx: m4_spi3_mx-0 {
-		pins {
-			pinmux = <STM32_PINMUX('A', 8, RSVD)>, /* SPI3_MOSI */
-					 <STM32_PINMUX('C', 10, RSVD)>, /* SPI3_SCK */
-					 <STM32_PINMUX('D', 10, RSVD)>; /* SPI3_MISO */
-		};
-	};
-
 	m4_tim2_pins_mx: m4_tim2_mx-0 {
 		pins {
 			pinmux = <STM32_PINMUX('B', 10, RSVD)>, /* TIM2_CH3 */
@@ -277,6 +268,13 @@
 		};
 	};
 
+	m4_tim5_pwm_pins_mx: m4_tim5_pwm_mx-0 {
+		pins {
+			pinmux = <STM32_PINMUX('A', 0, RSVD)>, /* TIM5_CH1 */
+					 <STM32_PINMUX('A', 1, RSVD)>; /* TIM5_CH2 */
+		};
+	};
+
 	m4_usart2_pins_mx: m4_usart2_mx-0 {
 		pins {
 			pinmux = <STM32_PINMUX('D', 5, RSVD)>, /* USART2_TX */
@@ -288,13 +286,6 @@
 		pins {
 			pinmux = <STM32_PINMUX('B', 11, RSVD)>, /* USART3_RX */
 					 <STM32_PINMUX('D', 8, RSVD)>; /* USART3_TX */
-		};
-	};
-
-	m4_usart6_pins_mx: m4_usart6_mx-0 {
-		pins {
-			pinmux = <STM32_PINMUX('G', 9, RSVD)>, /* USART6_RX */
-					 <STM32_PINMUX('G', 14, RSVD)>; /* USART6_TX */
 		};
 	};
 
@@ -707,15 +698,6 @@
 	/* USER CODE END m4_spi2 */
 };
 
-&m4_spi3{
-	pinctrl-names = "default";
-	pinctrl-0 = <&m4_spi3_pins_mx>;
-	status = "okay";
-
-	/* USER CODE BEGIN m4_spi3 */
-	/* USER CODE END m4_spi3 */
-};
-
 &m4_timers14{
 	status = "okay";
 
@@ -749,6 +731,8 @@
 };
 
 &m4_timers5{
+	pinctrl-names = "default";
+	pinctrl-0 = <&m4_tim5_pwm_pins_mx>;
 	status = "okay";
 
 	/* USER CODE BEGIN m4_timers5 */
@@ -771,15 +755,6 @@
 
 	/* USER CODE BEGIN m4_usart3 */
 	/* USER CODE END m4_usart3 */
-};
-
-&m4_usart6{
-	pinctrl-names = "default";
-	pinctrl-0 = <&m4_usart6_pins_mx>;
-	status = "okay";
-
-	/* USER CODE BEGIN m4_usart6 */
-	/* USER CODE END m4_usart6 */
 };
 
 &mdma1{

@@ -16,6 +16,8 @@
 #include <cmsis_os.h>
 #include <abstraction/gpio.h>
 
+#include <feedback/debug.h>
+
 /**********************
  *	CONFIGURATION
  **********************/
@@ -103,6 +105,7 @@ void led_rgb_init(void) {
 	//make sure GPIO are initialized correctly
 
 	GPIO_InitTypeDef GPIO_InitStruct;
+	//coucou:))
 
 	GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_6;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -126,7 +129,6 @@ void led_rgb_init(void) {
 	HAL_TIM_PWM_Start(&LED_TIM, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(&LED_TIM, TIM_CHANNEL_3);
 }
-
 /**
  * @brief	Set RBG LED color using r, g, b values.
  *
@@ -219,6 +221,7 @@ void led_rgb_thread(__attribute__((unused)) void * arg) {
 		}
 		osDelay(500);
 		led_rgb_set_color(led_black);
+		//debug_log("In led thread, hello\n", "");
 		osDelay(500);
 	}
 }

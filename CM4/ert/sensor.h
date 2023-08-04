@@ -6,8 +6,8 @@
  *	Description	: Thread grouping all the sensors on the same I2C bus.
  */
 
-#ifndef I2C_ACQ_H
-#define I2C_ACQ_H
+#ifndef I2C_SENS_ACQ_H
+#define I2C_SENS_ACQ_H
 
 
 

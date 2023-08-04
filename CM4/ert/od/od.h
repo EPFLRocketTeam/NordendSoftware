@@ -17,11 +17,16 @@
 
 #include <stdint.h>
 
-#include "sensor/accelerometer.h"
-#include "sensor/barometer.h"
-#include "sensor/gyroscope.h"
 #include "sensor/gnss.h"
 #include <protocol/structures.h>
+
+#include "sensor/accelerometer.h"
+#include "sensor/magnetometer.h"
+#include "sensor/temperature.h"
+#include "sensor/barometer.h"
+
+#include "engine_control.h"
+
 
 /**********************
  *  CONSTANTS
@@ -82,24 +87,26 @@ void od_pop_from_in_q(od_frame_t *frame);
 void od_push_to_in_q(od_frame_t *frame);
 void od_pop_from_out_q(od_frame_t *frame);
 
-DECLARE_OD_ENTRY(ACC_I2C_A, accelerometer_data_t);
-DECLARE_OD_ENTRY(ACC_SPI_A, accelerometer_data_t);
-DECLARE_OD_ENTRY(ACC_I2C_B, accelerometer_data_t);
-DECLARE_OD_ENTRY(ACC_SPI_B, accelerometer_data_t);
-DECLARE_OD_ENTRY(GYRO_I2C_A, gyroscope_data_t);
-DECLARE_OD_ENTRY(GYRO_SPI_A, gyroscope_data_t);
-DECLARE_OD_ENTRY(GYRO_I2C_B, gyroscope_data_t);
-DECLARE_OD_ENTRY(GYRO_SPI_B, gyroscope_data_t);
-DECLARE_OD_ENTRY(BARO_I2C_A, barometer_data_t);
-DECLARE_OD_ENTRY(BARO_SPI_A, barometer_data_t);
-DECLARE_OD_ENTRY(BARO_I2C_B, barometer_data_t);
-DECLARE_OD_ENTRY(BARO_SPI_B, barometer_data_t);
 DECLARE_OD_ENTRY(KALMAN_DATA_A, transfer_data_res_t);
 DECLARE_OD_ENTRY(KALMAN_DATA_B, transfer_data_res_t);
-DECLARE_OD_ENTRY(BARO_SPI_B, barometer_data_t);
 DECLARE_OD_ENTRY(GNSS, gnss_data_t);
 DECLARE_OD_ENTRY(BATTERY_A, uint32_t);
 DECLARE_OD_ENTRY(BATTERY_B, uint32_t);
+//DECLARE_OD_ENTRY(RF_CMD, rf_cmd_t);
+DECLARE_OD_ENTRY(COUNTDOWN, uint16_t);
+//DECLARE_OD_ENTRY(ENGINE_STATE, rf_cmd_t);
+DECLARE_OD_ENTRY(ENGINE_FSM_STATE, uint8_t);
+DECLARE_OD_ENTRY(ACC_I2C_A, accelerometer_data_t);
+DECLARE_OD_ENTRY(ACC_I2C_B, accelerometer_data_t);
+DECLARE_OD_ENTRY(BARO_A, barometer_data_t);
+DECLARE_OD_ENTRY(BARO_B, barometer_data_t);
+DECLARE_OD_ENTRY(MAG_I2C_A, magnetometer_data_t);
+DECLARE_OD_ENTRY(MAG_I2C_B, magnetometer_data_t);
+DECLARE_OD_ENTRY(ENG_TEMP_I2C, temperature_data_t);
+DECLARE_OD_ENTRY(ENG_PRESS_I2C_A, double);
+DECLARE_OD_ENTRY(ENG_PRESS_I2C_B, double);
+DECLARE_OD_ENTRY(ENG_PRESS_I2C_C, double);
+DECLARE_OD_ENTRY(ENGINE_ERROR, uint8_t);
 
 #ifdef __cplusplus
 } // extern "C"

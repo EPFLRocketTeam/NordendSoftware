@@ -5,54 +5,21 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="com.st.stm32cube.ide.mpu.gnu.managedbuild.toolchain.base.890184489" moduleId="org.eclipse.cdt.core.settings" name="Default">
 				<externalSettings/>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.VCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 				<configuration artifactName="${ProjName}" buildProperties="" description="" id="com.st.stm32cube.ide.mpu.gnu.managedbuild.toolchain.base.890184489" name="Default" parent="org.eclipse.cdt.build.core.emptycfg">
 					<folderInfo id="com.st.stm32cube.ide.mpu.gnu.managedbuild.toolchain.base.890184489.315419450" name="/" resourcePath="">
-						<toolChain id="com.st.stm32cube.ide.mpu.gnu.managedbuild.toolchain.base.1616018065" name="OpenSTLinux SDK" superClass="com.st.stm32cube.ide.mpu.gnu.managedbuild.toolchain.base">
-							<option id="com.st.stm32cube.ide.mpu.option.sdkversion.2103899662" name="SDK Version" superClass="com.st.stm32cube.ide.mpu.option.sdkversion"/>
-							<option id="com.st.stm32cube.ide.mpu.option.sdktargetsysroot.2019457086" name="RootFS" superClass="com.st.stm32cube.ide.mpu.option.sdktargetsysroot"/>
-							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.st.stm32cube.ide.mpu.gnu.managedbuild.targetplatform.891963328" isAbstract="false" osList="all" superClass="com.st.stm32cube.ide.mpu.gnu.managedbuild.targetplatform"/>
-							<builder buildPath="${workspace_loc:/WildhornAV_CA7/hostproc_app}" id="com.st.stm32cube.ide.mpu.gnu.managedbuild.builder.1613965244" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="16" superClass="com.st.stm32cube.ide.mpu.gnu.managedbuild.builder"/>
-							<tool id="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.assembler.1445690299" name="MPU GCC Assembler" superClass="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.assembler">
-								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.assembler.option.includepaths.436068865" name="Include paths (-I)" superClass="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.assembler.option.includepaths" valueType="includePath">
-									<listOptionValue builtIn="false" value="../inc"/>
-									<listOptionValue builtIn="false" value="../src"/>
-									<listOptionValue builtIn="false" value="/usr/local/oecore-x86_64/sysroots/cortexa7t2hf-neon-vfpv4-ostl-linux-gnueabi/usr/include"/>
-								</option>
-								<inputType id="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.assembler.input.531381066" superClass="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.assembler.input"/>
-							</tool>
-							<tool id="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.c.compiler.1058555726" name="MPU GCC Compiler" superClass="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.c.compiler">
-								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.c.compiler.option.includepaths.442088914" name="Include paths (-I)" superClass="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.c.compiler.option.includepaths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="../inc"/>
-									<listOptionValue builtIn="false" value="../src"/>
-									<listOptionValue builtIn="false" value="/usr/local/oecore-x86_64/sysroots/cortexa7t2hf-neon-vfpv4-ostl-linux-gnueabi/usr/include"/>
-								</option>
-								<inputType id="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.c.compiler.input.c.1478881060" superClass="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.c.compiler.input.c"/>
-							</tool>
-							<tool id="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.cpp.compiler.1515939349" name="MPU G++ Compiler" superClass="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.cpp.compiler">
-								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.cpp.compiler.option.includepaths.1030128704" name="Include paths (-I)" superClass="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.cpp.compiler.option.includepaths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="../inc"/>
-									<listOptionValue builtIn="false" value="../src"/>
-									<listOptionValue builtIn="false" value="/usr/local/oecore-x86_64/sysroots/cortexa7t2hf-neon-vfpv4-ostl-linux-gnueabi/usr/include"/>
-								</option>
-								<inputType id="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.cpp.compiler.input.cpp.535112327" superClass="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.cpp.compiler.input.cpp"/>
-							</tool>
-							<tool id="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.c.linker.1562137780" name="MPU GCC Linker" superClass="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.c.linker"/>
-							<tool id="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.cpp.linker.1913959944" name="MPU G++ Linker" superClass="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.cpp.linker">
-								<inputType id="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.cpp.linker.input.724204058" superClass="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.cpp.linker.input">
-									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
-									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
-								</inputType>
-							</tool>
-							<tool id="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.archiver.1132087384" name="MPU GCC Archiver" superClass="com.st.stm32cube.ide.mpu.gnu.managedbuild.tool.archiver"/>
+						<toolChain id="org.eclipse.cdt.build.core.prefbase.toolchain.945251431" name="No ToolChain" superClass="org.eclipse.cdt.build.core.prefbase.toolchain">
+							<targetPlatform id="org.eclipse.cdt.build.core.prefbase.toolchain.945251431.1992210804" name=""/>
+							<builder arguments="build_with_env.sh" command="bash" id="org.eclipse.cdt.build.core.settings.default.builder.590557084" name="Gnu Make Builder.Default" parallelBuildOn="true" parallelizationNumber="16" superClass="org.eclipse.cdt.build.core.settings.default.builder"/>
+							<tool id="org.eclipse.cdt.build.core.settings.holder.libs.247390271" name="holder for library settings" superClass="org.eclipse.cdt.build.core.settings.holder.libs"/>
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>

@@ -44,14 +44,26 @@
 /**
  * @brief This is the I2C Interface associated with the sensors
  */
-static device_interface_t sensor_interface;
+static device_interface_t s1_interface;
+static device_interface_t s2_interface;
+static device_interface_t s3_interface;
 
-static i2c_interface_context_t sensor_interface_context = {
+static i2c_interface_context_t s1_interface_context = {
+		.i2c = &S1_I2C
+};
+
+static i2c_interface_context_t s2_interface_context = {
 		.i2c = &S2_I2C
 };
 
+static i2c_interface_context_t s3_interface_context = {
+		.i2c = &S3_I2C
+};
+
 static device_interface_t * i2c_interfaces[] = {
-		&sensor_interface
+		&s1_interface,
+		&s2_interface,
+		&s3_interface
 };
 
 static uint32_t i2c_interfaces_count = sizeof(i2c_interfaces)/sizeof(device_interface_t *);
@@ -108,8 +120,16 @@ void i2c_spi_guard(void) {
  * 
  * @return	The pointer to the sensor interface object
  */
-device_interface_t * i2c_get_sensor_interface(void) {
-	return &sensor_interface;
+device_interface_t * i2c_get_s2_interface(void) {
+	return &s2_interface;
+}
+
+device_interface_t * i2c_get_s1_interface(void) {
+	return &s1_interface;
+}
+
+device_interface_t * i2c_get_s3_interface(void) {
+	return &s3_interface;
 }
 
 
@@ -183,13 +203,41 @@ util_error_t i2c_recv(void * context, uint8_t * data, uint32_t * len) {
  * @deails	This function initializes the three i2c interfaces which are present on the hostboards.
  *
  */
-void i2c_init(void) {
+void i2c_s1_init(void) {
 
 	//transfer done semaphores
-	sensor_interface_context.sem = xSemaphoreCreateBinaryStatic(&sensor_interface_context.sem_buffer);
+	s1_interface_context.sem = xSemaphoreCreateBinaryStatic(&s1_interface_context.sem_buffer);
 
-	device_interface_create(&sensor_interface,
-							(void *) &sensor_interface_context,
+	device_interface_create(&s1_interface,
+							(void *) &s1_interface_context,
+							NULL,
+							i2c_send,
+							i2c_recv,
+							NULL);
+
+}
+
+void i2c_s2_init(void) {
+
+	//transfer done semaphores
+	s2_interface_context.sem = xSemaphoreCreateBinaryStatic(&s2_interface_context.sem_buffer);
+
+	device_interface_create(&s2_interface,
+							(void *) &s2_interface_context,
+							NULL,
+							i2c_send,
+							i2c_recv,
+							NULL);
+
+}
+
+void i2c_s3_init(void) {
+
+	//transfer done semaphores
+	s3_interface_context.sem = xSemaphoreCreateBinaryStatic(&s3_interface_context.sem_buffer);
+
+	device_interface_create(&s3_interface,
+							(void *) &s3_interface_context,
 							NULL,
 							i2c_send,
 							i2c_recv,

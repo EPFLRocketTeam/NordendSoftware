@@ -18,9 +18,6 @@
 #include <device/device.h>
 #include <stdint.h>
 
-#include <sensor/accelerometer.h>
-#include <sensor/barometer.h>
-#include <sensor/gyroscope.h>
 
 /**********************
  *  CONSTANTS
@@ -39,9 +36,6 @@
 // pas sur pour les données de capteur ici...
 typedef struct spi_sensor_context {
 	union data {
-		accelerometer_data_t acc_data;
-		barometer_data_t baro_data;
-		gyroscope_data_t gyro_data;
 	} data;
 }spi_sensor_context_t;
 
@@ -59,9 +53,6 @@ typedef struct spi_sensor_context {
 extern "C"{
 #endif
 
-device_t * spi_sensor_get_accelerometer(void);
-device_t * spi_sensor_get_gyroscope(void);
-device_t * spi_sensor_get_barometer(void);
 
 util_error_t spi_sensor_init(void);
 

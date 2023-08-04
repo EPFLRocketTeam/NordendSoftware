@@ -18,7 +18,7 @@
 #include <driver/hostproc.h>
 #include <device/comunicator.h>
 #include <od/od.h>
-#include <wildhorn.h>
+#include <nordend.h>
 
 /**********************
  *	CONSTANTS
@@ -94,7 +94,7 @@ void hostcom_handle_data(uint8_t opcode, uint16_t len, uint8_t * _data) {
 		if(len == sizeof(transfer_data_res_t)) {
 			transfer_data_res_t data;
 			memcpy(&data, _data, sizeof(transfer_data_res_t));
-#if WH_COMPUTER == WH_A
+#if ND_COMPUTER == ND_A
 			od_write_KALMAN_DATA_A(&data);
 #else
 			od_write_KALMAN_DATA_A(&data);

@@ -1,8 +1,8 @@
-/*  Title		: Accelerometer
- *  Filename	: accelerometer.h
- *	Author		: iacopo sprenger
- *	Date		: 10.06.2022
- *	Version		: 0.1
+/*  Title		: AccelerometerADXL375
+ *  Filename	: accelerometerADXL375.h
+ *	Author		: Thilo Chalas, Luciano Calcoen, iacopo sprenger
+ *	Date		: 08.11.2022
+ *	Version		: 0.2
  *	Description	: accelerometer setup and acquisition
  */
 
