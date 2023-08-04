@@ -73,7 +73,9 @@ typedef enum control_state
  * The commands are processed through a message queue so that none can be missed.
  */
 typedef enum control_command {
+	COMMAND_NONE,
 	COMMAND_ARM,
+	COMMAND_DISARM,
 	COMMAND_PRESSURE,
 	COMMAND_IGNITE,
 	COMMAND_RECOVER,

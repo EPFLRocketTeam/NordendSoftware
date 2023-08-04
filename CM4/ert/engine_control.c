@@ -120,6 +120,13 @@
 
 #define COMMAND_QUEUE_LENGTH 	16
 
+#define IGNITER_COUNTER 		0xfff
+#define IGNITION_COUNTER		0xfff
+#define THRUST_COUNTER			0xfff
+#define SHUTDOWN_COUNTER		0xfff
+
+
+
 
 
 
@@ -150,7 +157,7 @@
  *	MACROS
  **********************/
 
-#define IDLE_UNTIL_COUNTER_ZERO ({control.last_time = control.time;\
+#define RETURN_UNTIL_COUNTER_ZERO ({control.last_time = control.time;\
 	control.time = HAL_GetTick();\
 	control.counter -= control.time - control.last_time;\
 	if (control.counter > 0) return;})
@@ -243,6 +250,13 @@ void control_shutdown_run(void);
 void control_glide_run(void);
 void control_error_run(void);
 void control_abort_run(void);
+
+void control_man_press(int32_t param);
+void control_man_purge(int32_t param);
+void control_valve_eth(int32_t param);
+void control_valve_n2o(int32_t param);
+void control_vent_eth(int32_t param);
+void control_vent_n2o(int32_t param);
 
 util_error_t init_engine_control();
 
@@ -407,26 +421,128 @@ void engine_control_command_push(control_command_t cmd, int32_t parameter) {
 
 int engine_control_command_pop(control_command_t * cmd, int32_t * parameter) {
 	command_t command;
+	//receive from queue without timeout
 	if(xQueueReceive(control.command_queue, &command, 0) == pdPASS) {
 		*cmd = command.cmd;
-		*parameter = command.parameter;
+		if(parameter) {
+			*parameter = command.parameter;
+		}
 		//return 1 if a command has been received
 		return 1;
 	} else {
 		//return 0 if no commands have been received
+		*cmd = NULL;
+		*parameter = NULL;
 		return 0;
 	}
 }
 
 
-void control_read_commands(void) {
-
+int control_read_commands(control_command_t * expected_cmd, size_t expected_cmd_len, int32_t * param) {
+	control_command_t cmd;
+	while(engine_control_command_pop(&cmd, param) != 0) {
+		for(int i = 0; i < expected_cmd_len; i++) {
+			if(cmd == expected_cmd[i]) {
+				return cmd;
+			} else if (cmd == COMMAND_ABORT) {
+				control_abort_start();
+				return COMMAND_NONE;
+			}
+		}
+	}
+	return COMMAND_NONE;
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-//CONTROL STATE CHANGING AND SCHEDULING
+//ACTUATORS MANUAL OPERATION
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Manually open/close the pressurant valve
+ * param: 
+ * 	1: open
+ * 	0: close
+*/
+void control_man_press(int32_t param) {
+
+	if(param == 1) {
+		solenoid_open(&control.solenoid_press);
+	} else if(param == 0) {
+		solenoid_close(&control.solenoid_press);
+	}
+
+}
+
+/**
+ * Manually open/close the purge valve
+ * param: 
+ * 	1: open
+ * 	0: close
+*/
+void control_man_purge(int32_t param) {
+
+	if(param == 1) {
+		solenoid_open(&control.solenoid_purge);
+	} else if(param == 0) {
+		solenoid_close(&control.solenoid_purge);
+	}
+}
+
+/**
+ * Manually move the ethanol valve
+ * param: angle in deg [0 - 90]
+*/
+void control_valve_eth(int32_t param) {
+
+	if(param > 0 && param < 90) {
+		servo_set_rotation(&control.servo_ethanol, (float) param);
+	}
+
+}
+
+/**
+ * Manually move the n2o valve
+ * param: angle in deg
+*/
+void control_valve_n2o(int32_t param) {
+
+	if(param > 0 && param < 90) {
+		servo_set_rotation(&control.servo_n2o, (float) param);
+	}
+
+}
+
+/**
+ * Manually open/close the eth vent valve
+ * 	1: open
+ * 	0: close
+*/
+void control_vent_eth(int32_t param) {
+
+	if(param == 1) {
+		solenoid_open(&control.solenoid_ethanol);
+	} else if(param == 0) {
+		solenoid_close(&control.solenoid_ethanol);
+	}
+
+}
+
+/**
+ * Manually open/close the eth vent valve
+ * 	1: open
+ * 	0: close
+*/
+void control_vent_n2o(int32_t param) {
+
+	if(param == 1) {
+		solenoid_open(&control.solenoid_n2o);
+	} else if(param == 0) {
+		solenoid_close(&control.solenoid_n2o);
+	}
+
+}
+
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -439,10 +555,46 @@ void control_idle_start(void) {
 
 void control_idle_run(void) {
 	//check if we want to arm
+	control_command_t expected_cmds[] = {
+		COMMAND_ARM,
+		COMMAND_MAN_PRESS,
+		COMMAND_MAN_PURGE,
+		COMMAND_VALVE_ETH,
+		COMMAND_VALVE_N2O,
+		COMMAND_VENT_ETH,
+		COMMAND_VENT_N2O
+	};
 
-	//check if we want to manually move
+	control_command_t received_command;
 
+	int32_t parameter;
+	received_command = control_read_commands(expected_cmds, 7, &parameter);
 
+	switch(received_command) {
+		case COMMAND_ARM:
+		control_armed_start();
+		break;
+		case COMMAND_MAN_PRESS:
+		control_man_press(parameter);
+		break;
+		case COMMAND_MAN_PURGE:
+		control_man_purge(parameter);
+		break;
+		case COMMAND_VALVE_ETH:
+		control_valve_eth(parameter);
+		break;
+		case COMMAND_VALVE_N2O:
+		control_valve_n2o(parameter);
+		break;
+		case COMMAND_VENT_ETH:
+		control_vent_eth(parameter);
+		break;
+		case COMMAND_VENT_N2O:
+		control_vent_n2o(parameter);
+		break;
+		default:
+		break;
+	}
 }
 
 
@@ -454,7 +606,37 @@ void control_calibration_start(void) {
 void control_calibration_run(void) {
 	//for now just go back to idle
 
+	//check for abort
+	control_command_t expected_cmds[] = {
+		COMMAND_NONE
+	};
+	control_command_t received_command;
+	received_command = control_read_commands(expected_cmds, 1, NULL);
+
 	control_idle_start();
+}
+
+void control_armed_start(void) {
+	control.state = CONTROL_ARMED;
+}
+
+void control_armed_run(void) {
+	//wait for ignition command
+
+	control_command_t expected_cmds[] = {
+		COMMAND_PRESSURE, 
+		COMMAND_DISARM 
+	};
+
+	control_command_t received_command;
+
+	received_command = control_read_commands(expected_cmds, 2, NULL);
+
+	if(received_command == COMMAND_PRESSURE) { //ignition command
+		control_pressured_start();
+	} else if(received_command == COMMAND_DISARM) {
+		control_idle_start();
+	}
 }
 
 
@@ -466,18 +648,28 @@ void control_pressured_start(void) {
 
 void control_pressured_run(void) {
 	//wait for ignition command
+	control_command_t expected_cmds[] = {
+		COMMAND_IGNITE
+	};
 
+	control_command_t received_command;
 
-	if(0) { //ignition command
-		control_igniter_start();
+	received_command = control_read_commands(expected_cmds, 1, NULL);
+
+	if(received_command == COMMAND_IGNITE) { //ignition command
+		control_ignite_start();
 	}
+
 }
 
 
 void control_igniter_start(void) {
 	//set counter to igniter time
-	control.counter = IGNITER_ON_TIME + IGNITER_OFF_TIME;
+	control.counter = IGNITER_COUNTER;
 	control.state = CONTROL_IGNITER;
+
+	//fire igniter
+	gpio_set(IGNITER_PORT, IGNITER_PIN);
 }
 
 /**
@@ -488,14 +680,17 @@ void control_igniter_start(void) {
 void control_igniter_run(void) {
 	control.last_time = control.time;
 
-	if (control.counter >= IGNITER_OFF_TIME) {
-		HAL_GPIO_WritePin(IGNITER_PORT, IGNITER_PIN, GPIO_PIN_SET);
-	} else {
-		HAL_GPIO_WritePin(IGNITER_PORT, IGNITER_PIN, GPIO_PIN_RESET);
-	}
+	//check for abort
+	control_command_t expected_cmds[] = {
+		COMMAND_NONE
+	};
+	control_command_t received_command;
+	received_command = control_read_commands(expected_cmds, 1, NULL);
 
-	//TODO: TIMER WAIT HERE
+	RETURN_UNTIL_COUNTER_ZERO;
 
+	//shutdown igniter
+	gpio_clr(IGNITER_PORT, IGNITER_PIN);
 
 	control_ignition_start();
 }
@@ -504,13 +699,20 @@ void control_ignition_start(void) {
 	control.state = CONTROL_IGNITION;
 	servo_set_state(&control.servo_n2o, SERVO_PARTIALLY_OPEN);
 	servo_set_state(&control.servo_ethanol, SERVO_PARTIALLY_OPEN);
-	control.counter = 100;
+	control.counter = IGNITION_COUNTER;
 }
 
 
 void control_ignition_run(void) {
 
-	IDLE_UNTIL_COUNTER_ZERO;
+	//check for abort
+	control_command_t expected_cmds[] = {
+		COMMAND_NONE
+	};
+	control_command_t received_command;
+	received_command = control_read_commands(expected_cmds, 1, NULL);
+
+	RETURN_UNTIL_COUNTER_ZERO;
 
 
 	control_thrust_start();
@@ -520,7 +722,7 @@ void control_thrust_start(void) {
 	control.state = CONTROL_THRUST;
 	servo_set_state(&control.servo_n2o, SERVO_OPEN);
 	servo_set_state(&control.servo_ethanol, SERVO_OPEN);
-	control.counter = CONTROL_ONE_SECOND * 10; // 10 second wait before switching state
+	control.counter = THRUST_COUNTER;
 }
 
 /**
@@ -530,7 +732,15 @@ void control_thrust_start(void) {
  * 			After a delay, it will jump to the shutdown state.
  */
 void control_thrust_run(void) {
-	IDLE_UNTIL_COUNTER_ZERO;
+
+	//check for abort
+	control_command_t expected_cmds[] = {
+		COMMAND_NONE
+	};
+	control_command_t received_command;
+	received_command = control_read_commands(expected_cmds, 1, NULL);
+
+	RETURN_UNTIL_COUNTER_ZERO;
 
 	control_shutdown_start();
 }
@@ -538,13 +748,20 @@ void control_thrust_run(void) {
 void control_shutdown_start(void) {
 	control.state = CONTROL_SHUTDOWN;
 	servo_set_state(&control.servo_ethanol, SERVO_CLOSED);
-	control.counter = 100;
+	control.counter = SHUTDOWN_COUNTER;
 }
 
 void control_shutdown_run(void) {
-	util_error_t error_shutdown = ER_SUCCESS; // shutdown()
 
-	//signal for recovery
+	//check for abort
+	control_command_t expected_cmds[] = {
+		COMMAND_NONE
+	};
+	control_command_t received_command;
+	received_command = control_read_commands(expected_cmds, 1, NULL);
+
+	RETURN_UNTIL_COUNTER_ZERO;
+
 	control_start_glide();
 }
 
@@ -553,6 +770,17 @@ void control_glide_start(void) {
 }
 
 void control_glide_run(void) {
+
+	control_command_t expected_cmds[] = {
+		COMMAND_RECOVER
+	};
+	control_command_t received_command;
+	received_command = control_read_commands(expected_cmds, 1, NULL);
+	if(received_command == COMMAND_RECOVER) {
+		control_idle_start();
+	}
+
+
 
 	//do nothing
 }
@@ -570,6 +798,16 @@ void control_error_start(void) {
  */
 void control_error_run(void) {
 	//Will attempt to recover from error
+
+	control_command_t expected_cmds[] = {
+		COMMAND_RECOVER
+	};
+	control_command_t received_command;
+	received_command = control_read_commands(expected_cmds, 1, NULL);
+	if(received_command == COMMAND_RECOVER) {
+		control_idle_start();
+	}
+
 }
 
 void control_abort_start(void) {
@@ -582,6 +820,15 @@ void control_abort_start(void) {
  * 			manually or automatically .
  */
 void control_abort_run(void) {
+
+	control_command_t expected_cmds[] = {
+		COMMAND_RECOVER
+	};
+	control_command_t received_command;
+	received_command = control_read_commands(expected_cmds, 1, NULL);
+	if(received_command == COMMAND_RECOVER) {
+		control_idle_start();
+	}
 
 	//do nothing
 }
