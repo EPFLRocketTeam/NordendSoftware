@@ -33,7 +33,7 @@
 /**
  * COMPUTER TYPE HERE !!
  */
-#define ND_COMPUTER	ND_B
+#define ND_COMPUTER	ND_A
 
 #if ND_COMPUTER == ND_A
 /* S1 */

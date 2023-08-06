@@ -89,6 +89,7 @@ void hostcom_data_gnss_send(uint32_t timestamp, int32_t alt) {
 }
 
 
+//data handles the kalman filter computation result
 void hostcom_handle_data(uint8_t opcode, uint16_t len, uint8_t * _data) {
 	if(opcode == TRANSFER_DATA_RES) {
 		if(len == sizeof(transfer_data_res_t)) {
@@ -101,11 +102,11 @@ void hostcom_handle_data(uint8_t opcode, uint16_t len, uint8_t * _data) {
 #endif
 		}
 	}
-	//handle kalman inbound data!!
 }
 
 
-
+//sync handle potential other OD data from the hostboard
+//unused for now
 void hostcom_handle_sync(uint8_t opcode, uint16_t len, uint8_t * data) {
 	UNUSED(opcode);
 	UNUSED(len);

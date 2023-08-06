@@ -192,10 +192,12 @@ void led_checkpoint(uint16_t point) {
 }
 
 
-//TODO: A REVOIR AVEC UN VRAI SYSTEME
+
 void led_rgb_thread(__attribute__((unused)) void * arg) {
 
 	led_rgb_init();
+
+	led_feedback_init();
 
 	led_rgb_set_color(led_blue);
 
@@ -221,7 +223,6 @@ void led_rgb_thread(__attribute__((unused)) void * arg) {
 		}
 		osDelay(500);
 		led_rgb_set_color(led_black);
-		//debug_log("In led thread, hello\n", "");
 		osDelay(500);
 	}
 }

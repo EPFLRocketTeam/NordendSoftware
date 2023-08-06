@@ -247,6 +247,7 @@ void can_init(uint8_t board_id) {
 	fdcan1_context.board_id = board_id;
 
 	can_interface_init(&fdcan1_interface, &fdcan1_context);
+	//Here we can then initialize the second CAN interface
 
 
 	checkpoint_tx = led_add_checkpoint(led_teal);

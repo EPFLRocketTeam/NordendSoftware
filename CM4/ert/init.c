@@ -36,6 +36,7 @@
 
 #include <feedback/debug.h>
 #include <miaou_downlink.h>
+#include <miaou_uplink.h>
 
 
 /**********************
@@ -142,11 +143,16 @@ void init(void) {
 
 
 #if ND_HAS_SENSORS == ND_TRUE
+	/**
+	 * Some stuff is wrong in how they handled the sensors.
+	 * They initialize only one bus...
+	 * We have to init all the used busses and then init the sensors located on those busses.
+	 */
 	//init the sensors
 	//spi_init();
-	i2c_s2_init();
+	//i2c_s2_init();
 	//spi_sensor_init();
-	i2c_sensor_init();
+	//i2c_sensor_init();
 #endif
 
 	//Object dictionnary threads

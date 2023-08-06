@@ -66,26 +66,23 @@ static void od_unsafe_write(uint8_t data_id, uint8_t *src);
 /**
  * Object dictionary entries
  */
-ALLOCATE_OD_ENTRY(KALMAN_DATA_A, 12, transfer_data_res_t);
-ALLOCATE_OD_ENTRY(KALMAN_DATA_B, 13, transfer_data_res_t);
-ALLOCATE_OD_ENTRY(GNSS, 14, gnss_data_t);
-ALLOCATE_OD_ENTRY(BATTERY_A, 15, uint32_t);
-ALLOCATE_OD_ENTRY(BATTERY_B, 16, uint32_t);
-//ALLOCATE_OD_ENTRY(RF_CMD, 17, rf_cmd_t);
-ALLOCATE_OD_ENTRY(COUNTDOWN, 18, uint16_t);
-//ALLOCATE_OD_ENTRY(ENGINE_STATE, 19, rf_cmd_t);
-ALLOCATE_OD_ENTRY(ENGINE_FSM_STATE, 20, uint8_t);
-ALLOCATE_OD_ENTRY(ACC_I2C_A, 21, accelerometer_data_t);
-ALLOCATE_OD_ENTRY(ACC_I2C_B, 22, accelerometer_data_t);
-ALLOCATE_OD_ENTRY(BARO_A, 23, barometer_data_t);
-ALLOCATE_OD_ENTRY(BARO_B, 24, barometer_data_t);
-ALLOCATE_OD_ENTRY(MAG_I2C_A, 25, magnetometer_data_t);
-ALLOCATE_OD_ENTRY(MAG_I2C_B, 26, magnetometer_data_t);
-ALLOCATE_OD_ENTRY(ENG_TEMP_I2C, 27, temperature_data_t);
-ALLOCATE_OD_ENTRY(ENG_PRESS_I2C_A, 28, double);
-ALLOCATE_OD_ENTRY(ENG_PRESS_I2C_B, 29, double);
-ALLOCATE_OD_ENTRY(ENG_PRESS_I2C_C, 30, double);
-ALLOCATE_OD_ENTRY(ENGINE_ERROR, 31, uint8_t);
+ALLOCATE_OD_ENTRY(KALMAN_DATA_A, 			1, 	transfer_data_res_t);
+ALLOCATE_OD_ENTRY(KALMAN_DATA_B, 			2, 	transfer_data_res_t);
+ALLOCATE_OD_ENTRY(GNSS_DATA_A, 				3, 	gnss_data_t);
+ALLOCATE_OD_ENTRY(GNSS_DATA_B, 				4, 	gnss_data_t);
+ALLOCATE_OD_ENTRY(BATTERY_A, 				5, 	uint32_t);
+ALLOCATE_OD_ENTRY(BATTERY_B, 				6, 	uint32_t);
+ALLOCATE_OD_ENTRY(ENGINE_CONTROL_DATA, 		7, 	int);
+ALLOCATE_OD_ENTRY(RECOVERY_CONTROL_DATA, 	8, 	int);
+ALLOCATE_OD_ENTRY(SESNOR_BARO_A, 			9, 	int);
+ALLOCATE_OD_ENTRY(SESNOR_BARO_B, 			10, int);
+ALLOCATE_OD_ENTRY(SESNOR_IMU_A, 			11, int);
+ALLOCATE_OD_ENTRY(SESNOR_IMU_B, 			12, int);
+ALLOCATE_OD_ENTRY(SESNOR_MAG_A, 			13, int);
+ALLOCATE_OD_ENTRY(SESNOR_MAG_B, 			14, int);
+ALLOCATE_OD_ENTRY(SESNOR_ACC_A, 			15, int);
+ALLOCATE_OD_ENTRY(SESNOR_ACC_B, 			16, int);
+ALLOCATE_OD_ENTRY(ENGINE_SENSORS_DATA, 		17, int);
 
 
 /**
@@ -94,24 +91,21 @@ ALLOCATE_OD_ENTRY(ENGINE_ERROR, 31, uint8_t);
 static const od_entry_t od_entries[OD_MAX_DATAID] = {
 	LINK_OD_ENTRY(KALMAN_DATA_A),
 	LINK_OD_ENTRY(KALMAN_DATA_B),
-	LINK_OD_ENTRY(GNSS),
+	LINK_OD_ENTRY(GNSS_DATA_A),
+	LINK_OD_ENTRY(GNSS_DATA_B),
 	LINK_OD_ENTRY(BATTERY_A),
 	LINK_OD_ENTRY(BATTERY_B),
-	//LINK_OD_ENTRY(RF_CMD),
-	LINK_OD_ENTRY(COUNTDOWN),
-	//LINK_OD_ENTRY(ENGINE_STATE),
-	LINK_OD_ENTRY(ENGINE_FSM_STATE),
-	LINK_OD_ENTRY(ACC_I2C_A),
-	LINK_OD_ENTRY(ACC_I2C_B),
-	LINK_OD_ENTRY(BARO_A),
-	LINK_OD_ENTRY(BARO_B),
-	LINK_OD_ENTRY(MAG_I2C_A),
-	LINK_OD_ENTRY(MAG_I2C_B),
-	LINK_OD_ENTRY(ENG_TEMP_I2C),
-	LINK_OD_ENTRY(ENG_PRESS_I2C_A),
-	LINK_OD_ENTRY(ENG_PRESS_I2C_B),
-	LINK_OD_ENTRY(ENG_PRESS_I2C_C),
-	LINK_OD_ENTRY(ENGINE_ERROR),
+	LINK_OD_ENTRY(ENGINE_CONTROL_DATA),
+	LINK_OD_ENTRY(RECOVERY_CONTROL_DATA),
+	LINK_OD_ENTRY(SESNOR_BARO_A),
+	LINK_OD_ENTRY(SESNOR_BARO_B),
+	LINK_OD_ENTRY(SESNOR_IMU_A),
+	LINK_OD_ENTRY(SESNOR_IMU_B),
+	LINK_OD_ENTRY(SESNOR_MAG_A),
+	LINK_OD_ENTRY(SESNOR_MAG_B),
+	LINK_OD_ENTRY(SESNOR_ACC_A),
+	LINK_OD_ENTRY(SESNOR_ACC_B),
+	LINK_OD_ENTRY(ENGINE_SENSORS_DATA)
 };
 
 /**
@@ -121,7 +115,7 @@ static osMessageQueueId_t out_q;
 static osMessageQueueId_t in_q;
 
 
-static comunicator_t od_can_comunicator;
+//static comunicator_t od_can_comunicator;
 static comunicator_t * od_hostcom_comunicator;
 
 /**********************
@@ -156,8 +150,9 @@ void od_init() {
 	};
 	in_q = osMessageQueueNew(OD_MSGQ_SIZE, sizeof(od_frame_t), &in_attr);
 
-	comunicator_init(&od_can_comunicator, serial_get_s3_interface(), od_can_handler);
-	serial_register_handler(serial_get_s3_interface(), communicator_handler, &od_can_comunicator);
+	//legacy serial bus that replaces the CAN
+	//comunicator_init(&od_can_comunicator, serial_get_s3_interface(), od_can_handler);
+	//serial_register_handler(serial_get_s3_interface(), communicator_handler, &od_can_comunicator);
 
 }
 
@@ -183,37 +178,37 @@ void od_sync_handler(uint8_t opcode, uint16_t len, uint8_t * data) {
 	}
 }
 
-void od_can_handler(uint8_t opcode, uint16_t len, uint8_t * data) {
-
-	debug_log("receivedCAN: %d\n", opcode);
-
-	if(opcode <= BATTERY_B) { //check against last entry to see validity
-
-		if(opcode == GNSS) {
-			gnss_data_t _data;
-			memcpy(&_data, data, sizeof(gnss_data_t));
-			hostcom_data_gnss_send(HAL_GetTick(), (int32_t) _data.altitude);
-			static uint8_t first = 1;
-//			if(first) {
-//				barometer_set_alt(_data.altitude);
-//				first = 0;
-//			}
-		}
-		//valid data
-		if(len == od_entries[opcode].size) {
-			debug_log("processed: %d\n", opcode);
-			int32_t lock = osKernelLock();
-			od_frame_t inbound;
-			inbound.data_id = od_entries[opcode].data_id;
-			inbound.size = od_entries[opcode].size;
-			memcpy(inbound.data, data, inbound.size);
-			osKernelRestoreLock(lock);
-
-			osMessageQueuePut(in_q, &inbound, 0U, 100);
-
-		}
-	}
-}
+//void od_can_handler(uint8_t opcode, uint16_t len, uint8_t * data) {
+//
+//	debug_log("receivedCAN: %d\n", opcode);
+//
+//	if(opcode <= BATTERY_B) { //check against last entry to see validity
+//
+//		if(opcode == GNSS) {
+//			gnss_data_t _data;
+//			memcpy(&_data, data, sizeof(gnss_data_t));
+//			hostcom_data_gnss_send(HAL_GetTick(), (int32_t) _data.altitude);
+//			static uint8_t first = 1;
+////			if(first) {
+////				barometer_set_alt(_data.altitude);
+////				first = 0;
+////			}
+//		}
+//		//valid data
+//		if(len == od_entries[opcode].size) {
+//			debug_log("processed: %d\n", opcode);
+//			int32_t lock = osKernelLock();
+//			od_frame_t inbound;
+//			inbound.data_id = od_entries[opcode].data_id;
+//			inbound.size = od_entries[opcode].size;
+//			memcpy(inbound.data, data, inbound.size);
+//			osKernelRestoreLock(lock);
+//
+//			osMessageQueuePut(in_q, &inbound, 0U, 100);
+//
+//		}
+//	}
+//}
 
 
 void od_handle_can_frame(uint8_t src, od_frame_t *frame) {
@@ -307,7 +302,9 @@ void od_broadcast_task(__attribute__((unused)) void *argument) {
 		//TODO: comunicator data could be generated only once!!
 
 		comunicator_send(od_hostcom_comunicator, to_send.data_id, to_send.size, to_send.data);
-		comunicator_send(&od_can_comunicator, to_send.data_id, to_send.size, to_send.data);
+
+		//this is the legacy uart that replaces CAN
+		//comunicator_send(&od_can_comunicator, to_send.data_id, to_send.size, to_send.data);
 
 		debug_log("frame sent!: %d\n", to_send.data_id);
 

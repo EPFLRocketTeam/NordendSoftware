@@ -66,10 +66,15 @@ void miaou_uplink_handler(uint8_t opcode, uint16_t len, uint8_t * _data) {
 		if(len == sizeof(av_uplink_t)) {
 			av_uplink_t data;
 			memcpy(&data, _data, sizeof(av_uplink_t));
+			//handle command frame from miaou
 
 		}
 	} else if(opcode == MIAOU_GNSS) {
-
+		if(len == sizeof(av_miaou_gnss_t)) {
+			av_miaou_gnss_t data;
+			memcpy(&data, _data, sizeof(av_miaou_gnss_t));
+			//handle gnss frame from miaou
+		}
 	}
 }
 
