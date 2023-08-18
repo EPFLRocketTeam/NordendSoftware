@@ -62,7 +62,14 @@ unsigned queue_get_size(queue_t * q) {
 	return q->size;
 }
 
-//int queue_get_elem(queue_t * q, )
+
+
+int queue_get_elem(queue_t * q, int i) {
+	int idx = q->next_i - i*q->size;
+	if(idx < 0) {
+		idx += q->size*q->len;
+	}
+}
 
 
 
