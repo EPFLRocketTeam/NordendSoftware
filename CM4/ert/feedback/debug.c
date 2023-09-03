@@ -16,6 +16,7 @@
 #include <stdarg.h>
 #include <device/device.h>
 #include <driver/hostproc.h>
+#include <feedback/debug.h>
 
 /**********************
  *	CONSTANTS
@@ -49,12 +50,21 @@
  **********************/
 
 
-void debug_log(const char * lotte, ...) {
+void debug_log(log_prio_t prio, const char * lotte, ...) {
 	char buffer[128];
 	va_list args;
 	va_start(args, lotte);
 	//add timestamp but without \0 char
-	uint16_t p_len = snprintf(buffer, 128, "[ %05lu ] ", HAL_GetTick()) - 1;
+	static char prio_name[6][4] = {
+			"CRI",
+			"ERR",
+			"WAR",
+			"IMP",
+			"INF",
+			"DBG"
+	};
+
+	uint16_t p_len = snprintf(buffer, 128, "[ %05lu ] %s: ", HAL_GetTick(), prio_name[prio]) - 1;
 	uint16_t len = vsnprintf(buffer+p_len, 128-p_len, lotte, args);
 	device_interface_send(hostproc_get_feedback_interface(), (uint8_t *) buffer, len+p_len);
 	va_end(args);

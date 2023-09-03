@@ -6,6 +6,8 @@
  *	Description	: gnss setup and acquisition
  */
 
+#if 0
+
 /**********************
  *	INCLUDES
  **********************/
@@ -285,6 +287,6 @@ util_error_t gnss_init(void) {
 	return ER_SUCCESS;
 }
 
-
+#endif
 
 /* END */

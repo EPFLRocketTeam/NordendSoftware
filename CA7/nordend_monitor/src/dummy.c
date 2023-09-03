@@ -17,14 +17,9 @@
 
 void * dummy_feedback_entry(void * ptr) {
 
-	feedback_data_t * data = (feedback_data_t*) ptr;
 
 
 	for(;;) {
-
-		const char hello[] = "hello world! \n";
-
-		queue_push(data->q, (void*) hello);
 
 		sleep(1);
 

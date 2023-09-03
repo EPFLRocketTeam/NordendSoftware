@@ -8,128 +8,130 @@
 
 #include <unistd.h>
 #include <string.h>
+#include <stdint.h>
 
 
 #include "serial.h"
 #include "sync.h"
 
 
-#define ACC_AXIS_COUNT	3
+#define NO_PACKET_SZ_CHECK
 
-typedef struct accelerometer_data {
-	int16_t raw[ACC_AXIS_COUNT];
-	int16_t	processed[ACC_AXIS_COUNT];
-	uint32_t timestamp;
-}accelerometer_data_t;
 
-typedef struct barometer_data {
-	int32_t pressure;
-	int32_t temperature;
-	int32_t altitude;
-	uint32_t timestamp;
-}barometer_data_t;
+#define KALMAN_DATA_A 			    1
+#define KALMAN_DATA_B 			    2
+#define GNSS_DATA_A				    3
+#define GNSS_DATA_B	 			    4
+#define BATTERY_A 				    5
+#define BATTERY_B 				    6
+#define ENGINE_CONTROL_DATA 	    7
+#define RECOVERY_CONTROL_DATA 	    8
+#define SENSOR_BARO_A 			    9
+#define SENSOR_BARO_B 			    10
+#define SENSOR_IMU_A 			    11
+#define SENSOR_IMU_B 			    12
+#define SENSOR_MAG_A 			    13
+#define SENSOR_MAG_B 			    14
+#define SENSOR_ACC_A 			    15
+#define SENSOR_ACC_B 			    16
+#define ENGINE_SENSORS_DATA 	    17
 
-typedef struct gnss_data {
-    float longitude;
-    float latitude;
-    float altitude;
-    float speed;
-    float time;
-    float hdop;
-}gnss_data_t;
 
-#define ACC_I2C_A 	0       // accelerometer_data_t
-#define ACC_SPI_A	1       // accelerometer_data_t
-#define ACC_I2C_B	2       // accelerometer_data_t
-#define ACC_SPI_B	3       // accelerometer_data_t
-#define BARO_I2C_A	8       // barometer_data_t
-#define BARO_SPI_A	9 		// barometer_data_t
-#define BARO_I2C_B	10		// barometer_data_t
-#define BARO_SPI_B	11		// barometer_data_t
-#define KALMAN_DATA_A 12	//transfer_data_res_t);
-#define KALMAN_DATA_B 13    //transfer_data_res_t);
-#define GNSS 		14		// gnss_data_t
-#define BATTERY_A	15		// uint32_t
-#define BATTERY_B	16		// uint32_t
 
+
+static sync_store_t data;
 
 
 
 static FILE * fp = NULL;
 
-
-void sync_handle_acc(uint8_t opcode, uint16_t len, uint8_t * _data) {
-	if(len == sizeof(accelerometer_data_t)) {
-		accelerometer_data_t data;
-		memcpy(&data, _data, sizeof(accelerometer_data_t));
-		switch(opcode) {
-		case ACC_I2C_A:
-			fprintf(fp, "ACC_I2C_A,");
-			break;
-		case ACC_I2C_B:
-			fprintf(fp, "ACC_I2C_B,");
-			break;
-		}
-		fprintf(fp, "%d,%d,%d,%d,%d,%d,%d\n",
-				data.raw[0],
-				data.raw[1],
-				data.raw[2],
-				data.processed[0],
-				data.processed[1],
-				data.processed[2],
-				data.timestamp);
-	}
+void sync_copy_data(sync_store_t * _data) {
+	memcpy(_data, &data, sizeof(sync_store_t));
 }
 
 
-void sync_handle_baro(uint8_t opcode, uint16_t len, uint8_t * _data) {
-	if(len == sizeof(barometer_data_t)) {
-		barometer_data_t data;
-		memcpy(&data, _data, sizeof(barometer_data_t));
-		switch(opcode) {
-		case BARO_I2C_A:
-			fprintf(fp, "BARO_I2C_A,");
-			break;
-		case BARO_I2C_B:
-			fprintf(fp, "BARO_I2C_B,");
-			break;
-		}
-		fprintf(fp, "%d,%d,%d,%d\n",
-				data.temperature,
-				data.pressure,
-				data.altitude,
-				data.timestamp);
-	}
-}
 
 void sync_handle_gnss(uint8_t opcode, uint16_t len, uint8_t * _data) {
-	if(len == sizeof(gnss_data_t)) {
-		gnss_data_t data;
-		memcpy(&data, _data, sizeof(gnss_data_t));
-		//gnss_data_t * data = (gnss_data_t *) _data;
-		fprintf(fp, "GNSS,%f,%f,%f,%f,%f,%f\n",
-				data.altitude,
-				data.hdop,
-				data.latitude,
-				data.longitude,
-				data.speed,
-				data.time);
+	if(1 || len == sizeof(gnss_data_t)) {
+		if(opcode == GNSS_DATA_A) {
+			memcpy(&data.gnss_data_a, _data, sizeof(gnss_data_t));
+		} else {
+			memcpy(&data.gnss_data_b, _data, sizeof(gnss_data_t));
+		}
 	}
 }
 
-void sync_handle_bat(uint8_t opcode, uint16_t len, uint8_t * _data) {
-	if(len == sizeof(float)) {
-		float data;
-		memcpy(&data, _data, sizeof(float));
-		switch(opcode) {
-		case BATTERY_A:
-			fprintf(fp, "BATTERY_A,");
-			break;
-		case BATTERY_B:
-			fprintf(fp, "BATTERY_B,");
-			break;
+void sync_handle_battery(uint8_t opcode, uint16_t len, uint8_t * _data) {
+	if(1 || len == sizeof(battery_data_t)) {
+		if(opcode == BATTERY_A) {
+			memcpy(&data.battery_a, _data, sizeof(battery_data_t));
+		} else {
+			memcpy(&data.battery_b, _data, sizeof(battery_data_t));
 		}
-		fprintf(fp, "%f\n", data);
+	}
+}
+
+void sync_handle_engine_control(uint8_t opcode, uint16_t len, uint8_t * _data) {
+	if(1 || len == sizeof(engine_control_data_t)) {
+		memcpy(&data.engine_control, _data, sizeof(engine_control_data_t));
+		fprintf(fp, "ENGINE_CONTROL,%d,%d,%d,%ld\n",
+					data.engine_control.state,
+					data.engine_control.last_cmd,
+					data.engine_control.last_parameter,
+					data.engine_control.time);
+	}
+}
+
+
+void sync_handle_recovery_control(uint8_t opcode, uint16_t len, uint8_t * _data) {
+	if(1 || len == sizeof(recovery_control_data_t)) {
+		memcpy(&data.recovery_control, _data, sizeof(recovery_control_data_t));
+	}
+}
+
+void sync_handle_sensor_baro(uint8_t opcode, uint16_t len, uint8_t * _data) {
+	if(1 || len == sizeof(sensor_baro_data_t)) {
+		if(opcode == SENSOR_BARO_A) {
+			memcpy(&data.baro_a, _data, sizeof(sensor_baro_data_t));
+		} else {
+			memcpy(&data.baro_b, _data, sizeof(sensor_baro_data_t));
+		}
+	}
+}
+
+void sync_handle_sensor_imu(uint8_t opcode, uint16_t len, uint8_t * _data) {
+	if(1 || len == sizeof(sensor_imu_data_t)) {
+		if(opcode == SENSOR_IMU_A) {
+			memcpy(&data.imu_a, _data, sizeof(sensor_imu_data_t));
+		} else {
+			memcpy(&data.imu_b, _data, sizeof(sensor_imu_data_t));
+		}
+	}
+}
+
+void sync_handle_sensor_mag(uint8_t opcode, uint16_t len, uint8_t * _data) {
+	if(1 || len == sizeof(sensor_mag_data_t)) {
+		if(opcode == SENSOR_MAG_A) {
+			memcpy(&data.mag_a, _data, sizeof(sensor_mag_data_t));
+		} else {
+			memcpy(&data.mag_b, _data, sizeof(sensor_mag_data_t));
+		}
+	}
+}
+
+void sync_handle_sensor_acc(uint8_t opcode, uint16_t len, uint8_t * _data) {
+	if(1 || len == sizeof(sensor_acc_data_t)) {
+		if(opcode == SENSOR_ACC_A) {
+			memcpy(&data.acc_a, _data, sizeof(sensor_acc_data_t));
+		} else {
+			memcpy(&data.acc_b, _data, sizeof(sensor_acc_data_t));
+		}
+	}
+}
+
+void sync_handle_sensor_eng(uint8_t opcode, uint16_t len, uint8_t * _data) {
+	if(1 || len == sizeof(sensor_eng_data_t)) {
+		memcpy(&data.sensor_eng, _data, sizeof(sensor_eng_data_t));
 	}
 }
 
@@ -137,21 +139,40 @@ void sync_handle_bat(uint8_t opcode, uint16_t len, uint8_t * _data) {
 void sync_handle_data(uint8_t opcode, uint16_t len, uint8_t * _data) {
 
 	//printf("handling: %d | %d\n", opcode, len);
+	fprintf(fp, "handling: %d, %d\n", opcode, len);
 	switch(opcode) {
-	case	ACC_I2C_A 	:
-	case	ACC_I2C_B	:
-		sync_handle_acc(opcode, len, _data);
-		break;
-	case	BARO_I2C_A	:
-	case	BARO_I2C_B	:
-		sync_handle_baro(opcode, len, _data);
-		break;
-	case	GNSS 		:
+	case GNSS_DATA_A:
+	case GNSS_DATA_B:
 		sync_handle_gnss(opcode, len, _data);
 		break;
-	case	BATTERY_A	:
-	case	BATTERY_B	:
-		sync_handle_bat(opcode, len, _data);
+	case BATTERY_A:
+	case BATTERY_B:
+		sync_handle_battery(opcode, len, _data);
+		break;
+	case ENGINE_CONTROL_DATA:
+		sync_handle_engine_control(opcode, len, _data);
+		break;
+	case RECOVERY_CONTROL_DATA:
+		sync_handle_recovery_control(opcode, len, _data);
+		break;
+	case SENSOR_BARO_A:
+	case SENSOR_BARO_B:
+		sync_handle_sensor_baro(opcode, len, _data);
+		break;
+	case SENSOR_IMU_A:
+	case SENSOR_IMU_B:
+		sync_handle_sensor_imu(opcode, len, _data);
+		break;
+	case SENSOR_MAG_A:
+	case SENSOR_MAG_B:
+		sync_handle_sensor_mag(opcode, len, _data);
+		break;
+	case SENSOR_ACC_A:
+	case SENSOR_ACC_B:
+		sync_handle_sensor_acc(opcode, len, _data);
+		break;
+	case ENGINE_SENSORS_DATA:
+		sync_handle_sensor_eng(opcode, len, _data);
 		break;
 	default:
 		break;

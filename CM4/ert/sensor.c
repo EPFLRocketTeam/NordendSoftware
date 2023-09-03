@@ -94,7 +94,7 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	last_wake_time = xTaskGetTickCount();
 
 	uint16_t checkpoint = led_add_checkpoint(led_teal);
-	debug_log("Sensor i2c start\n");
+	debug_log(LOG_INFO, "Sensor i2c start\n");
 	
 	
 	//get and initialize accelerometer

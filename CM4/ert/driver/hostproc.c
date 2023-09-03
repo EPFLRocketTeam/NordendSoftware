@@ -215,7 +215,7 @@ util_error_t hostproc_init(void) {
 	hostproc_uart_init(&hostproc_feedback_interface, &hostproc_feedback_interface_context);
 	hostproc_uart_init(&hostproc_sync_interface, &hostproc_sync_interface_context);
 	hostproc_uart_init(&hostproc_data_interface, &hostproc_data_interface_context);
-	//hostproc_uart_init(&hostproc_cmd_interface, &hostproc_cmd_interface_context);
+	hostproc_uart_init(&hostproc_cmd_interface, &hostproc_cmd_interface_context);
 
 
 	//hostproc guard

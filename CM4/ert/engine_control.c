@@ -120,21 +120,19 @@
 
 #define COMMAND_QUEUE_LENGTH 	16
 
-#define IGNITER_COUNTER 		0xfff
-#define IGNITION_COUNTER		0xfff
-#define THRUST_COUNTER			0xfff
-#define SHUTDOWN_COUNTER		0xfff
+#define IGNITER_COUNTER 		3000  //ms
+#define IGNITION_COUNTER		2000  //ms
+#define THRUST_COUNTER		    10000 //ms
+#define SHUTDOWN_COUNTER		0     //ms
 
 
 
 
 
 
-#define CONTROL_HEART_BEAT 200
-#define CONTROL_TAKEOFF_THRESH 0 // TODO The tolerance for taking off, in milliseconds
-#define FINAL_COUNTDOWN 10000 // TODO must be changed by wanted countdown duration, in milliseconds
-#define IGNITION_COUNTER_THRESHOLD 10000 // TODO must be changed by wanted nb attempts
-#define SHUTDOWN_TO_APOGEE_TIME 6000
+#define CONTROL_HEART_BEAT 500
+
+
 
 #define CONTROL_ONE_SECOND pdMS_TO_TICKS(1000)
 
@@ -143,13 +141,6 @@
 #define IGNITER_PORT GPIOG
 #define IGNITER_PIN  1
 
-#define IGNITER_ON_TIME 1000 // Time in ms to keep the igniter pin ON
-#define IGNITER_OFF_TIME 3000 // Time in ms to wait after turning the igniter pin OFF before
-
-#define N2O_SERVO_CLOSE_TIME 13000 // Time in ms
-#define ETHANOL_SERVO_OPEN_TIME 30000 // Time in ms
-
-#define DEPRESSURISATION_TIME 5000 // Time in ms
 
 
 
@@ -175,6 +166,14 @@ typedef struct command {
 typedef struct control
 {
 	control_state_t state;
+
+	engine_control_data_t ec_data;
+
+	int32_t igniter_time;
+	int32_t ignition_time;
+	int32_t thrust_time;
+	int32_t shutdown_time;
+
 
 	solenoid_t solenoid_n2o;
 	solenoid_t solenoid_ethanol;
@@ -284,7 +283,7 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 	init_engine_control();
 
 	uint16_t checkpoint = led_add_checkpoint(led_blue);
-	debug_log("Control start\n");
+	debug_log(LOG_INFO, "Control start\n");
 
 	// Timer things
 	last_wake_time = xTaskGetTickCount();
@@ -292,7 +291,9 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 	
 	for (;;) {
 		led_checkpoint(checkpoint);
-		debug_log("Current state : %d\n", control.state);
+		debug_log(LOG_INFO, "Current state : %d\n", control.state);
+
+
 
 		// Call the function associated with the current state.
 		switch (control.state) {
@@ -335,6 +336,17 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 			break;
 		}
 
+
+		control.ec_data.state = control.state;
+		control.ec_data.time = HAL_GetTick();
+
+		debug_log(LOG_INFO, "update EC od: %d, %d, %d, %d\n",
+					control.ec_data.state,
+					control.ec_data.last_cmd,
+					control.ec_data.last_parameter,
+					control.ec_data.time);
+		od_write_ENGINE_CONTROL_DATA(&control.ec_data);
+
 		vTaskDelayUntil(&last_wake_time, period);
 		
 	}
@@ -358,6 +370,11 @@ util_error_t init_engine_control(void) {
                                 sizeof(command_t),
                                 control.command_queue_storage,
                                 &control.command_queue_params);
+
+	control.igniter_time = IGNITER_COUNTER;
+	control.ignition_time = IGNITION_COUNTER;
+	control.thrust_time = THRUST_COUNTER;
+	control.shutdown_time = SHUTDOWN_COUNTER;
 
 	// Assign Ethanol servo to pin 13 (TIM4, CH2) and N2O servo to pin 14 (TIM4, CH3)
 	util_error_t ethanol_err = servo_init(
@@ -427,6 +444,9 @@ int engine_control_command_pop(control_command_t * cmd, int32_t * parameter) {
 		if(parameter) {
 			*parameter = command.parameter;
 		}
+		control.ec_data.last_parameter = command.parameter;
+		control.ec_data.last_cmd = command.cmd;
+		debug_log(LOG_INFO, "cmd popcat : %d (%d)\n", command.cmd, command.parameter);
 		//return 1 if a command has been received
 		return 1;
 	} else {
@@ -438,7 +458,7 @@ int engine_control_command_pop(control_command_t * cmd, int32_t * parameter) {
 }
 
 
-int control_read_commands(control_command_t * expected_cmd, size_t expected_cmd_len, int32_t * param) {
+control_command_t control_read_commands(control_command_t * expected_cmd, size_t expected_cmd_len, int32_t * param) {
 	control_command_t cmd;
 	while(engine_control_command_pop(&cmd, param) != 0) {
 		for(int i = 0; i < expected_cmd_len; i++) {
@@ -610,8 +630,7 @@ void control_calibration_run(void) {
 	control_command_t expected_cmds[] = {
 		COMMAND_NONE
 	};
-	control_command_t received_command;
-	received_command = control_read_commands(expected_cmds, 1, NULL);
+	control_read_commands(expected_cmds, 1, NULL);
 
 	control_idle_start();
 }
@@ -665,7 +684,7 @@ void control_pressured_run(void) {
 
 void control_igniter_start(void) {
 	//set counter to igniter time
-	control.counter = IGNITER_COUNTER;
+	control.counter = control.igniter_time;
 	control.state = CONTROL_IGNITER;
 
 	//fire igniter
@@ -699,7 +718,7 @@ void control_ignition_start(void) {
 	control.state = CONTROL_IGNITION;
 	servo_set_state(&control.servo_n2o, SERVO_PARTIALLY_OPEN);
 	servo_set_state(&control.servo_ethanol, SERVO_PARTIALLY_OPEN);
-	control.counter = IGNITION_COUNTER;
+	control.counter = control.ignition_time;
 }
 
 
@@ -722,7 +741,7 @@ void control_thrust_start(void) {
 	control.state = CONTROL_THRUST;
 	servo_set_state(&control.servo_n2o, SERVO_OPEN);
 	servo_set_state(&control.servo_ethanol, SERVO_OPEN);
-	control.counter = THRUST_COUNTER;
+	control.counter = control.thrust_time;
 }
 
 /**
@@ -748,7 +767,7 @@ void control_thrust_run(void) {
 void control_shutdown_start(void) {
 	control.state = CONTROL_SHUTDOWN;
 	servo_set_state(&control.servo_ethanol, SERVO_CLOSED);
-	control.counter = SHUTDOWN_COUNTER;
+	control.counter = control.shutdown_time;
 }
 
 void control_shutdown_run(void) {

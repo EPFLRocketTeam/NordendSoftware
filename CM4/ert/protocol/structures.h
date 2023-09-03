@@ -52,11 +52,13 @@ typedef struct transfer_data {
     uint32_t time;
 }transfer_data_t;
 
-typedef struct transfer_data_res {
-    int32_t alt;
-    int32_t vel;
-    uint32_t time;
-}transfer_data_res_t;
+//typedef struct transfer_data_res {
+//    int32_t alt;
+//    int32_t vel;
+//    uint32_t time;
+//}transfer_data_res_t;
+
+
 
 typedef struct transfer_cmd {
 

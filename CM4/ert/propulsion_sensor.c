@@ -84,7 +84,7 @@ void prop_sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	last_wake_time = xTaskGetTickCount();
 
 	uint16_t checkpoint = led_add_checkpoint(led_blue);
-	debug_log("Propulsion sensor i2c start\n");
+	debug_log(LOG_INFO, "Propulsion sensor i2c start\n");
 	// Get sensor devices
 	i2c_engine_press_A = i2c_sensor_get_ADC_A();
 	i2c_engine_temp = i2c_sensor_get_ADC_A();
@@ -157,11 +157,11 @@ void prop_sensor_i2c_thread(__attribute__((unused)) void * arg) {
 
 
 		if(1) {
-			debug_log("Getting data\n");
+			debug_log(LOG_DEBUG, "Getting data\n");
             if(engine_press_err_A == ER_SUCCESS) {
                 //read engine pressure
 				engine_pressure_read(i2c_engine_press_A, &i2c_engine_press_data_A);
-				debug_log("Pressure A %d\n");
+				debug_log(LOG_DEBUG, "Pressure A %d\n");
 			}
 			if(engine_temp_err == ER_SUCCESS) {
 				temperature_sensor_read(i2c_engine_temp, &i2c_engine_temp_data);

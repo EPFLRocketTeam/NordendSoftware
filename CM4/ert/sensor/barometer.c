@@ -254,7 +254,7 @@ util_error_t barometer_read(device_t *baro, barometer_meta_t *meta,
 		calculate_initial_pressure(data->pressure, meta);
 
 
-	debug_log("Pressure: sea level %ld / current %ld\n", meta->pressure_sea_level, data->pressure);
+	debug_log(LOG_DEBUG, "Pressure: sea level %ld / current %ld\n", meta->pressure_sea_level, data->pressure);
 
 	// Calculate the altitude
 	data->altitude = calculate_altitude(data->pressure, meta);

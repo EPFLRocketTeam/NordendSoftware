@@ -34,7 +34,7 @@
  **********************/
 
 #define ALLOCATE_OD_ENTRY(NAME, ID, TYPE) \
-    enum { NAME = ID }; \
+	enum { NAME = ID }; \
     static_assert((NAME) < OD_MAX_DATAID); \
     static_assert(sizeof(TYPE) < OD_FRAME_MAX_SIZE); \
     static TYPE (NAME##_var); \
@@ -66,23 +66,23 @@ static void od_unsafe_write(uint8_t data_id, uint8_t *src);
 /**
  * Object dictionary entries
  */
-ALLOCATE_OD_ENTRY(KALMAN_DATA_A, 			1, 	transfer_data_res_t);
-ALLOCATE_OD_ENTRY(KALMAN_DATA_B, 			2, 	transfer_data_res_t);
-ALLOCATE_OD_ENTRY(GNSS_DATA_A, 				3, 	gnss_data_t);
-ALLOCATE_OD_ENTRY(GNSS_DATA_B, 				4, 	gnss_data_t);
-ALLOCATE_OD_ENTRY(BATTERY_A, 				5, 	uint32_t);
-ALLOCATE_OD_ENTRY(BATTERY_B, 				6, 	uint32_t);
-ALLOCATE_OD_ENTRY(ENGINE_CONTROL_DATA, 		7, 	int);
-ALLOCATE_OD_ENTRY(RECOVERY_CONTROL_DATA, 	8, 	int);
-ALLOCATE_OD_ENTRY(SESNOR_BARO_A, 			9, 	int);
-ALLOCATE_OD_ENTRY(SESNOR_BARO_B, 			10, int);
-ALLOCATE_OD_ENTRY(SESNOR_IMU_A, 			11, int);
-ALLOCATE_OD_ENTRY(SESNOR_IMU_B, 			12, int);
-ALLOCATE_OD_ENTRY(SESNOR_MAG_A, 			13, int);
-ALLOCATE_OD_ENTRY(SESNOR_MAG_B, 			14, int);
-ALLOCATE_OD_ENTRY(SESNOR_ACC_A, 			15, int);
-ALLOCATE_OD_ENTRY(SESNOR_ACC_B, 			16, int);
-ALLOCATE_OD_ENTRY(ENGINE_SENSORS_DATA, 		17, int);
+ALLOCATE_OD_ENTRY(KALMAN_DATA_A, 			1,     kalman_data_t);
+ALLOCATE_OD_ENTRY(KALMAN_DATA_B, 			2,     kalman_data_t);
+ALLOCATE_OD_ENTRY(GNSS_DATA_A, 				3,     gnss_data_t);
+ALLOCATE_OD_ENTRY(GNSS_DATA_B, 				4,     gnss_data_t);
+ALLOCATE_OD_ENTRY(BATTERY_A, 				5,     battery_data_t);
+ALLOCATE_OD_ENTRY(BATTERY_B, 				6,     battery_data_t);
+ALLOCATE_OD_ENTRY(ENGINE_CONTROL_DATA, 		7,     engine_control_data_t);
+ALLOCATE_OD_ENTRY(RECOVERY_CONTROL_DATA, 	8,     recovery_control_data_t);
+ALLOCATE_OD_ENTRY(SENSOR_BARO_A, 			9,     sensor_baro_data_t);
+ALLOCATE_OD_ENTRY(SENSOR_BARO_B, 			10,    sensor_baro_data_t);
+ALLOCATE_OD_ENTRY(SENSOR_IMU_A, 			11,    sensor_imu_data_t);
+ALLOCATE_OD_ENTRY(SENSOR_IMU_B, 			12,    sensor_imu_data_t);
+ALLOCATE_OD_ENTRY(SENSOR_MAG_A, 			13,    sensor_mag_data_t);
+ALLOCATE_OD_ENTRY(SENSOR_MAG_B, 			14,    sensor_mag_data_t);
+ALLOCATE_OD_ENTRY(SENSOR_ACC_A, 			15,    sensor_acc_data_t);
+ALLOCATE_OD_ENTRY(SENSOR_ACC_B, 			16,    sensor_acc_data_t);
+ALLOCATE_OD_ENTRY(ENGINE_SENSORS_DATA, 		17,    sensor_eng_data_t);
 
 
 /**
@@ -97,14 +97,14 @@ static const od_entry_t od_entries[OD_MAX_DATAID] = {
 	LINK_OD_ENTRY(BATTERY_B),
 	LINK_OD_ENTRY(ENGINE_CONTROL_DATA),
 	LINK_OD_ENTRY(RECOVERY_CONTROL_DATA),
-	LINK_OD_ENTRY(SESNOR_BARO_A),
-	LINK_OD_ENTRY(SESNOR_BARO_B),
-	LINK_OD_ENTRY(SESNOR_IMU_A),
-	LINK_OD_ENTRY(SESNOR_IMU_B),
-	LINK_OD_ENTRY(SESNOR_MAG_A),
-	LINK_OD_ENTRY(SESNOR_MAG_B),
-	LINK_OD_ENTRY(SESNOR_ACC_A),
-	LINK_OD_ENTRY(SESNOR_ACC_B),
+	LINK_OD_ENTRY(SENSOR_BARO_A),
+	LINK_OD_ENTRY(SENSOR_BARO_B),
+	LINK_OD_ENTRY(SENSOR_IMU_A),
+	LINK_OD_ENTRY(SENSOR_IMU_B),
+	LINK_OD_ENTRY(SENSOR_MAG_A),
+	LINK_OD_ENTRY(SENSOR_MAG_B),
+	LINK_OD_ENTRY(SENSOR_ACC_A),
+	LINK_OD_ENTRY(SENSOR_ACC_B),
 	LINK_OD_ENTRY(ENGINE_SENSORS_DATA)
 };
 
@@ -159,22 +159,18 @@ void od_init() {
 
 void od_sync_handler(uint8_t opcode, uint16_t len, uint8_t * data) {
 
-	debug_log("received: %d\n", opcode);
+	debug_log(LOG_DEBUG, "received: %d\n", opcode);
+	if(len == od_entries[opcode].size) {
+		debug_log(LOG_DEBUG, "processed: %d\n", opcode);
+		int32_t lock = osKernelLock();
+		od_frame_t inbound;
+		inbound.data_id = od_entries[opcode].data_id;
+		inbound.size = od_entries[opcode].size;
+		memcpy(inbound.data, data, inbound.size);
+		osKernelRestoreLock(lock);
 
-	if(opcode <= BATTERY_B) { //check against last entry to see validity
-		//valid data
-		if(len == od_entries[opcode].size) {
-			debug_log("processed: %d\n", opcode);
-			int32_t lock = osKernelLock();
-			od_frame_t inbound;
-			inbound.data_id = od_entries[opcode].data_id;
-			inbound.size = od_entries[opcode].size;
-			memcpy(inbound.data, data, inbound.size);
-			osKernelRestoreLock(lock);
+		osMessageQueuePut(in_q, &inbound, 0U, 100);
 
-			osMessageQueuePut(in_q, &inbound, 0U, 100);
-
-		}
 	}
 }
 
@@ -270,7 +266,7 @@ void od_update_task(__attribute__((unused)) void *argument) {
 #endif
 
 
-        debug_log("added to OD: %d\n", to_receive.data_id);
+        debug_log(LOG_DEBUG, "added to OD: %d\n", to_receive.data_id);
 
 
         // Update field atomically
@@ -297,7 +293,7 @@ void od_broadcast_task(__attribute__((unused)) void *argument) {
 		//also store the data locally
 		od_push_to_in_q(&to_send);
 
-		debug_log("sending_frame: %d\n", to_send.data_id);
+		debug_log(LOG_DEBUG, "sending_frame: %d\n", to_send.data_id);
 
 		//TODO: comunicator data could be generated only once!!
 
@@ -306,7 +302,7 @@ void od_broadcast_task(__attribute__((unused)) void *argument) {
 		//this is the legacy uart that replaces CAN
 		//comunicator_send(&od_can_comunicator, to_send.data_id, to_send.size, to_send.data);
 
-		debug_log("frame sent!: %d\n", to_send.data_id);
+		//debug_log(LOG_DEBUG, "frame sent!: %d\n", to_send.data_id);
 
 
 	}

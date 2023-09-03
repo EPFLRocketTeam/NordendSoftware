@@ -32,7 +32,7 @@
 
 #include "dummy.h"
 
-#define DUMMY
+//#define DUMMY
 
 
 
@@ -49,14 +49,11 @@ int main(int argc, char ** argv) {
     feedback_data_t fb_data;
     sync_data_t sc_data;
 
-    ui_param.q_fb = queue_init(15, 64);
-    fb_data.q = ui_param.q_fb;
-
 #ifndef DUMMY
     pthread_create(&feedback_thread, NULL, feedback_entry, NULL);
     pthread_create(&sync_thread, NULL, sync_entry, NULL);
 #else
-    pthread_create(&feedback_thread, NULL, dummy_feedback_entry, (void*)&fb_data);
+    pthread_create(&feedback_thread, NULL, dummy_feedback_entry, NULL);
     pthread_create(&sync_thread, NULL, dummy_sync_entry, NULL);
 #endif
 

@@ -18,7 +18,6 @@
 
 #include <stdint.h>
 #include <util.h>
-#include <propulsion/servo.h>
 #include <solenoid.h>
 
 
@@ -39,33 +38,7 @@
  *
  * the description of the states don't make sense -> must be reviewed
  */
-typedef enum control_state
-{
-	/** Wait for arming or calibration */
-	CONTROL_IDLE,
-	/** Calibrate sensors and actuators */
-	CONTROL_CALIBRATION ,
-	/** Manual Servo movement */
-	CONTROL_MANUAL_OPERATION,
-	/** System is armed and ready to pressure*/
-	CONTROL_ARMED,
-	/** system is pressured */
-	CONTROL_PRESSURED,
-	/** fire igniter */
-	CONTROL_IGNITER,
-	/** partially open valves*/
-	CONTROL_IGNITION,
-	/** fully open valves */
-	CONTROL_THRUST,
-	/** close ethanol valve */
-	CONTROL_SHUTDOWN,
-	/** glide */
-	CONTROL_GLIDE,
-	/** system error*/
-	CONTROL_ERROR,
-	/** User triggered abort */
-	CONTROL_ABORT
-} control_state_t;
+
 
 
 
@@ -88,21 +61,7 @@ COMMAND_VALVE_N2O	|	angle en degres
 COMMAND_VALVE_ETH	|	angle en degres
 COMMAND_ABORT 		|	aucun
  */
-typedef enum control_command {
-	COMMAND_NONE,
-	COMMAND_ARM,
-	COMMAND_DISARM,
-	COMMAND_PRESSURE,
-	COMMAND_IGNITE,
-	COMMAND_RECOVER,
-	COMMAND_VENT_N2O,
-	COMMAND_VENT_ETH,
-	COMMAND_MAN_PRESS,
-	COMMAND_MAN_PURGE,
-	COMMAND_VALVE_N2O,
-	COMMAND_VALVE_ETH,
-	COMMAND_ABORT
-} control_command_t;
+
 
 
 /**********************

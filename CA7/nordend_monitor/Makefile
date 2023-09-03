@@ -18,7 +18,7 @@ OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 # As an example, ./build/hello.cpp.o turns into ./build/hello.cpp.d
 DEPS := $(OBJS:.o=.d)
 
-LIBS := -lpthread -lstdc++ -lm -lncurses
+LIBS := -lpthread -lstdc++ -lm -lncursesw
 
 # Every folder in ./src will need to be passed to GCC so that it can find header files
 INC_DIRS := ./inc
@@ -27,7 +27,7 @@ INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
 # The -MMD and -MP flags together generate Makefiles for us!
 # These files will have .d instead of .o as the output.
-CPPFLAGS := $(INC_FLAGS) -MMD -MP $(LIBS)
+CPPFLAGS := $(INC_FLAGS) -MMD -MP $(LIBS) -Os
 
 # The final build step.
 $(TARGET_EXEC): $(OBJS)

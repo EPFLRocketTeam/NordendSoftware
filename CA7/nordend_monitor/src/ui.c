@@ -4,7 +4,10 @@
 #include <unistd.h>
 #include <string.h>
 #include "queue.h"
-
+#include <time.h>
+#include "serial.h"
+#include "sync.h"
+#include "../../../CM4/ert/od/data_types.h"
 
 
 typedef struct ui_data {
@@ -39,7 +42,11 @@ typedef struct ui_data {
 
 
 	//other data
-	queue_t * q_fb;
+	sync_store_t sync_data;
+
+    serial_dev_t cmd_device;
+    comunicator_t com;
+
 
 }ui_data_t;
 
@@ -47,7 +54,9 @@ typedef struct ui_data {
 
 int ui_init(int argc, char ** argv, ui_data_t * data);
 int ui_mainloop(ui_data_t * data);
-int ui_draw_windows(ui_data_t * data);
+int ui_make_windows(ui_data_t * data);
+int ui_update_content(ui_data_t * data);
+int ui_handle_input(ui_data_t * data);
 
 
 int ui_start(int argc, char ** argv, ui_param_t * param){
@@ -60,23 +69,18 @@ int ui_start(int argc, char ** argv, ui_param_t * param){
 
 
 
-	char * message = malloc(15);
-
 	//UI mainloop
 	for(;;) {
 
+		sync_copy_data(&data.sync_data);
 
-		if(!queue_is_empty(param->q_fb)) {
-			queue_pop(param->q_fb, message);
-			printf("%s", message);
-		}
+		ui_update_content(&data);
 
-		ui_draw_windows(&data);
+		ui_handle_input(&data);
 
 
 
-
-		sleep(1);
+		//sleep(1);
 
 
 	}
@@ -85,18 +89,73 @@ int ui_start(int argc, char ** argv, ui_param_t * param){
 
 }
 
+void cmd_handle_data(uint8_t opcode, uint16_t len, uint8_t * _data) {
+	//do nothing
+}
+
 int ui_init(int argc, char ** argv, ui_data_t * data) {
+
+
+
+    serial_setup(&data->cmd_device, "/dev/ttyRPMSG3");
+
+
+    comunicator_init(&data->com, &data->cmd_device, cmd_handle_data);
 
 	initscr();
 	noecho();
 	curs_set(FALSE);
 
-	ui_draw_windows(data);
+	ui_make_windows(data);
 
 
 }
 
-int ui_draw_windows(ui_data_t * data) {
+int ui_make_ec(ui_data_t * data){
+	data->win_ec = newwin(data->ec_h, data->ec_w, data->ec_y, data->ec_x);
+	box(data->win_ec, 0, 0);
+	wmove(data->win_ec, 0, 1);
+	waddstr(data->win_ec, "Engine Control");
+
+
+	wrefresh(data->win_ec);
+}
+
+int ui_make_rc(ui_data_t * data){
+	data->win_rc = newwin(data->rc_h, data->rc_w, data->rc_y, data->rc_x);
+	box(data->win_rc, 0, 0);
+	wmove(data->win_rc, 0, 1);
+	waddstr(data->win_rc, "Recovery Control");
+
+
+	wrefresh(data->win_rc);
+}
+
+
+int ui_make_so(ui_data_t * data){
+	data->win_so = newwin(data->so_h, data->so_w, data->so_y, data->so_x);
+	box(data->win_so, 0, 0);
+	wmove(data->win_so, 0, 1);
+	waddstr(data->win_so, "Sensors Overview");
+
+
+	wrefresh(data->win_so);
+}
+
+int ui_make_fb(ui_data_t * data){
+	data->win_fb = newwin(data->fb_h, data->fb_w, data->fb_y, data->fb_x);
+	box(data->win_fb, 0, 0);
+	wmove(data->win_fb, 0, 1);
+	waddstr(data->win_fb, "Debug Feedback");
+
+	wrefresh(data->win_fb);
+}
+
+
+
+
+
+int ui_make_windows(ui_data_t * data) {
 	//window size ratios
 
 	//horizontal ratio
@@ -106,7 +165,7 @@ int ui_draw_windows(ui_data_t * data) {
 	//vertical ratio
 	int upper = 1;
 	int middle = 1;
-	int lower = 1;
+	int lower = 2;
 
 	getmaxyx(stdscr, data->max_y, data->max_x);
 
@@ -146,32 +205,116 @@ int ui_draw_windows(ui_data_t * data) {
 
 	//draw windows
 
-	data->win_ec = newwin(data->ec_h, data->ec_w, data->ec_y, data->ec_x);
-	data->win_rc = newwin(data->rc_h, data->rc_w, data->rc_y, data->rc_x);
-	data->win_so = newwin(data->so_h, data->so_w, data->so_y, data->so_x);
-	data->win_fb = newwin(data->fb_h, data->fb_w, data->fb_y, data->fb_x);
+	ui_make_ec(data);
+	ui_make_rc(data);
+	ui_make_so(data);
+	ui_make_fb(data);
 
+	refresh();
+}
+
+int ui_draw_ec(ui_data_t * data){
+	wclear(data->win_ec);
 	box(data->win_ec, 0, 0);
-	box(data->win_rc, 0, 0);
-	box(data->win_so, 0, 0);
-	box(data->win_fb, 0, 0);
-
 	wmove(data->win_ec, 0, 1);
 	waddstr(data->win_ec, "Engine Control");
+
+	mvwprintw(data->win_ec, 1, 1, "Engine state: %d", data->sync_data.engine_control.state);
+	mvwprintw(data->win_ec, 2, 1, "Engine last cmd: %d", data->sync_data.engine_control.last_cmd);
+
+	mvwprintw(data->win_ec, data->ec_h-2, 1, "a: ARM | d: DISARM | p: PRESSURE | i: IGNITE");
+
+	wrefresh(data->win_ec);
+}
+
+int ui_draw_rc(ui_data_t * data){
+	wclear(data->win_rc);
+	box(data->win_rc, 0, 0);
 	wmove(data->win_rc, 0, 1);
 	waddstr(data->win_rc, "Recovery Control");
+
+	mvwprintw(data->win_rc, 1, 1, "Recovery state: %d", data->sync_data.recovery_control.state);
+	mvwprintw(data->win_rc, 2, 1, "Recovery last cmd: %d", data->sync_data.recovery_control.last_cmd);
+
+	wrefresh(data->win_rc);
+}
+
+
+int ui_draw_so(ui_data_t * data){
+	wclear(data->win_so);
+	box(data->win_so, 0, 0);
 	wmove(data->win_so, 0, 1);
 	waddstr(data->win_so, "Sensors Overview");
+
+	mvwprintw(data->win_so, 1, 1, "[A]IMU_ACC: %g %g %g", data->sync_data.imu_a.acc[0], data->sync_data.imu_a.acc[1], data->sync_data.imu_a.acc[2]);
+	mvwprintw(data->win_so, 2, 1, "[B]IMU_ACC: %g %g %g", data->sync_data.imu_b.acc[0], data->sync_data.imu_b.acc[1], data->sync_data.imu_b.acc[2]);
+	mvwprintw(data->win_so, 3, 1, "[A]IMU_GYRO: %g %g %g", data->sync_data.imu_a.gyro[0], data->sync_data.imu_a.gyro[1], data->sync_data.imu_a.gyro[2]);
+	mvwprintw(data->win_so, 4, 1, "[B]IMU_GYRO: %g %g %g", data->sync_data.imu_b.gyro[0], data->sync_data.imu_b.gyro[1], data->sync_data.imu_b.gyro[2]);
+	mvwprintw(data->win_so, 5, 1, "[A]BARO: %d (alt: %g)", data->sync_data.baro_a.pressure, data->sync_data.baro_a.alt);
+	mvwprintw(data->win_so, 6, 1, "[B]BARO: %d (alt: %g)", data->sync_data.baro_b.pressure, data->sync_data.baro_b.alt);
+	mvwprintw(data->win_so, 7, 1, "[A]MAG: %g %g %g", data->sync_data.mag_a.mag[0], data->sync_data.mag_a.mag[1], data->sync_data.mag_a.mag[2]);
+	mvwprintw(data->win_so, 8, 1, "[B]MAG: %g %g %g", data->sync_data.mag_b.mag[0], data->sync_data.mag_b.mag[1], data->sync_data.mag_b.mag[2]);
+	mvwprintw(data->win_so, 9, 1, "[A]ACC: %g %g %g", data->sync_data.acc_a.acc[0], data->sync_data.acc_a.acc[1], data->sync_data.acc_a.acc[2]);
+	mvwprintw(data->win_so,10, 1, "[B]ACC: %g %g %g", data->sync_data.acc_b.acc[0], data->sync_data.acc_b.acc[1], data->sync_data.acc_b.acc[2]);
+
+	wrefresh(data->win_so);
+}
+
+int ui_draw_fb(ui_data_t * data){
+	wclear(data->win_fb);
+	box(data->win_fb, 0, 0);
 	wmove(data->win_fb, 0, 1);
 	waddstr(data->win_fb, "Debug Feedback");
 
 
-	wrefresh(data->win_ec);
-	wrefresh(data->win_rc);
-	wrefresh(data->win_so);
+	wmove(data->win_fb, 1, 1);
+	wprintw(data->win_fb, "%ld", time(NULL));
 	wrefresh(data->win_fb);
+}
+
+
+int ui_update_content(ui_data_t * data) {
+
+	ui_draw_ec(data);
+	ui_draw_rc(data);
+	ui_draw_so(data);
+	ui_draw_fb(data);
 
 	refresh();
 
+}
+
+void ui_send_engine_command(ui_data_t * data, control_command_t cmd) {
+	uint8_t _data[2];
+	_data[0] = cmd;
+	comunicator_send(&data->com, SUBSYSTEM_PROPULSION, 2, _data);
+}
+
+
+int ui_handle_input(ui_data_t * data) {
+	timeout(400);
+
+	char c = getch();
+
+	switch(c) {
+	case 'q':
+		endwin();
+		exit(0);
+		break;
+	case 'a':
+		ui_send_engine_command(data, COMMAND_ARM);
+		break;
+	case 'd':
+		ui_send_engine_command(data, COMMAND_DISARM);
+		break;
+	case 'p':
+		ui_send_engine_command(data, COMMAND_PRESSURE);
+		break;
+	case 'i':
+		ui_send_engine_command(data, COMMAND_IGNITE);
+		break;
+	default:
+		break;
+	}
 
 }

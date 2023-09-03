@@ -17,15 +17,7 @@
 
 #include <stdint.h>
 
-#include "sensor/gnss.h"
-#include <protocol/structures.h>
-
-#include "sensor/accelerometer.h"
-#include "sensor/magnetometer.h"
-#include "sensor/temperature.h"
-#include "sensor/barometer.h"
-
-#include "engine_control.h"
+#include "data_types.h"
 
 
 /**********************
@@ -87,23 +79,23 @@ void od_pop_from_in_q(od_frame_t *frame);
 void od_push_to_in_q(od_frame_t *frame);
 void od_pop_from_out_q(od_frame_t *frame);
 
-DECLARE_OD_ENTRY(KALMAN_DATA_A, 			transfer_data_res_t);
-DECLARE_OD_ENTRY(KALMAN_DATA_B, 			transfer_data_res_t);
+DECLARE_OD_ENTRY(KALMAN_DATA_A, 			kalman_data_t);
+DECLARE_OD_ENTRY(KALMAN_DATA_B, 			kalman_data_t);
 DECLARE_OD_ENTRY(GNSS_DATA_A, 				gnss_data_t);
 DECLARE_OD_ENTRY(GNSS_DATA_B, 				gnss_data_t);
-DECLARE_OD_ENTRY(BATTERY_A, 				uint32_t);
-DECLARE_OD_ENTRY(BATTERY_B, 				uint32_t);
-DECLARE_OD_ENTRY(ENGINE_CONTROL_DATA, 		int);
-DECLARE_OD_ENTRY(RECOVERY_CONTROL_DATA, 	int);
-DECLARE_OD_ENTRY(SESNOR_BARO_A, 			int);
-DECLARE_OD_ENTRY(SESNOR_BARO_B, 			int);
-DECLARE_OD_ENTRY(SESNOR_IMU_A, 				int);
-DECLARE_OD_ENTRY(SESNOR_IMU_B, 				int);
-DECLARE_OD_ENTRY(SESNOR_MAG_A, 				int);
-DECLARE_OD_ENTRY(SESNOR_MAG_B, 				int);
-DECLARE_OD_ENTRY(SESNOR_ACC_A, 				int);
-DECLARE_OD_ENTRY(SESNOR_ACC_B, 				int);
-DECLARE_OD_ENTRY(ENGINE_SENSORS_DATA, 		int);
+DECLARE_OD_ENTRY(BATTERY_A, 				battery_data_t);
+DECLARE_OD_ENTRY(BATTERY_B, 				battery_data_t);
+DECLARE_OD_ENTRY(ENGINE_CONTROL_DATA, 		engine_control_data_t);
+DECLARE_OD_ENTRY(RECOVERY_CONTROL_DATA, 	recovery_control_data_t);
+DECLARE_OD_ENTRY(SENSOR_BARO_A, 			sensor_baro_data_t);
+DECLARE_OD_ENTRY(SENSOR_BARO_B, 			sensor_baro_data_t);
+DECLARE_OD_ENTRY(SENSOR_IMU_A, 				sensor_imu_data_t);
+DECLARE_OD_ENTRY(SENSOR_IMU_B, 				sensor_imu_data_t);
+DECLARE_OD_ENTRY(SENSOR_MAG_A, 				sensor_mag_data_t);
+DECLARE_OD_ENTRY(SENSOR_MAG_B, 				sensor_mag_data_t);
+DECLARE_OD_ENTRY(SENSOR_ACC_A, 				sensor_acc_data_t);
+DECLARE_OD_ENTRY(SENSOR_ACC_B, 				sensor_acc_data_t);
+DECLARE_OD_ENTRY(ENGINE_SENSORS_DATA, 		sensor_eng_data_t);
 
 #ifdef __cplusplus
 } // extern "C"
