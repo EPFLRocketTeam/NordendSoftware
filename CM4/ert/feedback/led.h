@@ -71,6 +71,18 @@ static const led_color_t led_green = {
 		.b = 0x00
 };
 
+static const led_color_t led_yellow = {
+		.r = 0xff,
+		.g = 0x1f,
+		.b = 0x07
+};
+
+static const led_color_t led_lime = {
+		.r = 0x3f,
+		.g = 0xff,
+		.b = 0x3f
+};
+
 static const led_color_t led_blue = {
 		.r = 0x00,
 		.g = 0x00,

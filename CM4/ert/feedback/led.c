@@ -201,11 +201,13 @@ void led_rgb_thread(__attribute__((unused)) void * arg) {
 
 	led_rgb_set_color(led_blue);
 
+#ifdef USE_CHECKPOINT
 	uint16_t base = led_add_checkpoint(led_white);
-
 	static uint16_t counter = 0;
+#endif
 
 	for(;;) {
+#ifdef USE_CHECKPOINT
 		led_clear(3);
 		led_checkpoint(base);
 		while(1) {
@@ -224,6 +226,7 @@ void led_rgb_thread(__attribute__((unused)) void * arg) {
 		osDelay(500);
 		led_rgb_set_color(led_black);
 		osDelay(500);
+#endif
 	}
 }
 

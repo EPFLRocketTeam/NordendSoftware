@@ -142,16 +142,16 @@
 #define IGNITER_PIN  1
 
 
+//#define USE_CHECKPOINT
+
+
 
 
 /**********************
  *	MACROS
  **********************/
 
-#define RETURN_UNTIL_COUNTER_ZERO ({control.last_time = control.time;\
-	control.time = HAL_GetTick();\
-	control.counter -= control.time - control.last_time;\
-	if (control.counter > 0) return;})
+
 
 /**********************
  *	TYPEDEFS
@@ -362,7 +362,7 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 
 util_error_t init_engine_control(void) {
 	// Initialize the value of control
-	control.state = CONTROL_IDLE;
+	control_idle_start();
 
 	//init command queue
 	control.command_queue = xQueueCreateStatic( 
@@ -571,6 +571,9 @@ void control_vent_n2o(int32_t param) {
 
 void control_idle_start(void) {
 	control.state = CONTROL_IDLE;
+#ifndef USE_CHECKPOINT
+	led_rgb_set_color(led_green);
+#endif
 }
 
 void control_idle_run(void) {
@@ -621,6 +624,9 @@ void control_idle_run(void) {
 
 void control_calibration_start(void) {
 	control.state = CONTROL_CALIBRATION;
+#ifndef USE_CHECKPOINT
+	led_rgb_set_color(led_lime);
+#endif
 }
 
 void control_calibration_run(void) {
@@ -637,6 +643,9 @@ void control_calibration_run(void) {
 
 void control_armed_start(void) {
 	control.state = CONTROL_ARMED;
+#ifndef USE_CHECKPOINT
+	led_rgb_set_color(led_yellow);
+#endif
 }
 
 void control_armed_run(void) {
@@ -661,6 +670,9 @@ void control_armed_run(void) {
 
 void control_pressured_start(void) {
 	control.state = CONTROL_PRESSURED;
+#ifndef USE_CHECKPOINT
+	led_rgb_set_color(led_orange);
+#endif
 
 	solenoid_open(&control.solenoid_press);
 }
@@ -683,10 +695,12 @@ void control_pressured_run(void) {
 
 
 void control_igniter_start(void) {
-	//set counter to igniter time
-	control.counter = control.igniter_time;
 	control.state = CONTROL_IGNITER;
+#ifndef USE_CHECKPOINT
+	led_rgb_set_color(led_red);
+#endif
 
+	control.counter = control.igniter_time;
 	//fire igniter
 	gpio_set(IGNITER_PORT, IGNITER_PIN);
 }
@@ -706,7 +720,12 @@ void control_igniter_run(void) {
 
 	control_read_commands(expected_cmds, 1, NULL);
 
-	RETURN_UNTIL_COUNTER_ZERO;
+	control.last_time = control.time;
+	control.time = HAL_GetTick();
+	control.counter -= (control.time - control.last_time);
+	if (control.counter > 0) {
+		return;
+	}
 
 	//shutdown igniter
 	gpio_clr(IGNITER_PORT, IGNITER_PIN);
@@ -716,6 +735,10 @@ void control_igniter_run(void) {
 
 void control_ignition_start(void) {
 	control.state = CONTROL_IGNITION;
+#ifndef USE_CHECKPOINT
+	led_rgb_set_color(led_teal);
+#endif
+
 	servo_set_state(&control.servo_n2o, SERVO_PARTIALLY_OPEN);
 	servo_set_state(&control.servo_ethanol, SERVO_PARTIALLY_OPEN);
 	control.counter = control.ignition_time;
@@ -731,7 +754,12 @@ void control_ignition_run(void) {
 
 	control_read_commands(expected_cmds, 1, NULL);
 
-	RETURN_UNTIL_COUNTER_ZERO;
+	control.last_time = control.time;
+	control.time = HAL_GetTick();
+	control.counter -= (control.time - control.last_time);
+	if (control.counter > 0) {
+		return;
+	}
 
 
 	control_thrust_start();
@@ -739,6 +767,10 @@ void control_ignition_run(void) {
 
 void control_thrust_start(void) {
 	control.state = CONTROL_THRUST;
+#ifndef USE_CHECKPOINT
+	led_rgb_set_color(led_pink);
+#endif
+
 	servo_set_state(&control.servo_n2o, SERVO_OPEN);
 	servo_set_state(&control.servo_ethanol, SERVO_OPEN);
 	control.counter = control.thrust_time;
@@ -759,13 +791,22 @@ void control_thrust_run(void) {
 
 	control_read_commands(expected_cmds, 1, NULL);
 
-	RETURN_UNTIL_COUNTER_ZERO;
+	control.last_time = control.time;
+	control.time = HAL_GetTick();
+	control.counter -= (control.time - control.last_time);
+	if (control.counter > 0) {
+		return;
+	}
 
 	control_shutdown_start();
 }
 
 void control_shutdown_start(void) {
 	control.state = CONTROL_SHUTDOWN;
+#ifndef USE_CHECKPOINT
+	led_rgb_set_color(led_teal);
+#endif
+
 	servo_set_state(&control.servo_ethanol, SERVO_CLOSED);
 	control.counter = control.shutdown_time;
 }
@@ -778,13 +819,21 @@ void control_shutdown_run(void) {
 	};
 	control_read_commands(expected_cmds, 1, NULL);
 
-	RETURN_UNTIL_COUNTER_ZERO;
+	control.last_time = control.time;
+	control.time = HAL_GetTick();
+	control.counter -= (control.time - control.last_time);
+	if (control.counter > 0) {
+		return;
+	}
 
 	control_glide_start();
 }
 
 void control_glide_start(void) {
 	control.state = CONTROL_GLIDE;
+#ifndef USE_CHECKPOINT
+	led_rgb_set_color(led_blue);
+#endif
 }
 
 void control_glide_run(void) {
@@ -805,6 +854,9 @@ void control_glide_run(void) {
 
 void control_error_start(void) {
 	control.state = CONTROL_ERROR;
+#ifndef USE_CHECKPOINT
+	led_rgb_set_color(led_white);
+#endif
 }
 
 /**
@@ -830,6 +882,9 @@ void control_error_run(void) {
 
 void control_abort_start(void) {
 	control.state = CONTROL_ABORT;
+#ifndef USE_CHECKPOINT
+	led_rgb_set_color(led_white);
+#endif
 }
 
 /**
