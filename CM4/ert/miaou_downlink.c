@@ -69,6 +69,8 @@ void miaou_downlink_thread(__attribute__((unused)) void * arg) {
 	static const TickType_t period = pdMS_TO_TICKS(MIAOU_HEART_BEAT);
 	last_wake_time = xTaskGetTickCount();
 
+	debug_log(LOG_INFO, "setup Miaou downlink\n");
+
 
 
 	device_interface_t * miaou_interface = serial_get_s1_interface();
@@ -86,6 +88,7 @@ void miaou_downlink_thread(__attribute__((unused)) void * arg) {
 	for(;;) {
 
 		led_checkpoint(checkpoint);
+		led_rgb_set_color(led_orange);
 
 		packet_number += 1;
 
@@ -104,12 +107,12 @@ void miaou_downlink_thread(__attribute__((unused)) void * arg) {
 		miaou_packet.timestamp = HAL_GetTick();
 
 		comunicator_send(	&miaou_downlink_comunicator,
-							0x00, //radio_packet_opcode,
+							0x65, //radio_packet_opcode,
 							sizeof(av_downlink_t), //radio_packet_size,
 							(uint8_t *) &miaou_packet);
 
 
-		//debug_log("mioau packet sent!\n");
+		debug_log(LOG_INFO, "mioau packet sent!\n");
 
 
 		vTaskDelayUntil( &last_wake_time, period );

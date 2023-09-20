@@ -148,9 +148,9 @@ void led_rgb_set_rgb(uint8_t r, uint8_t g, uint8_t b) {
  * @param	color	Color structure, defines the color to be set.
  */
 void led_rgb_set_color(led_color_t color) {
-	LED_TIM.Instance->CCR1 = color.r;
-	LED_TIM.Instance->CCR2 = color.g;
-	LED_TIM.Instance->CCR3 = color.b;
+	LED_TIM.Instance->CCR1 = 0xff - color.r;
+	LED_TIM.Instance->CCR2 = 0xff - color.g;
+	LED_TIM.Instance->CCR3 = 0xff - color.b;
 }
 
 
@@ -225,8 +225,8 @@ void led_rgb_thread(__attribute__((unused)) void * arg) {
 		}
 		osDelay(500);
 		led_rgb_set_color(led_black);
-		osDelay(500);
 #endif
+		osDelay(500);
 	}
 }
 

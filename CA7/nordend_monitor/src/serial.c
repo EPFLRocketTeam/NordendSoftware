@@ -67,12 +67,14 @@ void comunicator_recv(comunicator_t * com) {
 		len  = 1;
 		serial_recv(com->serial, &data, &len);
 		if(len == 1) {
+			//fprintf(stderr, "\nfrag: %x ", data);
 			MSV2_ERROR_t ret = msv2_decode_fragment(&com->msv2, data);
+			//fprintf(stderr, "ret: %x\n", ret);
 			if(ret == MSV2_SUCCESS) {
 				com->cb(com->msv2.rx.opcode, com->msv2.rx.data_len*2, com->msv2.rx.data);
 			}
 		}
-		usleep(1000);
+		//usleep(1);
 	}
 }
 

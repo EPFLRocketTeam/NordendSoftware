@@ -213,13 +213,56 @@ int ui_make_windows(ui_data_t * data) {
 	refresh();
 }
 
+#define STATE_NAME_LEN 64
+
 int ui_draw_ec(ui_data_t * data){
 	wclear(data->win_ec);
 	box(data->win_ec, 0, 0);
 	wmove(data->win_ec, 0, 1);
 	waddstr(data->win_ec, "Engine Control");
 
-	mvwprintw(data->win_ec, 1, 1, "Engine state: %d", data->sync_data.engine_control.state);
+	char state_name[STATE_NAME_LEN];
+
+	switch(data->sync_data.engine_control.state) {
+	case CONTROL_IDLE:
+		snprintf(state_name, STATE_NAME_LEN, "IDLE");
+		break;
+	case CONTROL_CALIBRATION:
+		snprintf(state_name, STATE_NAME_LEN, "CALIBRATION");
+		break;
+	case CONTROL_ARMED:
+		snprintf(state_name, STATE_NAME_LEN, "ARMED");
+		break;
+	case CONTROL_PRESSURED:
+		snprintf(state_name, STATE_NAME_LEN, "PRESSURED");
+		break;
+	case CONTROL_IGNITER:
+		snprintf(state_name, STATE_NAME_LEN, "IGNITER");
+		break;
+	case CONTROL_IGNITION:
+		snprintf(state_name, STATE_NAME_LEN, "IGNITION");
+		break;
+	case CONTROL_THRUST:
+		snprintf(state_name, STATE_NAME_LEN, "THRUST");
+		break;
+	case CONTROL_SHUTDOWN:
+		snprintf(state_name, STATE_NAME_LEN, "SHUTDOWN");
+		break;
+	case CONTROL_GLIDE:
+		snprintf(state_name, STATE_NAME_LEN, "GLIDE");
+		break;
+	case CONTROL_ERROR:
+		snprintf(state_name, STATE_NAME_LEN, "ERROR");
+		break;
+	case CONTROL_ABORT:
+		snprintf(state_name, STATE_NAME_LEN, "ABORT");
+		break;
+	default:
+		snprintf(state_name, STATE_NAME_LEN, "UNKNOWN");
+		break;
+	}
+
+	mvwprintw(data->win_ec, 1, 1, "Engine state: %s", state_name);
 	mvwprintw(data->win_ec, 2, 1, "Engine last cmd: %d", data->sync_data.engine_control.last_cmd);
 
 	mvwprintw(data->win_ec, data->ec_h-2, 1, "a: ARM | d: DISARM | p: PRESSURE | i: IGNITE");
@@ -292,7 +335,7 @@ void ui_send_engine_command(ui_data_t * data, control_command_t cmd) {
 
 
 int ui_handle_input(ui_data_t * data) {
-	timeout(400);
+	timeout(1000);
 
 	char c = getch();
 
@@ -312,6 +355,9 @@ int ui_handle_input(ui_data_t * data) {
 		break;
 	case 'i':
 		ui_send_engine_command(data, COMMAND_IGNITE);
+		break;
+	case 'r':
+		ui_send_engine_command(data, COMMAND_RECOVER);
 		break;
 	default:
 		break;

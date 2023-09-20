@@ -15,7 +15,7 @@ KERMIT_CONFIG_SLOW=kermit_config_slow.cfg
 
 KERMIT_CONFIG=$KERMIT_CONFIG_FAST
 
-SOURCE_FOLDER=Debug
+SOURCE_FOLDER=Release
 
 
 if [[ $1 == "kermit" ]]; then

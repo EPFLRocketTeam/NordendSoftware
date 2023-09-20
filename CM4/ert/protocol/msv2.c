@@ -14,6 +14,7 @@
  **********************/
 
 #include "msv2.h"
+#include <feedback/debug.h>
 
 /**********************
  *	CONFIGURATION
@@ -118,7 +119,9 @@ uint16_t msv2_create_frame(MSV2_INST_t * msv2, uint8_t opcode, uint8_t data_len,
 	msv2->tx.data[3] = data_len;
 	msv2->tx.crc_data[0] = (data_len<<8) | opcode;  //header bytes inverted
 	uint16_t counter=4;
+	debug_log(LOG_INFO, "encoded_header: %x %x %x %x\n", msv2->tx.data[0], msv2->tx.data[1], msv2->tx.data[2], msv2->tx.data[3]);
 	for(uint16_t i = 0; i < data_len; i++) {
+		debug_log(LOG_INFO, "encoded_data %x %x\n", data[2*i], data[2*i+1]);
 		msv2->tx.data[counter++] = data[2*i]; //bytes in data need to be inverted before
 		if(msv2->tx.data[counter-1] == DLE) {
 			msv2->tx.data[counter++] = DLE;

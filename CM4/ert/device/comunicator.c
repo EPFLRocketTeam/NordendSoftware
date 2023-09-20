@@ -16,6 +16,7 @@
 #include <device/comunicator.h>
 #include <driver/serial.h>
 #include <init.h>
+#include <feedback/debug.h>
 
 
 /**********************
@@ -121,7 +122,7 @@ util_error_t comunicator_send(	comunicator_t * com,
 								uint8_t opcode,
 								uint16_t len,
 								uint8_t * data) {
-
+	debug_log(LOG_INFO, "comunicator sending frame: %d %d\n", opcode, len);
 	uint16_t bin_len = msv2_create_frame(&com->msv2, opcode, len/2, data);
 	util_error_t error = device_interface_send(	com->interface,
 												com->msv2.tx.data,

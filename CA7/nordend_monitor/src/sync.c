@@ -74,10 +74,12 @@ void sync_handle_battery(uint8_t opcode, uint16_t len, uint8_t * _data) {
 void sync_handle_engine_control(uint8_t opcode, uint16_t len, uint8_t * _data) {
 	if(1 || len == sizeof(engine_control_data_t)) {
 		memcpy(&data.engine_control, _data, sizeof(engine_control_data_t));
-		fprintf(fp, "ENGINE_CONTROL,%d,%d,%d,%ld\n",
+//		for(uint8_t i = 0; i < sizeof(engine_control_data_t); i++) {
+//			fprintf(stderr, "%x ", _data[i]);
+//		}
+		fprintf(fp, "ENGINE_CONTROL,%d,%d,%ld\n",
 					data.engine_control.state,
 					data.engine_control.last_cmd,
-					data.engine_control.last_parameter,
 					data.engine_control.time);
 	}
 }
@@ -195,8 +197,8 @@ void * sync_entry(void * ptr) {
     comunicator_init(&com, &sync_device, sync_handle_data);
 
     //first message for setup
-    static char * msg = "hello";
-    serial_send(&sync_device, msg, 6);
+    uint32_t ini_data = 0x69;
+    comunicator_send(&com, 0xfe, sizeof(uint32_t), (uint8_t *)&ini_data);
 
     printf("setup sync channel\n");
     //handle new file creation

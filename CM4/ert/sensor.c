@@ -19,10 +19,7 @@
 #include <cmsis_os.h>
 
 #include <device/i2c_sensor.h>
-#include <sensor/accelerometer.h>
-//#include <sensor/gyroscope.h>
-#include <sensor/barometer.h>
-#include <sensor/magnetometer.h>
+#include <sensor/sensor_bmi088.h>
 #include <od/od.h>
 #include <driver/hostproc.h>
 #include <hostcom.h>
@@ -33,7 +30,7 @@
  **********************/
 
 //TODO: check if this is short/long enough
-#define I2C_SENSOR_HEART_BEAT	100
+#define I2C_SENSOR_HEART_BEAT	200
 
 
 /**********************
@@ -50,24 +47,14 @@
  *	VARIABLES
  **********************/
 
+static device_t * bmi088_acc[2];
+static device_t * bmi088_gyr[2];
 
-static device_t * i2c_acc;
-//static device_t * i2c_gyro;
-static device_t * i2c_baro;
-
-static device_t * i2c_magneto;
-
-static uint8_t i2c_calib;
-
-//data
-
-static accelerometer_data_t i2c_acc_data;
-//static gyroscope_data_t i2c_gyro_data;
-static barometer_data_t i2c_baro_data;
-static barometer_meta_t i2c_baro_meta;
-static magnetometer_data_t i2c_magneto_data;
+static bmi088_acc_context_t bmi088_acc_ctx[2];
+static bmi088_gyr_context_t bmi088_gyr_ctx[2];
 
 
+static sensor_imu_data_t imu_data[2];
 
 /**********************
  *	PROTOTYPES
@@ -89,134 +76,33 @@ static magnetometer_data_t i2c_magneto_data;
 void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	static TickType_t last_wake_time;
 	static const TickType_t period = pdMS_TO_TICKS(I2C_SENSOR_HEART_BEAT);
-	// Barometer delay of 5ms (2 Hz sample rate)
-	static const TickType_t baro_delay = pdMS_TO_TICKS(10);
+
 	last_wake_time = xTaskGetTickCount();
 
-	uint16_t checkpoint = led_add_checkpoint(led_teal);
-	debug_log(LOG_INFO, "Sensor i2c start\n");
-	
-	
-	//get and initialize accelerometer
-	i2c_acc = i2c_sensor_get_accelerometer();
-	//i2c_gyro = i2c_sensor_get_gyroscope();
-	i2c_baro = i2c_sensor_get_barometer();
-	i2c_magneto = i2c_sensor_get_magnetometer();
+	//init and discover sensors
+	bmi088_acc[0] = i2c_sensor_get_bmi088_acc(0);
+	bmi088_gyr[0] = i2c_sensor_get_bmi088_gyr(0);
+	bmi088_acc[1] = i2c_sensor_get_bmi088_acc(1);
+	bmi088_gyr[1] = i2c_sensor_get_bmi088_gyr(1);
 
-	// Initialize each sensor
-	util_error_t acc_err = accelerometer_init(i2c_acc);
-	//util_error_t gyro_err = gyroscope_init(i2c_gyro);
-	util_error_t baro_err = barometer_init(i2c_baro, &i2c_baro_meta);
-	util_error_t magneto_err = magnetometer_init(i2c_magneto);
+	bmi088_acc_init(bmi088_acc[0], &bmi088_acc_ctx[0]);
+	bmi088_gyr_init(bmi088_gyr[0], &bmi088_gyr_ctx[0]);
+	bmi088_acc_init(bmi088_acc[1], &bmi088_acc_ctx[1]);
+	bmi088_gyr_init(bmi088_gyr[1], &bmi088_gyr_ctx[1]);
 
-	uint16_t checkpoint_acc;
 
-	if(acc_err == ER_SUCCESS) {
-		checkpoint_acc = led_add_checkpoint(led_green);
-	} else {
-		checkpoint_acc = led_add_checkpoint(led_red);
-	}
-	// uint16_t checkpoint_gyro;
-	// if(gyro_err == ER_SUCCESS) {
-	// 	checkpoint_gyro = led_add_checkpoint(led_green);
-	// } else {
-	// 	checkpoint_gyro = led_add_checkpoint(led_red);
-	// }
-	uint16_t checkpoint_baro;
-	if(baro_err == ER_SUCCESS) {
-		checkpoint_baro = led_add_checkpoint(led_green);
-	} else {
-		checkpoint_baro = led_add_checkpoint(led_red);
-	}
-	uint16_t checkpoint_magneto;
-	if(magneto_err == ER_SUCCESS) {
-		checkpoint_magneto = led_add_checkpoint(led_green);
-	} else {
-		checkpoint_magneto = led_add_checkpoint(led_red);
-	}
 
-	//manual calibration only:
-	i2c_calib = 0;
 
 	// main loop
 	for(;;) {
-		led_checkpoint(checkpoint);
-		led_checkpoint(checkpoint_baro);
-		//led_checkpoint(checkpoint_gyro);
-		led_checkpoint(checkpoint_acc);
-		led_checkpoint(checkpoint_magneto);
+		//poll sensors for data
 
-		
+		debug_log(LOG_WARNING, "reading sensors\n");
 
-		if(1) {
-			if (baro_err == ER_SUCCESS) {
-				barometer_read(i2c_baro, &i2c_baro_meta, &i2c_baro_data);
-//				hostcom_data_baro_send(HAL_GetTick(), i2c_baro_data.pressure);
-			}
-
-			if(acc_err == ER_SUCCESS) {
-				//acc read
-				accelerometer_read_data(i2c_acc, &i2c_acc_data);
-				accelerometer_process_data(&i2c_acc_data, 10000);
-				//hostcom_data_acc_send(HAL_GetTick(), i2c_acc_data.processed[ACC_Z]);
-			}
-
-			if(acc_err == ER_SUCCESS) {
-				//magneto read
-				magnetometer_read_X_axis(i2c_magneto, &i2c_magneto_data);
-				magnetometer_read_Y_axis(i2c_magneto, &i2c_magneto_data);
-				magnetometer_read_Z_axis(i2c_magneto, &i2c_magneto_data);
-			}
-
-			vTaskDelay(baro_delay);
-
-			// if(gyro_err == ER_SUCCESS) {
-			// 	//gyro read or acc read second time
-			// 	gyroscope_read_data(i2c_gyro, &i2c_gyro_data);
-			// 	gyroscope_process_data(&i2c_gyro_data, 10000);
-			// }
-
-			// No longer needed
-//			vTaskDelay(baro_delay);
-
-
-			//store everything
-
-#if WH_COMPUTER == A
-			od_write_ACC_I2C_A(&i2c_acc_data);
-			//od_write_GYRO_I2C_A(&i2c_gyro_data);
-			od_write_BARO_A(&i2c_baro_data);
-			od_write_MAG_I2C_A(&i2c_magneto_data);
-#else
-			od_write_ACC_I2C_B(&i2c_acc_data);
-			//od_write_GYRO_I2C_B(&i2c_gyro_data);
-			od_write_BARO_I2C_B(&i2c_baro_data);
-#endif
-
-
-		} else { // Calibration
-			//calibration steps
-
-			//normally not necessary...
-
-
-		}
-
-
-
-
-
-		//send data to hostproc for verif
-
-
-//		debug_log(	"time: %ld\nacc: %d, %d, %d\npress: %ld, temp: %ld\n",
-//					HAL_GetTick(),
-//					i2c_acc_data.processed[0], i2c_acc_data.processed[1],
-//					i2c_acc_data.processed[2], i2c_baro_data.pressure,
-//					i2c_baro_data.temperature);
-
-
-
+		bmi088_acc_read(bmi088_acc[0], &imu_data[0]);
+		bmi088_gyr_read(bmi088_gyr[0], &imu_data[0]);
+		bmi088_acc_read(bmi088_acc[1], &imu_data[1]);
+		bmi088_gyr_read(bmi088_gyr[1], &imu_data[1]);
 
 
 		vTaskDelayUntil( &last_wake_time, period );

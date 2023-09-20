@@ -340,10 +340,9 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 		control.ec_data.state = control.state;
 		control.ec_data.time = HAL_GetTick();
 
-		debug_log(LOG_INFO, "update EC od: %d, %d, %d, %d\n",
+		debug_log(LOG_INFO, "update EC od: %d, %d, %d\n",
 					control.ec_data.state,
 					control.ec_data.last_cmd,
-					control.ec_data.last_parameter,
 					control.ec_data.time);
 		od_write_ENGINE_CONTROL_DATA(&control.ec_data);
 
@@ -444,7 +443,7 @@ int engine_control_command_pop(control_command_t * cmd, int32_t * parameter) {
 		if(parameter) {
 			*parameter = command.parameter;
 		}
-		control.ec_data.last_parameter = command.parameter;
+		//control.ec_data.last_parameter = command.parameter;
 		control.ec_data.last_cmd = command.cmd;
 		debug_log(LOG_INFO, "cmd popcat : %d (%d)\n", command.cmd, command.parameter);
 		//return 1 if a command has been received
@@ -491,7 +490,6 @@ void control_man_press(int32_t param) {
 	} else if(param == 0) {
 		solenoid_close(&control.solenoid_press);
 	}
-
 }
 
 /**
@@ -518,7 +516,6 @@ void control_valve_eth(int32_t param) {
 	if(param > 0 && param < 90) {
 		servo_set_rotation(&control.servo_ethanol, (float) param);
 	}
-
 }
 
 /**
@@ -530,7 +527,6 @@ void control_valve_n2o(int32_t param) {
 	if(param > 0 && param < 90) {
 		servo_set_rotation(&control.servo_n2o, (float) param);
 	}
-
 }
 
 /**
@@ -778,7 +774,7 @@ void control_thrust_start(void) {
 
 /**
  * @brief	Thrust state runtime
-
+ *
  * @details	This state will open the servos to their 'fully open' position.
  * 			After a delay, it will jump to the shutdown state.
  */

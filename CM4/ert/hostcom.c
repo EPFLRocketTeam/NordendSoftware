@@ -163,7 +163,7 @@ void hostcom_thread(__attribute__((unused)) void * arg) {
 
 	for(;;) {
 
-		comunicator_recv(&data_com);
+		//comunicator_recv(&data_com);
 		comunicator_recv(&sync_com);
 		comunicator_recv(&cmd_com);
 

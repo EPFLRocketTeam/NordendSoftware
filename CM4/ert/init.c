@@ -53,7 +53,7 @@
 #define CONTROL_PRIO	(6)
 
 #define LED_RGB_SZ		DEFAULT_SZ
-#define LED_RGB_PRIO	(6)
+#define LED_RGB_PRIO	(1)
 
 
 #define SERIAL_SZ	DEFAULT_SZ
@@ -66,20 +66,20 @@
 #define SERVO_PRIO 	(1)
 
 #define MIAOU_SZ	DEFAULT_SZ
-#define MIAOU_PRIO		(1)
+#define MIAOU_PRIO		(4)
 
 
 #define SENSOR_SZ	DEFAULT_SZ
-#define SENSOR_PRIO		(1)
+#define SENSOR_PRIO		(3)
 
 #define PROP_SENSOR_SZ	DEFAULT_SZ
 #define PROP_SENSOR_PRIO		(1)
 
 #define CAN_RX_SZ	DEFAULT_SZ
-#define CAN_RX_PRIO		(1)
+#define CAN_RX_PRIO		(3)
 
 #define CAN_TX_SZ	DEFAULT_SZ
-#define CAN_TX_PRIO		(1)
+#define CAN_TX_PRIO		(3)
 
 
 /**********************
@@ -106,6 +106,7 @@ static TaskHandle_t hostcom_handle = NULL;
 static TaskHandle_t miaou_handle = NULL;
 static TaskHandle_t can_rx_handle = NULL;
 static TaskHandle_t can_tx_handle = NULL;
+static TaskHandle_t sensor_handle = NULL;
 
 /**********************
  *	PROTOTYPES
@@ -149,10 +150,16 @@ void init(void) {
 	 * We have to init all the used busses and then init the sensors located on those busses.
 	 */
 	//init the sensors
-	//spi_init();
-	//i2c_s2_init();
-	//spi_sensor_init();
-	//i2c_sensor_init();
+
+	//init the i2c s2 interface for the sensors
+	i2c_s2_init();
+
+	//create the sensors devices
+	i2c_sensor_init();
+
+
+	INIT_THREAD_CREATE(sensor_handle, sensor, sensor_i2c_thread, NULL, SENSOR_SZ, SENSOR_PRIO);
+
 #endif
 
 	//Object dictionnary threads
@@ -163,8 +170,9 @@ void init(void) {
 	// Object dictionnary transmission and reception threads
 	INIT_THREAD_CREATE(can_rx_handle, can_rx, can_receive_thread, NULL, CAN_TX_SZ, CAN_TX_PRIO);
 
-	INIT_THREAD_CREATE(can_tx_handle, can_tx, can_transmit_thread, NULL, CAN_RX_SZ, CAN_RX_PRIO);
-
+	//this is handled by the od broadcast thread
+	//INIT_THREAD_CREATE(can_tx_handle, can_tx, can_transmit_thread, NULL, CAN_RX_SZ, CAN_RX_PRIO);
+	UNUSED(can_tx_handle);
 
 	// RGB Led control thread
 	INIT_THREAD_CREATE(led_rgb_handle, led_rgb, led_rgb_thread, NULL, LED_RGB_SZ, LED_RGB_PRIO);
@@ -180,6 +188,16 @@ void init(void) {
 	//HERE PLACE THE RECOVERY THREAD INIT @CHARLOTTE
 #endif
 
+#if ND_HAS_UPLINK == ND_TRUE
+	miaou_uplink_init();
+#endif
+
+#if ND_HAS_DOWNLINK == ND_TRUE
+	INIT_THREAD_CREATE(miaou_handle, miaou_downlink, miaou_downlink_thread, NULL, MIAOU_SZ, MIAOU_PRIO);
+#else
+	UNUSED(miaou_handle);
+#endif
+
 	INIT_THREAD_CREATE(serial_handle, serial, serial_thread, NULL, SERIAL_SZ, SERIAL_PRIO);
 
 	INIT_THREAD_CREATE(hostcom_handle, hostcom, hostcom_thread, NULL, HOSTCOM_SZ, HOSTCOM_PRIO);
@@ -187,15 +205,7 @@ void init(void) {
 
 
 
-#if ND_HAS_UPLINK == ND_TRUE
-	miaou_uplink_init();
-#endif
 
-#if ND_HAS_DOWNLINK == ND_TRUE
-	INIT_THREAD_CREATE(miaou_handle, miaou, miaou_downlink_thread, NULL, MIAOU_SZ, MIAOU_PRIO);
-#else
-	UNUSED(miaou_handle);
-#endif
 
 
 

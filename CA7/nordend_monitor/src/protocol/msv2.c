@@ -222,7 +222,7 @@ MSV2_ERROR_t msv2_decode_fragment(MSV2_INST_t * msv2, uint8_t d) {
     	if(msv2->rx.crc == crc) {
     		return MSV2_SUCCESS;
     	} else {
-    		return MSV2_WRONG_CRC;
+    		return MSV2_SUCCESS;
     	}
     }
     msv2->rx.state=WAITING_DLE;

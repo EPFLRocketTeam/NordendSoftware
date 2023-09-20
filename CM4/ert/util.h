@@ -337,6 +337,11 @@ static inline uint8_t util_buffer_##name##_isempty(UTIL_BUFFER_##name##_t * bfr)
 #define util_abs(a)	((a)<0?-(a):(a))
 
 
+static inline uint32_t util_get_time() {
+	return HAL_GetTick();
+}
+
+
 #ifdef __cplusplus
 } // extern "C"
 #endif /* __cplusplus */
