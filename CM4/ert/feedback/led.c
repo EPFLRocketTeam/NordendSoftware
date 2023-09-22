@@ -200,7 +200,7 @@ void led_rgb_thread(__attribute__((unused)) void * arg) {
 
 	//led_feedback_init();
 
-	led_rgb_set_color(led_blue);
+	//led_rgb_set_color(led_blue);
 
 #ifdef USE_CHECKPOINT
 	uint16_t base = led_add_checkpoint(led_white);

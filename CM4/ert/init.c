@@ -182,7 +182,8 @@ void init(void) {
 	UNUSED(can_tx_handle);
 
 	// RGB Led control thread
-	INIT_THREAD_CREATE(led_rgb_handle, led_rgb, led_rgb_thread, NULL, LED_RGB_SZ, LED_RGB_PRIO);
+	//INIT_THREAD_CREATE(led_rgb_handle, led_rgb, led_rgb_thread, NULL, LED_RGB_SZ, LED_RGB_PRIO);
+	led_rgb_init();
 
 
 #if ND_HAS_PROPULSION == ND_TRUE

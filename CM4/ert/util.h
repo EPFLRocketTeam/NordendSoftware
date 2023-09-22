@@ -29,6 +29,8 @@
  *  MACROS
  **********************/
 
+#define HB_MS2TICK(ms) pdMS_TO_TICKS(ms)
+
 /**
  * @brief	Macro to write masked data into a register.
  *
@@ -338,7 +340,7 @@ static inline uint8_t util_buffer_##name##_isempty(UTIL_BUFFER_##name##_t * bfr)
 
 
 static inline uint32_t util_get_time() {
-	return HAL_GetTick();
+	return osKernelGetTickCount();
 }
 
 

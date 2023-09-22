@@ -15,8 +15,9 @@
 
 #include <main.h>
 #include <gpio.h>
+#include <util.h>
 #include <usart.h>
-
+#include <abstraction/gpio.h>
 #include <adc.h>
 
 #include <od/od.h>
@@ -119,9 +120,9 @@
 
 #define COMMAND_QUEUE_LENGTH 	16
 
-#define IGNITER_COUNTER 		3000  //ms
-#define IGNITION_COUNTER		2000  //ms
-#define THRUST_COUNTER		    10000 //ms
+#define IGNITER_COUNTER 		4500  //ms
+#define IGNITION_COUNTER		1000  //ms
+#define THRUST_COUNTER		    3000  //ms
 #define SHUTDOWN_COUNTER		0     //ms
 
 #define IGNITION_DELAY_1		265
@@ -132,18 +133,19 @@
 
 
 
-#define CONTROL_HEART_BEAT 5
+#define CONTROL_HEART_BEAT 50
 
 
 
-#define CONTROL_ONE_SECOND pdMS_TO_TICKS(1000)
+//#define CONTROL_ONE_SECOND pdMS_TO_TICKS(1000)
 
 //TODO Find IGNITER GPIO port and pin
 //Igniter pin definition
 
 
-#define IGNITER_PORT GPIOA
-#define IGNITER_PIN  3
+//S3_RX
+#define IGNITER_PORT GPIOG
+#define IGNITER_PIN  GPIO_PIN_9
 
 
 //#define USE_CHECKPOINT
@@ -194,6 +196,7 @@ typedef struct control
 	QueueHandle_t command_queue;
 	uint8_t command_queue_storage[sizeof(command_t)*COMMAND_QUEUE_LENGTH];
 
+	uint8_t counter_active;
 	int32_t counter;
 	uint32_t time;
 	uint32_t last_time;
@@ -212,18 +215,11 @@ static control_t control;
  * Last wake time for the timer
  */
 static TickType_t last_wake_time;
-static const TickType_t period = pdMS_TO_TICKS(CONTROL_HEART_BEAT);
+static const TickType_t period = HB_MS2TICK(CONTROL_HEART_BEAT);
 
 /*
  * For Status of vent pins -- use OD
  */
-
-//Servo stuff
-
-// Specific to the SB2290SG Monster Torque Brushless Servo
-#define min_pulse 800
-#define max_pulse 2200
-#define degrees_per_usec 0.114f
 
 
 /**********************
@@ -297,7 +293,12 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 		led_checkpoint(checkpoint);
 		//debug_log(LOG_INFO, "Current state : %d\n", control.state);
 
-
+		control.last_time = control.time;
+		control.time = util_get_time();
+		//decrement timer when needed
+		if(control.counter_active) {
+			control.counter -= (control.time - control.last_time);
+		}
 
 		// Call the function associated with the current state.
 		switch (control.state) {
@@ -342,7 +343,7 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 
 
 		control.ec_data.state = control.state;
-		control.ec_data.time = HAL_GetTick();
+		control.ec_data.time = util_get_time();
 
 		debug_log(LOG_INFO, "update EC od: %d, %d, %d\n",
 					control.ec_data.state,
@@ -365,7 +366,17 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 
 util_error_t init_engine_control(void) {
 	// Initialize the value of control
-	control_idle_start();
+
+	control.counter_active = 0;
+
+	gpio_config_t conf = {0};
+	conf.bias = GPIO_BIAS_LOW;
+	conf.drive = GPIO_DRIVE_PP;
+	conf.mode = GPIO_MODE_OUT;
+	conf.speed = 0;
+	gpio_cfg(IGNITER_PORT, IGNITER_PIN, conf);
+	gpio_clr(IGNITER_PORT, IGNITER_PIN);
+
 
 	//init command queue
 	control.command_queue = xQueueCreateStatic( 
@@ -374,10 +385,10 @@ util_error_t init_engine_control(void) {
                                 control.command_queue_storage,
                                 &control.command_queue_params);
 
-	control.igniter_time = pdMS_TO_TICKS(IGNITER_COUNTER);
-	control.ignition_time = pdMS_TO_TICKS(IGNITION_COUNTER);
-	control.thrust_time = pdMS_TO_TICKS(THRUST_COUNTER);
-	control.shutdown_time = pdMS_TO_TICKS(SHUTDOWN_COUNTER);
+	control.igniter_time = HB_MS2TICK(IGNITER_COUNTER);
+	control.ignition_time = HB_MS2TICK(IGNITION_COUNTER);
+	control.thrust_time = HB_MS2TICK(THRUST_COUNTER);
+	control.shutdown_time = HB_MS2TICK(SHUTDOWN_COUNTER);
 
 	//                                 CHANNEL_SUR_LA_HB  PLS_MIN  PLS_MAX   ANGLE_MAX
 	servo_init(&control.servo_eth,     SERVO_CHANNEL_GP0, 700,     2300,     180);
@@ -402,6 +413,9 @@ util_error_t init_engine_control(void) {
 	sol_err |= solenoid_inactive(&control.solenoid_n2o);
 	sol_err |= solenoid_inactive(&control.solenoid_purge);
 	sol_err |= solenoid_inactive(&control.solenoid_press);
+
+
+	control_idle_start();
 
 
 	return servo_err | sol_err;
@@ -691,6 +705,7 @@ void control_igniter_start(void) {
 	led_rgb_set_color(led_red);
 #endif
 
+	control.counter_active = 1;
 	control.counter = control.igniter_time;
 	//fire igniter
 	gpio_set(IGNITER_PORT, IGNITER_PIN);
@@ -702,7 +717,6 @@ void control_igniter_start(void) {
  * 			This state will wait for ignition to end and will jump to powered.
  */
 void control_igniter_run(void) {
-	control.last_time = control.time;
 
 	//check for abort
 	control_command_t expected_cmds[] = {
@@ -711,17 +725,12 @@ void control_igniter_run(void) {
 
 	control_read_commands(expected_cmds, 1, NULL);
 
-	control.last_time = control.time;
-	control.time = HAL_GetTick();
-	control.counter -= (control.time - control.last_time);
-	if (control.counter > 0) {
-		return;
+
+	if (control.counter < CONTROL_HEART_BEAT/2) {
+		control.counter_active = 0;
+		control_ignition_start();
 	}
 
-	//shutdown igniter
-	gpio_clr(IGNITER_PORT, IGNITER_PIN);
-
-	control_ignition_start();
 }
 
 void control_ignition_start(void) {
@@ -729,18 +738,23 @@ void control_ignition_start(void) {
 #ifndef USE_CHECKPOINT
 	led_rgb_set_color(led_teal);
 #endif
-#if 0
+	gpio_clr(IGNITER_PORT, IGNITER_PIN);
 	servo_set_angle(&control.servo_n2o, 64);
 	servo_set_angle(&control.servo_eth, 74);
+	osDelay(HB_MS2TICK(265));
+	servo_set_angle(&control.servo_n2o, 90);
+	osDelay(HB_MS2TICK(350));
+	servo_set_angle(&control.servo_eth, 94);
+
+	control.counter_active = 1;
 	control.counter = control.ignition_time;
-#endif
 }
 
 
 void control_ignition_run(void) {
 
 	//ignition special for tight timings
-#if 0
+
 	//check for abort
 	control_command_t expected_cmds[] = {
 		COMMAND_NONE
@@ -748,21 +762,11 @@ void control_ignition_run(void) {
 
 	control_read_commands(expected_cmds, 1, NULL);
 
-	control.last_time = control.time;
-	control.time = HAL_GetTick();
-	control.counter -= (control.time - control.last_time);
-	if (control.counter > 0) {
-		return;
+	if (control.counter < CONTROL_HEART_BEAT/2) {
+		control.counter_active = 0;
+		control_thrust_start();
 	}
-#else
-	servo_set_angle(&control.servo_n2o, 64);
-	servo_set_angle(&control.servo_eth, 74);
-	osDelay(pdMS_TO_TICKS(265));
-	servo_set_angle(&control.servo_n2o, 90);
-	osDelay(pdMS_TO_TICKS(350));
-	servo_set_angle(&control.servo_eth, 94);
-#endif
-	control_thrust_start();
+
 }
 
 void control_thrust_start(void) {
@@ -770,10 +774,9 @@ void control_thrust_start(void) {
 #ifndef USE_CHECKPOINT
 	led_rgb_set_color(led_pink);
 #endif
-#if 0
-	servo_set_angle(&control.servo_n2o, 90);
-	servo_set_angle(&control.servo_eth, 90);
-#endif
+	servo_set_angle(&control.servo_n2o, 144);
+	servo_set_angle(&control.servo_eth, 144);
+	control.counter_active = 1;
 	control.counter = control.thrust_time;
 }
 
@@ -792,14 +795,13 @@ void control_thrust_run(void) {
 
 	control_read_commands(expected_cmds, 1, NULL);
 
-	control.last_time = control.time;
-	control.time = HAL_GetTick();
-	control.counter -= (control.time - control.last_time);
-	if (control.counter > 0) {
-		return;
+
+	if (control.counter < CONTROL_HEART_BEAT/2) {
+		control.counter_active = 0;
+		control_shutdown_start();
 	}
 
-	control_shutdown_start();
+
 }
 
 void control_shutdown_start(void) {
@@ -809,6 +811,7 @@ void control_shutdown_start(void) {
 #endif
 
 	servo_set_angle(&control.servo_eth, 0);
+	control.counter_active = 1;
 	control.counter = control.shutdown_time;
 }
 
@@ -820,14 +823,12 @@ void control_shutdown_run(void) {
 	};
 	control_read_commands(expected_cmds, 1, NULL);
 
-	control.last_time = control.time;
-	control.time = HAL_GetTick();
-	control.counter -= (control.time - control.last_time);
-	if (control.counter > 0) {
-		return;
+	if (control.counter < CONTROL_HEART_BEAT/2) {
+		control.counter_active = 0;
+		control_glide_start();
 	}
 
-	control_glide_start();
+
 }
 
 void control_glide_start(void) {
