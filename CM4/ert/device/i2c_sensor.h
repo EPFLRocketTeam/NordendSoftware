@@ -18,10 +18,6 @@
 #include <device/device.h>
 #include <stdint.h>
 
-#include <sensor/accelerometer.h>
-#include <sensor/barometer.h>
-//#include <sensor/gyroscope.h>
-#include <sensor/magnetometer.h>
 
 /**********************
  *  CONSTANTS
@@ -40,6 +36,7 @@
 // pas sur pour les données de capteur ici...
 typedef struct i2c_sensor_context {
 	uint8_t device_address;
+	void * context;
 }i2c_sensor_context_t;
 
 
@@ -56,15 +53,12 @@ typedef struct i2c_sensor_context {
 extern "C"{
 #endif
 
-device_t * i2c_sensor_get_accelerometer(void);
-//device_t * i2c_sensor_get_gyroscope(void);
-device_t * i2c_sensor_get_barometer(void);
-device_t * i2c_sensor_get_ADC_A(void);
-device_t * i2c_sensor_get_ADC_B(void);
-device_t * i2c_sensor_get_magnetometer(void);
-//device_t * i2c_sensor_get_engine_pressure(void);
-
 util_error_t i2c_sensor_init(void);
+util_error_t i2c_prop_sensor_init(void);
+
+device_t * i2c_sensor_get_bmi088_gyr(uint8_t num);
+device_t * i2c_sensor_get_bmi088_acc(uint8_t num);
+device_t * i2c_sensor_get_bmp390_baro(uint8_t num);
 
 
 #ifdef __cplusplus

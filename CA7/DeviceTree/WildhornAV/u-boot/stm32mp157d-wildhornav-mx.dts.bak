@@ -107,16 +107,23 @@
 	};
 
 	
-//	led{
-//		compatible = "gpio-leds";
-//
-//		led-blue{
-//			label = "heartbeat";
-//			gpios = <&gpioc 6 GPIO_ACTIVE_LOW>;
-//			linux,default-trigger = "heartbeat";
-//			default-state = "off";
-//		};
-//	};
+	led{
+		compatible = "gpio-leds";
+
+		led-blue{
+			label = "heartbeat";
+			gpios = <&gpioa 14 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "heartbeat";
+			default-state = "off";
+		};
+		
+		led-red{
+			label = "cpu";
+			gpios = <&gpioa 15 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "cpu";
+			default-state = "off";
+		};
+	};
 	
 	usb_phy_tuning:usb-phy-tuning{
 		st,hs-dc-level = <2>;
@@ -184,7 +191,6 @@
 		pins {
 			pinmux = <STM32_PINMUX('A', 7, ANALOG)>, /* ADC1_INP7 */
 					 <STM32_PINMUX('C', 0, ANALOG)>, /* ADC1_INP10 */
-					 <STM32_PINMUX('C', 3, ANALOG)>, /* ADC1_INP13 */
 					 <STM32_PINMUX('C', 4, ANALOG)>, /* ADC1_INP4 */
 					 <STM32_PINMUX('C', 5, ANALOG)>, /* ADC1_INP8 */
 					 <STM32_PINMUX('F', 11, ANALOG)>; /* ADC1_INP2 */
@@ -290,13 +296,6 @@
 		};
 	};
 
-	m4_usart6_pins_mx: m4_usart6_mx-0 {
-		pins {
-			pinmux = <STM32_PINMUX('G', 9, RSVD)>, /* USART6_RX */
-					 <STM32_PINMUX('G', 14, RSVD)>; /* USART6_TX */
-		};
-	};
-
 	sdmmc1_pins_mx: sdmmc1_mx-0 {
 		u-boot,dm-pre-reloc;
 		pins1 {
@@ -365,12 +364,12 @@
 		pins1 {
 			u-boot,dm-pre-reloc;
 			pinmux = <STM32_PINMUX('E', 0, AF8)>; /* UART8_RX */
-			bias-disable;
+			bias-pull-up;
 		};
 		pins2 {
 			u-boot,dm-pre-reloc;
 			pinmux = <STM32_PINMUX('E', 1, AF8)>; /* UART8_TX */
-			bias-disable;
+			bias-pull-up;
 			drive-push-pull;
 			slew-rate = <0>;
 		};
@@ -763,15 +762,6 @@
 
 	/* USER CODE BEGIN m4_usart3 */
 	/* USER CODE END m4_usart3 */
-};
-
-&m4_usart6{
-	pinctrl-names = "default";
-	pinctrl-0 = <&m4_usart6_pins_mx>;
-	status = "okay";
-
-	/* USER CODE BEGIN m4_usart6 */
-	/* USER CODE END m4_usart6 */
 };
 
 &mdma1{

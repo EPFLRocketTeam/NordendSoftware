@@ -1,9 +1,9 @@
 #!/bin/bash
 
-cd ../CA7/DeviceTree/
+#cd ../CA7/DeviceTree/
 #patch -p3 --forward --no-backup-if-mismatch < 0001-add-uart-bias.patch
-python3 dts_patcher.py
-cd -
+#python3 dts_patcher.py
+#cd -
 
 cd ../distribution-package
 

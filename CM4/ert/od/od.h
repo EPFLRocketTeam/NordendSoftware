@@ -17,15 +17,7 @@
 
 #include <stdint.h>
 
-#include "sensor/gnss.h"
-#include <protocol/structures.h>
-
-#include "sensor/accelerometer.h"
-#include "sensor/magnetometer.h"
-#include "sensor/temperature.h"
-#include "sensor/barometer.h"
-
-#include "engine_control.h"
+#include "data_types.h"
 
 
 /**********************
@@ -87,26 +79,29 @@ void od_pop_from_in_q(od_frame_t *frame);
 void od_push_to_in_q(od_frame_t *frame);
 void od_pop_from_out_q(od_frame_t *frame);
 
-DECLARE_OD_ENTRY(KALMAN_DATA_A, transfer_data_res_t);
-DECLARE_OD_ENTRY(KALMAN_DATA_B, transfer_data_res_t);
-DECLARE_OD_ENTRY(GNSS, gnss_data_t);
-DECLARE_OD_ENTRY(BATTERY_A, uint32_t);
-DECLARE_OD_ENTRY(BATTERY_B, uint32_t);
-//DECLARE_OD_ENTRY(RF_CMD, rf_cmd_t);
-DECLARE_OD_ENTRY(COUNTDOWN, uint16_t);
-//DECLARE_OD_ENTRY(ENGINE_STATE, rf_cmd_t);
-DECLARE_OD_ENTRY(ENGINE_FSM_STATE, uint8_t);
-DECLARE_OD_ENTRY(ACC_I2C_A, accelerometer_data_t);
-DECLARE_OD_ENTRY(ACC_I2C_B, accelerometer_data_t);
-DECLARE_OD_ENTRY(BARO_A, barometer_data_t);
-DECLARE_OD_ENTRY(BARO_B, barometer_data_t);
-DECLARE_OD_ENTRY(MAG_I2C_A, magnetometer_data_t);
-DECLARE_OD_ENTRY(MAG_I2C_B, magnetometer_data_t);
-DECLARE_OD_ENTRY(ENG_TEMP_I2C, temperature_data_t);
-DECLARE_OD_ENTRY(ENG_PRESS_I2C_A, double);
-DECLARE_OD_ENTRY(ENG_PRESS_I2C_B, double);
-DECLARE_OD_ENTRY(ENG_PRESS_I2C_C, double);
-DECLARE_OD_ENTRY(ENGINE_ERROR, uint8_t);
+DECLARE_OD_ENTRY(KALMAN_DATA_A, 			kalman_data_t);
+DECLARE_OD_ENTRY(KALMAN_DATA_B, 			kalman_data_t);
+DECLARE_OD_ENTRY(GNSS_DATA_A, 				gnss_data_t);
+DECLARE_OD_ENTRY(GNSS_DATA_B, 				gnss_data_t);
+DECLARE_OD_ENTRY(BATTERY_A, 				battery_data_t);
+DECLARE_OD_ENTRY(BATTERY_B, 				battery_data_t);
+DECLARE_OD_ENTRY(ENGINE_CONTROL_DATA, 		engine_control_data_t);
+DECLARE_OD_ENTRY(RECOVERY_CONTROL_DATA, 	recovery_control_data_t);
+DECLARE_OD_ENTRY(SENSOR_BARO_A_0, 			sensor_baro_data_t);
+DECLARE_OD_ENTRY(SENSOR_BARO_A_1, 			sensor_baro_data_t);
+DECLARE_OD_ENTRY(SENSOR_BARO_B_0, 			sensor_baro_data_t);
+DECLARE_OD_ENTRY(SENSOR_BARO_B_1, 			sensor_baro_data_t);
+DECLARE_OD_ENTRY(SENSOR_IMU_A_0, 			sensor_imu_data_t);
+DECLARE_OD_ENTRY(SENSOR_IMU_A_1, 			sensor_imu_data_t);
+DECLARE_OD_ENTRY(SENSOR_IMU_B_0, 			sensor_imu_data_t);
+DECLARE_OD_ENTRY(SENSOR_IMU_B_1, 			sensor_imu_data_t);
+DECLARE_OD_ENTRY(SENSOR_MAG_A, 				sensor_mag_data_t);
+DECLARE_OD_ENTRY(SENSOR_MAG_B, 				sensor_mag_data_t);
+DECLARE_OD_ENTRY(SENSOR_ACC_A_0, 			sensor_acc_data_t);
+DECLARE_OD_ENTRY(SENSOR_ACC_A_1, 			sensor_acc_data_t);
+DECLARE_OD_ENTRY(SENSOR_ACC_B_0, 			sensor_acc_data_t);
+DECLARE_OD_ENTRY(SENSOR_ACC_B_1,			sensor_acc_data_t);
+DECLARE_OD_ENTRY(ENGINE_SENSORS_DATA, 		sensor_eng_data_t);
 
 #ifdef __cplusplus
 } // extern "C"

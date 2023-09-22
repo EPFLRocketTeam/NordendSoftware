@@ -19,6 +19,7 @@
 #include <od/od.h>
 #include <device/device.h>
 #include <feedback/led.h>
+#include <string.h>
 
 /**********************
  *	CONSTANTS
@@ -247,6 +248,7 @@ void can_init(uint8_t board_id) {
 	fdcan1_context.board_id = board_id;
 
 	can_interface_init(&fdcan1_interface, &fdcan1_context);
+	//Here we can then initialize the second CAN interface
 
 
 	checkpoint_tx = led_add_checkpoint(led_teal);
@@ -257,13 +259,20 @@ void can_init(uint8_t board_id) {
 }
 
 
+void can_transmit_data_sync(od_frame_t * data) {
+	od_frame_t frame;
+	memcpy(&frame, data, sizeof(od_frame_t));
+	device_interface_send(&fdcan1_interface, (uint8_t *)&frame, sizeof(od_frame_t));
+}
+
+
 /**===========================================*
  * Since CAN does not work --> we use SERIAL
  *============================================*/
 
 
 
-
+//This function can be done in the OD broadcast thread
 void can_transmit_thread(__attribute__((unused))  void *arg) {
 
 	// Infinite loop

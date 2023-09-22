@@ -98,7 +98,7 @@ int main(void)
   else
   {
     /* IPCC initialisation */
-    MX_IPCC_Init();
+     MX_IPCC_Init();
     /* OpenAmp initialisation ---------------------------------*/
     MX_OPENAMP_Init(RPMSG_REMOTE, NULL);
   }

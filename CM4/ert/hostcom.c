@@ -19,6 +19,8 @@
 #include <device/comunicator.h>
 #include <od/od.h>
 #include <nordend.h>
+#include <engine_control.h>
+#include <feedback/debug.h>
 
 /**********************
  *	CONSTANTS
@@ -26,7 +28,7 @@
 
 
 #define HOSTCOM_SYNC_HEART_BEAT 200
-#define HOSTCOM_DATA_HEART_BEAT 500
+#define HOSTCOM_DATA_HEART_BEAT 100
 
 
 /**********************
@@ -47,6 +49,7 @@
 
 static comunicator_t data_com;
 static comunicator_t sync_com;
+static comunicator_t cmd_com;
 
 
 /**********************
@@ -89,23 +92,24 @@ void hostcom_data_gnss_send(uint32_t timestamp, int32_t alt) {
 }
 
 
+//data handles the kalman filter computation result
 void hostcom_handle_data(uint8_t opcode, uint16_t len, uint8_t * _data) {
 	if(opcode == TRANSFER_DATA_RES) {
-		if(len == sizeof(transfer_data_res_t)) {
-			transfer_data_res_t data;
-			memcpy(&data, _data, sizeof(transfer_data_res_t));
+		if(len == sizeof(kalman_data_t)) {
+			kalman_data_t data;
+			memcpy(&data, _data, sizeof(kalman_data_t));
 #if ND_COMPUTER == ND_A
 			od_write_KALMAN_DATA_A(&data);
 #else
-			od_write_KALMAN_DATA_A(&data);
+			od_write_KALMAN_DATA_B(&data);
 #endif
 		}
 	}
-	//handle kalman inbound data!!
 }
 
 
-
+//sync handle potential other OD data from the hostboard
+//unused for now
 void hostcom_handle_sync(uint8_t opcode, uint16_t len, uint8_t * data) {
 	UNUSED(opcode);
 	UNUSED(len);
@@ -114,8 +118,26 @@ void hostcom_handle_sync(uint8_t opcode, uint16_t len, uint8_t * data) {
 }
 
 
+void hostcom_handle_cmd(uint8_t opcode, uint16_t len, uint8_t * data) {
+
+	if(opcode == SUBSYSTEM_PROPULSION) { //propulsion commands
+#if ND_HAS_PROPULSION == ND_TRUE
+		engine_control_command_push(data[0], 0);
+		debug_log(LOG_INFO, "EC: received command: %d\n", data[0]);
+#else
+		//handle interboard commands
+#endif
+	}
+	//handle cmd inbound data!!
+}
+
+
 comunicator_t * hostcom_get_sync_comunicator() {
 	return &sync_com;
+}
+
+comunicator_t * hostcom_get_cmd_comunicator() {
+	return &cmd_com;
 }
 
 
@@ -136,12 +158,14 @@ void hostcom_thread(__attribute__((unused)) void * arg) {
 
 	comunicator_init_lone(&data_com, hostproc_get_data_interface(), hostcom_handle_data);
 	comunicator_init_lone(&sync_com, hostproc_get_sync_interface(), od_sync_handler);
+	comunicator_init_lone(&cmd_com, hostproc_get_cmd_interface(), hostcom_handle_cmd);
 
 
 	for(;;) {
 
-		comunicator_recv(&data_com);
+		//comunicator_recv(&data_com);
 		comunicator_recv(&sync_com);
+		comunicator_recv(&cmd_com);
 
 		//send and receive sync frames
 

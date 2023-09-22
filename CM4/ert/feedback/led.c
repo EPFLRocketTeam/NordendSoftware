@@ -75,6 +75,7 @@ void led_feedback_init(void) {
 	//GPIO init leds
 	//feedback leds located on socket 3
 
+#if 0
 	GPIO_InitTypeDef GPIO_InitStructure;
 
 	GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
@@ -84,7 +85,7 @@ void led_feedback_init(void) {
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_RESET);
-
+#endif
 }
 
 
@@ -192,18 +193,22 @@ void led_checkpoint(uint16_t point) {
 }
 
 
-//TODO: A REVOIR AVEC UN VRAI SYSTEME
+
 void led_rgb_thread(__attribute__((unused)) void * arg) {
 
 	led_rgb_init();
 
-	led_rgb_set_color(led_blue);
+	//led_feedback_init();
 
+	//led_rgb_set_color(led_blue);
+
+#ifdef USE_CHECKPOINT
 	uint16_t base = led_add_checkpoint(led_white);
-
 	static uint16_t counter = 0;
+#endif
 
 	for(;;) {
+#ifdef USE_CHECKPOINT
 		led_clear(3);
 		led_checkpoint(base);
 		while(1) {
@@ -221,7 +226,7 @@ void led_rgb_thread(__attribute__((unused)) void * arg) {
 		}
 		osDelay(500);
 		led_rgb_set_color(led_black);
-		//debug_log("In led thread, hello\n", "");
+#endif
 		osDelay(500);
 	}
 }

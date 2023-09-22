@@ -22,6 +22,15 @@
  *  CONSTANTS
  **********************/
 
+typedef enum log_prio {
+	LOG_CRITICAL,
+	LOG_ERROR,
+	LOG_WARNING,
+	LOG_IMPORTANT,
+	LOG_INFO,
+	LOG_DEBUG
+}log_prio_t;
+
 
 /**********************
  *  MACROS
@@ -51,7 +60,7 @@ extern "C"{
 } // extern "C"
 #endif /* __cplusplus */
 
-void debug_log(const char * lotte, ...);
+void debug_log(log_prio_t prio, const char * lotte, ...);
 
 #endif /* DEBUG_H */
 

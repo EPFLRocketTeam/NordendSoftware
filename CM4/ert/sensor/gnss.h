@@ -8,6 +8,7 @@
 
 #ifndef GNSS_H
 #define GNSS_H
+#if 0
 
 
 
@@ -59,6 +60,7 @@ typedef struct gnss_data {
 }gnss_data_t;
 */
 
+/*
 typedef struct gnss_data {
     float longitude;
     float latitude;
@@ -67,6 +69,7 @@ typedef struct gnss_data {
     float time;
     float hdop;
 }gnss_data_t;
+*/
 
 typedef enum gnss_trame_type {
     GGA,
@@ -108,6 +111,8 @@ util_error_t gnss_init(void);
 #ifdef __cplusplus
 } // extern "C"
 #endif /* __cplusplus */
+
+#endif
 
 #endif /* GNSS_H */
 

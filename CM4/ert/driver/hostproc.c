@@ -20,6 +20,8 @@
 #include <feedback/led.h>
 #include <openamp.h>
 #include <util.h>
+#include <string.h>
+#include <feedback/debug.h>
 
 
 
@@ -44,6 +46,7 @@ typedef struct hostproc_interface_context {
 	uint8_t rx_once;
 	util_buffer_u8_t rx_buffer;
 	uint8_t rx_data[MAX_RX_DATA];
+	uint8_t tx_data[MAX_RX_DATA];
 }hostproc_interface_context_t;
 
 
@@ -171,7 +174,11 @@ util_error_t host_send(void* context, uint8_t* data, uint32_t len) {
 	}
 	//need to check again because rx might have been received in the meantime.
 	if(interface_context->rx_once) {
-		VIRT_UART_Transmit(interface_context->uart, data, len);
+//		if(len > 4 && interface_context->uart == &host_UART1) {
+//		debug_log(LOG_INFO, "sending_data_might_header: %x %x %x %x\n", data[0], data[1], data[2], data[3]);
+//		}
+		memcpy(interface_context->tx_data, data, len);
+		VIRT_UART_Transmit(interface_context->uart, interface_context->tx_data, len);
 	}
 	return ER_SUCCESS;
 }
@@ -215,7 +222,7 @@ util_error_t hostproc_init(void) {
 	hostproc_uart_init(&hostproc_feedback_interface, &hostproc_feedback_interface_context);
 	hostproc_uart_init(&hostproc_sync_interface, &hostproc_sync_interface_context);
 	hostproc_uart_init(&hostproc_data_interface, &hostproc_data_interface_context);
-	//hostproc_uart_init(&hostproc_cmd_interface, &hostproc_cmd_interface_context);
+	hostproc_uart_init(&hostproc_cmd_interface, &hostproc_cmd_interface_context);
 
 
 	//hostproc guard

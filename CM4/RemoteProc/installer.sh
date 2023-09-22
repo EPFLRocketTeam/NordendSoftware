@@ -15,7 +15,7 @@ KERMIT_CONFIG_SLOW=kermit_config_slow.cfg
 
 KERMIT_CONFIG=$KERMIT_CONFIG_FAST
 
-SOURCE_FOLDER=Debug
+SOURCE_FOLDER=Release
 
 
 if [[ $1 == "kermit" ]]; then
@@ -99,8 +99,8 @@ if [[ -z "$REMOTE_SSH" ]]; then
 		#kermit $KERMIT_CONFIG -s patcher.py ~/
 		#kermit $KERMIT_CONFIG -s start_fw.sh ~/
 		#kermit $KERMIT_CONFIG -s stop_fw.sh ~/
-		#kermit $KERMIT_CONFIG -C " remote  kill -9 \$( pidof hostproc_app ), exit"
-		#kermit $KERMIT_CONFIG -s ../../CA7/hostproc_app/hostproc_app ~/
+		#kermit $KERMIT_CONFIG -C " remote  kill -9 \$( pidof nordend_monitor ), exit"
+		#kermit $KERMIT_CONFIG -s ../../CA7/nordend_monitor/nordend_monitor ~/
 		kermit $KERMIT_CONFIG -s rc.local ~/
 		kermit $KERMIT_CONFIG -C " remote host mv rc.local /etc/rc.local, exit"
 		kermit $KERMIT_CONFIG -C " remote host chmod +x /etc/rc.local, exit"
@@ -182,8 +182,8 @@ else
 		#scp patcher.py $SSH_TARGET:~/
 		#scp start_fw.sh $SSH_TARGET:~/
 		#scp stop_fw.sh $SSH_TARGET:~/
-		ssh $SSH_TARGET " kill -9 \$( pidof hostproc_app )"
-		scp ../../CA7/hostproc_app/hostproc_app $SSH_TARGET:~/
+		ssh $SSH_TARGET " kill -9 \$( pidof nordend_monitor )"
+		scp ../../CA7/nordend_monitor/nordend_monitor $SSH_TARGET:~/
 		scp rc.local $SSH_TARGET:/etc/rc.local
 		ssh $SSH_TARGET "chmod +x /etc/rc.local"
 		echo "tools sent"
