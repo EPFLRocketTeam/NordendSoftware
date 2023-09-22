@@ -399,10 +399,10 @@ util_error_t init_engine_control(void) {
 			SERVO_N2O_CLOSED);
 
 	//init the solenoids
-	solenoid_init(&control.solenoid_ethanol, 	1, GPIOC, GPIO_PIN_5);
-	solenoid_init(&control.solenoid_n2o, 		1, GPIOC, GPIO_PIN_6);
-	solenoid_init(&control.solenoid_purge, 		0, GPIOC, GPIO_PIN_3);
-	solenoid_init(&control.solenoid_press, 		0, GPIOC, GPIO_PIN_4);
+	solenoid_init(&control.solenoid_ethanol, 	1, GPIOC, GPIO_PIN_3);
+	solenoid_init(&control.solenoid_n2o, 		1, GPIOD, GPIO_PIN_10);
+	solenoid_init(&control.solenoid_purge, 		0, GPIOA, GPIO_PIN_8);
+	solenoid_init(&control.solenoid_press, 		0, GPIOC, GPIO_PIN_10);
 
 	// Using channels 1 and 2 -- initialize the PWM channel
 	pwm_init();

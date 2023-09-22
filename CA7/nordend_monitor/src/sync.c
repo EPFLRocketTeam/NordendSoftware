@@ -17,24 +17,31 @@
 
 #define NO_PACKET_SZ_CHECK
 
+#define OD_MATCH(NAME, ID) enum{ NAME = ID }
 
-#define KALMAN_DATA_A 			    1
-#define KALMAN_DATA_B 			    2
-#define GNSS_DATA_A				    3
-#define GNSS_DATA_B	 			    4
-#define BATTERY_A 				    5
-#define BATTERY_B 				    6
-#define ENGINE_CONTROL_DATA 	    7
-#define RECOVERY_CONTROL_DATA 	    8
-#define SENSOR_BARO_A 			    9
-#define SENSOR_BARO_B 			    10
-#define SENSOR_IMU_A 			    11
-#define SENSOR_IMU_B 			    12
-#define SENSOR_MAG_A 			    13
-#define SENSOR_MAG_B 			    14
-#define SENSOR_ACC_A 			    15
-#define SENSOR_ACC_B 			    16
-#define ENGINE_SENSORS_DATA 	    17
+OD_MATCH(KALMAN_DATA_A, 			1  );
+OD_MATCH(KALMAN_DATA_B, 			2  );
+OD_MATCH(GNSS_DATA_A, 				3  );
+OD_MATCH(GNSS_DATA_B, 				4  );
+OD_MATCH(BATTERY_A, 				5  );
+OD_MATCH(BATTERY_B, 				6  );
+OD_MATCH(ENGINE_CONTROL_DATA, 		7  );
+OD_MATCH(RECOVERY_CONTROL_DATA, 	8  );
+OD_MATCH(SENSOR_BARO_A_0, 			10 );
+OD_MATCH(SENSOR_BARO_A_1, 			11 );
+OD_MATCH(SENSOR_BARO_B_0, 			12 );
+OD_MATCH(SENSOR_BARO_B_1, 			13 );
+OD_MATCH(SENSOR_IMU_A_0, 			20 );
+OD_MATCH(SENSOR_IMU_A_1, 			21 );
+OD_MATCH(SENSOR_IMU_B_0, 			22 );
+OD_MATCH(SENSOR_IMU_B_1, 			23 );
+OD_MATCH(SENSOR_MAG_A, 			    30 );
+OD_MATCH(SENSOR_MAG_B, 			    31 );
+OD_MATCH(SENSOR_ACC_A_0, 			40 );
+OD_MATCH(SENSOR_ACC_A_1, 			41 );
+OD_MATCH(SENSOR_ACC_B_0, 			42 );
+OD_MATCH(SENSOR_ACC_B_1, 			43 );
+OD_MATCH(ENGINE_SENSORS_DATA, 		50 );
 
 
 
@@ -93,20 +100,38 @@ void sync_handle_recovery_control(uint8_t opcode, uint16_t len, uint8_t * _data)
 
 void sync_handle_sensor_baro(uint8_t opcode, uint16_t len, uint8_t * _data) {
 	if(1 || len == sizeof(sensor_baro_data_t)) {
-		if(opcode == SENSOR_BARO_A) {
-			memcpy(&data.baro_a, _data, sizeof(sensor_baro_data_t));
-		} else {
-			memcpy(&data.baro_b, _data, sizeof(sensor_baro_data_t));
+		switch(opcode){
+		case SENSOR_BARO_A_0:
+			memcpy(&data.baro_a[0], _data, sizeof(sensor_baro_data_t));
+			break;
+		case SENSOR_BARO_A_1:
+			memcpy(&data.baro_a[1], _data, sizeof(sensor_baro_data_t));
+			break;
+		case SENSOR_BARO_B_0:
+			memcpy(&data.baro_b[0], _data, sizeof(sensor_baro_data_t));
+			break;
+		case SENSOR_BARO_B_1:
+			memcpy(&data.baro_b[1], _data, sizeof(sensor_baro_data_t));
+			break;
 		}
 	}
 }
 
 void sync_handle_sensor_imu(uint8_t opcode, uint16_t len, uint8_t * _data) {
 	if(1 || len == sizeof(sensor_imu_data_t)) {
-		if(opcode == SENSOR_IMU_A) {
-			memcpy(&data.imu_a, _data, sizeof(sensor_imu_data_t));
-		} else {
-			memcpy(&data.imu_b, _data, sizeof(sensor_imu_data_t));
+		switch(opcode){
+		case SENSOR_IMU_A_0:
+			memcpy(&data.imu_a[0], _data, sizeof(sensor_imu_data_t));
+			break;
+		case SENSOR_IMU_A_1:
+			memcpy(&data.imu_a[1], _data, sizeof(sensor_imu_data_t));
+			break;
+		case SENSOR_IMU_B_0:
+			memcpy(&data.imu_b[0], _data, sizeof(sensor_imu_data_t));
+			break;
+		case SENSOR_IMU_B_1:
+			memcpy(&data.imu_b[1], _data, sizeof(sensor_imu_data_t));
+			break;
 		}
 	}
 }
@@ -123,10 +148,19 @@ void sync_handle_sensor_mag(uint8_t opcode, uint16_t len, uint8_t * _data) {
 
 void sync_handle_sensor_acc(uint8_t opcode, uint16_t len, uint8_t * _data) {
 	if(1 || len == sizeof(sensor_acc_data_t)) {
-		if(opcode == SENSOR_ACC_A) {
-			memcpy(&data.acc_a, _data, sizeof(sensor_acc_data_t));
-		} else {
-			memcpy(&data.acc_b, _data, sizeof(sensor_acc_data_t));
+		switch(opcode){
+		case SENSOR_ACC_A_0:
+			memcpy(&data.acc_a[0], _data, sizeof(sensor_acc_data_t));
+			break;
+		case SENSOR_ACC_A_1:
+			memcpy(&data.acc_a[1], _data, sizeof(sensor_acc_data_t));
+			break;
+		case SENSOR_ACC_B_0:
+			memcpy(&data.acc_b[0], _data, sizeof(sensor_acc_data_t));
+			break;
+		case SENSOR_ACC_B_1:
+			memcpy(&data.acc_b[1], _data, sizeof(sensor_acc_data_t));
+			break;
 		}
 	}
 }
@@ -157,20 +191,26 @@ void sync_handle_data(uint8_t opcode, uint16_t len, uint8_t * _data) {
 	case RECOVERY_CONTROL_DATA:
 		sync_handle_recovery_control(opcode, len, _data);
 		break;
-	case SENSOR_BARO_A:
-	case SENSOR_BARO_B:
+	case SENSOR_BARO_A_0:
+	case SENSOR_BARO_A_1:
+	case SENSOR_BARO_B_0:
+	case SENSOR_BARO_B_1:
 		sync_handle_sensor_baro(opcode, len, _data);
 		break;
-	case SENSOR_IMU_A:
-	case SENSOR_IMU_B:
+	case SENSOR_IMU_A_0:
+	case SENSOR_IMU_A_1:
+	case SENSOR_IMU_B_0:
+	case SENSOR_IMU_B_1:
 		sync_handle_sensor_imu(opcode, len, _data);
 		break;
 	case SENSOR_MAG_A:
 	case SENSOR_MAG_B:
 		sync_handle_sensor_mag(opcode, len, _data);
 		break;
-	case SENSOR_ACC_A:
-	case SENSOR_ACC_B:
+	case SENSOR_ACC_A_0:
+	case SENSOR_ACC_A_1:
+	case SENSOR_ACC_B_0:
+	case SENSOR_ACC_B_1:
 		sync_handle_sensor_acc(opcode, len, _data);
 		break;
 	case ENGINE_SENSORS_DATA:

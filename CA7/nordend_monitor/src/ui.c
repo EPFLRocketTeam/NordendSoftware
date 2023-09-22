@@ -289,16 +289,28 @@ int ui_draw_so(ui_data_t * data){
 	wmove(data->win_so, 0, 1);
 	waddstr(data->win_so, "Sensors Overview");
 
-	mvwprintw(data->win_so, 1, 1, "[A]IMU_ACC: %g %g %g", data->sync_data.imu_a.acc[0], data->sync_data.imu_a.acc[1], data->sync_data.imu_a.acc[2]);
-	mvwprintw(data->win_so, 2, 1, "[B]IMU_ACC: %g %g %g", data->sync_data.imu_b.acc[0], data->sync_data.imu_b.acc[1], data->sync_data.imu_b.acc[2]);
-	mvwprintw(data->win_so, 3, 1, "[A]IMU_GYRO: %g %g %g", data->sync_data.imu_a.gyro[0], data->sync_data.imu_a.gyro[1], data->sync_data.imu_a.gyro[2]);
-	mvwprintw(data->win_so, 4, 1, "[B]IMU_GYRO: %g %g %g", data->sync_data.imu_b.gyro[0], data->sync_data.imu_b.gyro[1], data->sync_data.imu_b.gyro[2]);
-	mvwprintw(data->win_so, 5, 1, "[A]BARO: %d (alt: %g)", data->sync_data.baro_a.pressure, data->sync_data.baro_a.alt);
-	mvwprintw(data->win_so, 6, 1, "[B]BARO: %d (alt: %g)", data->sync_data.baro_b.pressure, data->sync_data.baro_b.alt);
-	mvwprintw(data->win_so, 7, 1, "[A]MAG: %g %g %g", data->sync_data.mag_a.mag[0], data->sync_data.mag_a.mag[1], data->sync_data.mag_a.mag[2]);
-	mvwprintw(data->win_so, 8, 1, "[B]MAG: %g %g %g", data->sync_data.mag_b.mag[0], data->sync_data.mag_b.mag[1], data->sync_data.mag_b.mag[2]);
-	mvwprintw(data->win_so, 9, 1, "[A]ACC: %g %g %g", data->sync_data.acc_a.acc[0], data->sync_data.acc_a.acc[1], data->sync_data.acc_a.acc[2]);
-	mvwprintw(data->win_so,10, 1, "[B]ACC: %g %g %g", data->sync_data.acc_b.acc[0], data->sync_data.acc_b.acc[1], data->sync_data.acc_b.acc[2]);
+	mvwprintw(data->win_so, 1, 1, "[A]IMU_ACC: %g %g %g", data->sync_data.imu_a[0].acc[0], data->sync_data.imu_a[0].acc[1], data->sync_data.imu_a[0].acc[2]);
+	mvwprintw(data->win_so, 2, 1, "[A]IMU_ACC: %g %g %g", data->sync_data.imu_a[1].acc[0], data->sync_data.imu_a[1].acc[1], data->sync_data.imu_a[1].acc[2]);
+	mvwprintw(data->win_so, 3, 1, "[B]IMU_ACC: %g %g %g", data->sync_data.imu_b[0].acc[0], data->sync_data.imu_b[0].acc[1], data->sync_data.imu_b[0].acc[2]);
+	mvwprintw(data->win_so, 4, 1, "[B]IMU_ACC: %g %g %g", data->sync_data.imu_b[1].acc[0], data->sync_data.imu_b[1].acc[1], data->sync_data.imu_b[1].acc[2]);
+
+	mvwprintw(data->win_so, 5, 1, "[A]IMU_GYRO: %g %g %g", data->sync_data.imu_a[0].gyro[0], data->sync_data.imu_a[0].gyro[1], data->sync_data.imu_a[0].gyro[2]);
+	mvwprintw(data->win_so, 6, 1, "[A]IMU_GYRO: %g %g %g", data->sync_data.imu_a[1].gyro[0], data->sync_data.imu_a[1].gyro[1], data->sync_data.imu_a[1].gyro[2]);
+	mvwprintw(data->win_so, 7, 1, "[B]IMU_GYRO: %g %g %g", data->sync_data.imu_b[0].gyro[0], data->sync_data.imu_b[0].gyro[1], data->sync_data.imu_b[0].gyro[2]);
+	mvwprintw(data->win_so, 8, 1, "[B]IMU_GYRO: %g %g %g", data->sync_data.imu_b[1].gyro[0], data->sync_data.imu_b[1].gyro[1], data->sync_data.imu_b[1].gyro[2]);
+
+	mvwprintw(data->win_so, 9, 1, "[A]BARO: %d (alt: %g)", data->sync_data.baro_a[0].pressure, data->sync_data.baro_a[0].alt);
+	mvwprintw(data->win_so,10, 1, "[A]BARO: %d (alt: %g)", data->sync_data.baro_a[1].pressure, data->sync_data.baro_a[1].alt);
+	mvwprintw(data->win_so,11, 1, "[B]BARO: %d (alt: %g)", data->sync_data.baro_b[0].pressure, data->sync_data.baro_b[0].alt);
+	mvwprintw(data->win_so,12, 1, "[B]BARO: %d (alt: %g)", data->sync_data.baro_b[1].pressure, data->sync_data.baro_b[1].alt);
+
+	mvwprintw(data->win_so,13, 1, "[A]MAG: %g %g %g", data->sync_data.mag_a.mag[0], data->sync_data.mag_a.mag[1], data->sync_data.mag_a.mag[2]);
+	mvwprintw(data->win_so,14, 1, "[B]MAG: %g %g %g", data->sync_data.mag_b.mag[0], data->sync_data.mag_b.mag[1], data->sync_data.mag_b.mag[2]);
+
+	mvwprintw(data->win_so,15, 1, "[A]ACC: %g %g %g", data->sync_data.acc_a[0].acc[0], data->sync_data.acc_a[0].acc[1], data->sync_data.acc_a[0].acc[2]);
+	mvwprintw(data->win_so,16, 1, "[A]ACC: %g %g %g", data->sync_data.acc_a[1].acc[0], data->sync_data.acc_a[1].acc[1], data->sync_data.acc_a[1].acc[2]);
+	mvwprintw(data->win_so,17, 1, "[B]ACC: %g %g %g", data->sync_data.acc_b[0].acc[0], data->sync_data.acc_b[0].acc[1], data->sync_data.acc_b[0].acc[2]);
+	mvwprintw(data->win_so,18, 1, "[B]ACC: %g %g %g", data->sync_data.acc_b[1].acc[0], data->sync_data.acc_b[1].acc[1], data->sync_data.acc_b[1].acc[2]);
 
 	wrefresh(data->win_so);
 }

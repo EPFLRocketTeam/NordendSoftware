@@ -54,9 +54,11 @@ extern "C"{
 #endif
 
 util_error_t i2c_sensor_init(void);
+util_error_t i2c_prop_sensor_init(void);
 
 device_t * i2c_sensor_get_bmi088_gyr(uint8_t num);
 device_t * i2c_sensor_get_bmi088_acc(uint8_t num);
+device_t * i2c_sensor_get_bmp390_baro(uint8_t num);
 
 
 #ifdef __cplusplus

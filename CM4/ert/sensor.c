@@ -20,11 +20,13 @@
 
 #include <device/i2c_sensor.h>
 #include <sensor/sensor_bmi088.h>
+#include <sensor/sensor_bmp390.h>
 #include <od/od.h>
 #include <driver/hostproc.h>
 #include <hostcom.h>
 #include <feedback/led.h>
 #include <feedback/debug.h>
+#include <nordend.h>
 /**********************
  *	CONSTANTS
  **********************/
@@ -49,12 +51,15 @@
 
 static device_t * bmi088_acc[2];
 static device_t * bmi088_gyr[2];
+static device_t * bmp390_baro[2];
 
 static bmi088_acc_context_t bmi088_acc_ctx[2];
 static bmi088_gyr_context_t bmi088_gyr_ctx[2];
+static bmp390_baro_context_t bmp390_baro_ctx[2];
 
 
 static sensor_imu_data_t imu_data[2];
+static sensor_baro_data_t baro_data[2];
 
 /**********************
  *	PROTOTYPES
@@ -85,10 +90,16 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	bmi088_acc[1] = i2c_sensor_get_bmi088_acc(1);
 	bmi088_gyr[1] = i2c_sensor_get_bmi088_gyr(1);
 
+	bmp390_baro[0] = i2c_sensor_get_bmp390_baro(0);
+	bmp390_baro[1] = i2c_sensor_get_bmp390_baro(1);
+
 	bmi088_acc_init(bmi088_acc[0], &bmi088_acc_ctx[0]);
 	bmi088_gyr_init(bmi088_gyr[0], &bmi088_gyr_ctx[0]);
 	bmi088_acc_init(bmi088_acc[1], &bmi088_acc_ctx[1]);
 	bmi088_gyr_init(bmi088_gyr[1], &bmi088_gyr_ctx[1]);
+
+	bmp390_baro_init(bmp390_baro[0], &bmp390_baro_ctx[0]);
+	bmp390_baro_init(bmp390_baro[1], &bmp390_baro_ctx[1]);
 
 
 
@@ -103,6 +114,21 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 		bmi088_gyr_read(bmi088_gyr[0], &imu_data[0]);
 		bmi088_acc_read(bmi088_acc[1], &imu_data[1]);
 		bmi088_gyr_read(bmi088_gyr[1], &imu_data[1]);
+
+		bmp390_baro_read(bmp390_baro[0], &baro_data[0]);
+		bmp390_baro_read(bmp390_baro[1], &baro_data[1]);
+
+#if ND_COMPUTER == ND_A
+		od_write_SENSOR_IMU_A_0(&imu_data[0]);
+		od_write_SENSOR_BARO_A_0(&baro_data[0]);
+		od_write_SENSOR_IMU_A_1(&imu_data[1]);
+		od_write_SENSOR_BARO_A_1(&baro_data[1]);
+#else
+		od_write_SENSOR_IMU_B_0(&imu_data[0]);
+		od_write_SENSOR_BARO_B_0(&baro_data[0]);
+		od_write_SENSOR_IMU_B_1(&imu_data[1]);
+		od_write_SENSOR_BARO_B_1(&baro_data[1]);
+#endif
 
 
 		vTaskDelayUntil( &last_wake_time, period );

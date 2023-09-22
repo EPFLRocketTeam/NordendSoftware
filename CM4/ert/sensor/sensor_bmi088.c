@@ -47,7 +47,7 @@ util_error_t bmi088_gyr_init(device_t * dev, bmi088_gyr_context_t * ctx) {
 	 }
 
 	 ctx->selected_range = 2000; //2000 dsp is default
-	 ctx->selected_sstvt = 16.384 / (float)INT16_MAX;
+	 ctx->selected_sstvt = 2000 / (float)INT16_MAX;
 
 	 return ER_SUCCESS;
 }
@@ -68,9 +68,11 @@ util_error_t bmi088_acc_read(device_t * dev, sensor_imu_data_t * data) {
 		 data->acc[AXIS_Z] = data->raw_acc[AXIS_Z]*ctx->selected_sstvt;
 		 data->acc_time = util_get_time();
 		 debug_log(LOG_WARNING, "acc data: %d, %d, %d\n", data->raw_acc[AXIS_X], data->raw_acc[AXIS_Y], data->raw_acc[AXIS_Z]);
+
+		 return ER_SUCCESS;
+	 } else {
+		 return ER_RESSOURCE_ERROR;
 	 }
-
-
 }
 
 util_error_t bmi088_gyr_read(device_t * dev, sensor_imu_data_t * data) {
@@ -89,6 +91,10 @@ util_error_t bmi088_gyr_read(device_t * dev, sensor_imu_data_t * data) {
 		 data->gyro[AXIS_Z] = data->raw_gyro[AXIS_Z]*ctx->selected_sstvt;
 		 data->gyro_time = util_get_time();
 		 debug_log(LOG_WARNING, "gyro data: %d, %d, %d\n", data->raw_gyro[AXIS_X], data->raw_gyro[AXIS_Y], data->raw_gyro[AXIS_Z]);
+
+		 return ER_SUCCESS;
+	 } else {
+		 return ER_RESSOURCE_ERROR;
 	 }
 }
 

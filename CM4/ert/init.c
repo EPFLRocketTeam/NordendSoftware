@@ -142,6 +142,13 @@ void init(void) {
 	// A + B
 	can_init(ND_COMPUTER);
 
+#if ND_HAS_PROPULSION == ND_TRUE
+
+	i2c_s3_init();
+
+
+#endif
+
 
 #if ND_HAS_SENSORS == ND_TRUE
 	/**

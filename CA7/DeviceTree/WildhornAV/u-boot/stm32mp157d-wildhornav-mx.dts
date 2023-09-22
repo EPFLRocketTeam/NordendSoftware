@@ -107,16 +107,16 @@
 	};
 
 	
-//	led{
-//		compatible = "gpio-leds";
-//
-//		led-blue{
-//			label = "heartbeat";
-//			gpios = <&gpioc 6 GPIO_ACTIVE_LOW>;
-//			linux,default-trigger = "heartbeat";
-//			default-state = "off";
-//		};
-//	};
+	led{
+		compatible = "gpio-leds";
+
+		led-blue{
+			label = "heartbeat";
+			gpios = <&gpioc 6 GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "heartbeat";
+			default-state = "off";
+		};
+	};
 	
 	usb_phy_tuning:usb-phy-tuning{
 		st,hs-dc-level = <2>;
@@ -165,7 +165,7 @@
 			u-boot,dm-pre-reloc;
 			pinmux = <STM32_PINMUX('B', 7, AF6)>, /* I2C4_SDA */
 					 <STM32_PINMUX('B', 8, AF6)>; /* I2C4_SCL */
-			bias-disable;
+			bias-pullup;
 			drive-open-drain;
 			slew-rate = <3>;
 		};
@@ -357,12 +357,12 @@
 		pins1 {
 			u-boot,dm-pre-reloc;
 			pinmux = <STM32_PINMUX('E', 0, AF8)>; /* UART8_RX */
-			bias-disable;
+			bias-pullup;
 		};
 		pins2 {
 			u-boot,dm-pre-reloc;
 			pinmux = <STM32_PINMUX('E', 1, AF8)>; /* UART8_TX */
-			bias-disable;
+			bias-pullup;
 			drive-push-pull;
 			slew-rate = <0>;
 		};

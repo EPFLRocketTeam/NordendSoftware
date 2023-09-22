@@ -67,23 +67,29 @@ static void od_unsafe_write(uint8_t data_id, uint8_t *src);
 /**
  * Object dictionary entries
  */
-ALLOCATE_OD_ENTRY(KALMAN_DATA_A, 			1,     kalman_data_t);
-ALLOCATE_OD_ENTRY(KALMAN_DATA_B, 			2,     kalman_data_t);
-ALLOCATE_OD_ENTRY(GNSS_DATA_A, 				3,     gnss_data_t);
-ALLOCATE_OD_ENTRY(GNSS_DATA_B, 				4,     gnss_data_t);
-ALLOCATE_OD_ENTRY(BATTERY_A, 				5,     battery_data_t);
-ALLOCATE_OD_ENTRY(BATTERY_B, 				6,     battery_data_t);
-ALLOCATE_OD_ENTRY(ENGINE_CONTROL_DATA, 		7,     engine_control_data_t);
-ALLOCATE_OD_ENTRY(RECOVERY_CONTROL_DATA, 	8,     recovery_control_data_t);
-ALLOCATE_OD_ENTRY(SENSOR_BARO_A, 			9,     sensor_baro_data_t);
-ALLOCATE_OD_ENTRY(SENSOR_BARO_B, 			10,    sensor_baro_data_t);
-ALLOCATE_OD_ENTRY(SENSOR_IMU_A, 			11,    sensor_imu_data_t);
-ALLOCATE_OD_ENTRY(SENSOR_IMU_B, 			12,    sensor_imu_data_t);
-ALLOCATE_OD_ENTRY(SENSOR_MAG_A, 			13,    sensor_mag_data_t);
-ALLOCATE_OD_ENTRY(SENSOR_MAG_B, 			14,    sensor_mag_data_t);
-ALLOCATE_OD_ENTRY(SENSOR_ACC_A, 			15,    sensor_acc_data_t);
-ALLOCATE_OD_ENTRY(SENSOR_ACC_B, 			16,    sensor_acc_data_t);
-ALLOCATE_OD_ENTRY(ENGINE_SENSORS_DATA, 		17,    sensor_eng_data_t);
+ALLOCATE_OD_ENTRY(KALMAN_DATA_A, 			1 ,    kalman_data_t);
+ALLOCATE_OD_ENTRY(KALMAN_DATA_B, 			2 ,    kalman_data_t);
+ALLOCATE_OD_ENTRY(GNSS_DATA_A, 				3 ,    gnss_data_t);
+ALLOCATE_OD_ENTRY(GNSS_DATA_B, 				4 ,    gnss_data_t);
+ALLOCATE_OD_ENTRY(BATTERY_A, 				5 ,    battery_data_t);
+ALLOCATE_OD_ENTRY(BATTERY_B, 				6 ,    battery_data_t);
+ALLOCATE_OD_ENTRY(ENGINE_CONTROL_DATA, 		7 ,    engine_control_data_t);
+ALLOCATE_OD_ENTRY(RECOVERY_CONTROL_DATA, 	8 ,    recovery_control_data_t);
+ALLOCATE_OD_ENTRY(SENSOR_BARO_A_0, 			10,    sensor_baro_data_t);
+ALLOCATE_OD_ENTRY(SENSOR_BARO_A_1, 			11,    sensor_baro_data_t);
+ALLOCATE_OD_ENTRY(SENSOR_BARO_B_0, 			12,    sensor_baro_data_t);
+ALLOCATE_OD_ENTRY(SENSOR_BARO_B_1, 			13,    sensor_baro_data_t);
+ALLOCATE_OD_ENTRY(SENSOR_IMU_A_0, 			20,    sensor_imu_data_t);
+ALLOCATE_OD_ENTRY(SENSOR_IMU_A_1, 			21,    sensor_imu_data_t);
+ALLOCATE_OD_ENTRY(SENSOR_IMU_B_0, 			22,    sensor_imu_data_t);
+ALLOCATE_OD_ENTRY(SENSOR_IMU_B_1, 			23,    sensor_imu_data_t);
+ALLOCATE_OD_ENTRY(SENSOR_MAG_A, 			30,    sensor_mag_data_t);
+ALLOCATE_OD_ENTRY(SENSOR_MAG_B, 			31,    sensor_mag_data_t);
+ALLOCATE_OD_ENTRY(SENSOR_ACC_A_0, 			40,    sensor_acc_data_t);
+ALLOCATE_OD_ENTRY(SENSOR_ACC_A_1, 			41,    sensor_acc_data_t);
+ALLOCATE_OD_ENTRY(SENSOR_ACC_B_0, 			42,    sensor_acc_data_t);
+ALLOCATE_OD_ENTRY(SENSOR_ACC_B_1, 			43,    sensor_acc_data_t);
+ALLOCATE_OD_ENTRY(ENGINE_SENSORS_DATA, 		50,    sensor_eng_data_t);
 
 
 /**
@@ -98,14 +104,20 @@ static const od_entry_t od_entries[OD_MAX_DATAID] = {
 	LINK_OD_ENTRY(BATTERY_B),
 	LINK_OD_ENTRY(ENGINE_CONTROL_DATA),
 	LINK_OD_ENTRY(RECOVERY_CONTROL_DATA),
-	LINK_OD_ENTRY(SENSOR_BARO_A),
-	LINK_OD_ENTRY(SENSOR_BARO_B),
-	LINK_OD_ENTRY(SENSOR_IMU_A),
-	LINK_OD_ENTRY(SENSOR_IMU_B),
+	LINK_OD_ENTRY(SENSOR_BARO_A_0),
+	LINK_OD_ENTRY(SENSOR_BARO_A_1),
+	LINK_OD_ENTRY(SENSOR_BARO_B_0),
+	LINK_OD_ENTRY(SENSOR_BARO_B_1),
+	LINK_OD_ENTRY(SENSOR_IMU_A_0),
+	LINK_OD_ENTRY(SENSOR_IMU_A_1),
+	LINK_OD_ENTRY(SENSOR_IMU_B_0),
+	LINK_OD_ENTRY(SENSOR_IMU_B_1),
 	LINK_OD_ENTRY(SENSOR_MAG_A),
 	LINK_OD_ENTRY(SENSOR_MAG_B),
-	LINK_OD_ENTRY(SENSOR_ACC_A),
-	LINK_OD_ENTRY(SENSOR_ACC_B),
+	LINK_OD_ENTRY(SENSOR_ACC_A_0),
+	LINK_OD_ENTRY(SENSOR_ACC_A_1),
+	LINK_OD_ENTRY(SENSOR_ACC_B_0),
+	LINK_OD_ENTRY(SENSOR_ACC_B_1),
 	LINK_OD_ENTRY(ENGINE_SENSORS_DATA)
 };
 

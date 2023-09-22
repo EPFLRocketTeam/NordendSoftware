@@ -68,6 +68,7 @@ void i2c_s1_init(void);
 void i2c_s2_init(void);
 void i2c_s3_init(void);
 void i2c_spi_guard(void);
+device_interface_t * i2c_get_s3_interface(void);
 device_interface_t * i2c_get_s2_interface(void);
 
 #ifdef __cplusplus

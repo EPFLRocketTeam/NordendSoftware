@@ -52,8 +52,8 @@ typedef struct bmi088_gyr_context {
 
 
 
-util_error_t bmi088_acc_init(device_t * dev, bmi088_acc_context_t * context);
-util_error_t bmi088_gyr_init(device_t * dev, bmi088_gyr_context_t * context);
+util_error_t bmi088_acc_init(device_t * dev, bmi088_acc_context_t * ctx);
+util_error_t bmi088_gyr_init(device_t * dev, bmi088_gyr_context_t * ctx);
 
 util_error_t bmi088_acc_read(device_t * dev, sensor_imu_data_t * data);
 util_error_t bmi088_gyr_read(device_t * dev, sensor_imu_data_t * data);

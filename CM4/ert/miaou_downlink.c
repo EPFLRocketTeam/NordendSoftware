@@ -81,7 +81,7 @@ void miaou_downlink_thread(__attribute__((unused)) void * arg) {
 
 	uint16_t checkpoint = led_add_checkpoint(led_orange);
 
-	static int32_t packet_number = 0;
+	static uint32_t packet_number = 0;
 
 	// transission donnees
 
@@ -92,16 +92,7 @@ void miaou_downlink_thread(__attribute__((unused)) void * arg) {
 
 		packet_number += 1;
 
-		gnss_data_t gnss_data;
-		od_read_GNSS_DATA_A(&gnss_data);
-		miaou_packet.gnss_lat = gnss_data.latitude;
-		miaou_packet.gnss_lon = gnss_data.longitude;
-		miaou_packet.gnss_alt = gnss_data.altitude;
-
-		kalman_data_t kalman_data;
-		od_read_KALMAN_DATA_A(&kalman_data);
-		miaou_packet.kalman_z = kalman_data.alt;
-		miaou_packet.kalman_v = kalman_data.vel;
+		miaou_packet.acc_z = 0;
 
 		miaou_packet.packet_nbr = packet_number;
 		miaou_packet.timestamp = HAL_GetTick();
@@ -112,7 +103,7 @@ void miaou_downlink_thread(__attribute__((unused)) void * arg) {
 							(uint8_t *) &miaou_packet);
 
 
-		debug_log(LOG_INFO, "mioau packet sent!\n");
+		debug_log(LOG_INFO, "miaou packet sent!\n");
 
 
 		vTaskDelayUntil( &last_wake_time, period );

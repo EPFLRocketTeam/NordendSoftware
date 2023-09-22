@@ -87,14 +87,20 @@ DECLARE_OD_ENTRY(BATTERY_A, 				battery_data_t);
 DECLARE_OD_ENTRY(BATTERY_B, 				battery_data_t);
 DECLARE_OD_ENTRY(ENGINE_CONTROL_DATA, 		engine_control_data_t);
 DECLARE_OD_ENTRY(RECOVERY_CONTROL_DATA, 	recovery_control_data_t);
-DECLARE_OD_ENTRY(SENSOR_BARO_A, 			sensor_baro_data_t);
-DECLARE_OD_ENTRY(SENSOR_BARO_B, 			sensor_baro_data_t);
-DECLARE_OD_ENTRY(SENSOR_IMU_A, 				sensor_imu_data_t);
-DECLARE_OD_ENTRY(SENSOR_IMU_B, 				sensor_imu_data_t);
+DECLARE_OD_ENTRY(SENSOR_BARO_A_0, 			sensor_baro_data_t);
+DECLARE_OD_ENTRY(SENSOR_BARO_A_1, 			sensor_baro_data_t);
+DECLARE_OD_ENTRY(SENSOR_BARO_B_0, 			sensor_baro_data_t);
+DECLARE_OD_ENTRY(SENSOR_BARO_B_1, 			sensor_baro_data_t);
+DECLARE_OD_ENTRY(SENSOR_IMU_A_0, 			sensor_imu_data_t);
+DECLARE_OD_ENTRY(SENSOR_IMU_A_1, 			sensor_imu_data_t);
+DECLARE_OD_ENTRY(SENSOR_IMU_B_0, 			sensor_imu_data_t);
+DECLARE_OD_ENTRY(SENSOR_IMU_B_1, 			sensor_imu_data_t);
 DECLARE_OD_ENTRY(SENSOR_MAG_A, 				sensor_mag_data_t);
 DECLARE_OD_ENTRY(SENSOR_MAG_B, 				sensor_mag_data_t);
-DECLARE_OD_ENTRY(SENSOR_ACC_A, 				sensor_acc_data_t);
-DECLARE_OD_ENTRY(SENSOR_ACC_B, 				sensor_acc_data_t);
+DECLARE_OD_ENTRY(SENSOR_ACC_A_0, 			sensor_acc_data_t);
+DECLARE_OD_ENTRY(SENSOR_ACC_A_1, 			sensor_acc_data_t);
+DECLARE_OD_ENTRY(SENSOR_ACC_B_0, 			sensor_acc_data_t);
+DECLARE_OD_ENTRY(SENSOR_ACC_B_1,			sensor_acc_data_t);
 DECLARE_OD_ENTRY(ENGINE_SENSORS_DATA, 		sensor_eng_data_t);
 
 #ifdef __cplusplus

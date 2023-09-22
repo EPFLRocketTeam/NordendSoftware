@@ -73,14 +73,14 @@ void miaou_uplink_handler(uint8_t opcode, uint16_t len, uint8_t * _data) {
 
 
 			switch(data.order_id) {
-			case AV_CMD_VALVE_N2O:
+			case AV_CMD_SERVO_N2O:
 				if(data.order_value == ACTIVE) {
 					engine_control_command_push(COMMAND_VALVE_N2O, 90);
 				} else if(data.order_value == INACTIVE){
 					engine_control_command_push(COMMAND_VALVE_N2O, 0);
 				}
 				break;
-			case AV_CMD_VALVE_FUEL:
+			case AV_CMD_SERVO_FUEL:
 				if(data.order_value == ACTIVE) {
 					engine_control_command_push(COMMAND_VALVE_ETH, 90);
 				} else if(data.order_value == INACTIVE){
