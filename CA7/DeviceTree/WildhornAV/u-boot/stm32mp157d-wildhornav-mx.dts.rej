@@ -1,0 +1,11 @@
+--- WildhornAV/u-boot/stm32mp157d-wildhornav-mx.dts
++++ WildhornAV/u-boot/stm32mp157d-wildhornav-mx.dts
+@@ -366,7 +366,7 @@
+ 		pins1 {
+ 			u-boot,dm-pre-reloc;
+ 			pinmux = <STM32_PINMUX('E', 0, AF8)>; /* UART8_RX */
+-			bias-disable;
++			bias-pull-up;
+ 		};
+ 		pins2 {
+ 			u-boot,dm-pre-reloc;

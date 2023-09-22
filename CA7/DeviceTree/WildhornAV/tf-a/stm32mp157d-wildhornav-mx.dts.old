@@ -79,7 +79,7 @@
 		pins {
 			pinmux = <STM32_PINMUX('B', 7, AF6)>, /* I2C4_SDA */
 					 <STM32_PINMUX('B', 8, AF6)>; /* I2C4_SCL */
-			bias-disable;
+			bias-pullup;
 			drive-open-drain;
 			slew-rate = <3>;
 		};
@@ -107,11 +107,11 @@
 	uart8_pins_mx: uart8_mx-0 {
 		pins1 {
 			pinmux = <STM32_PINMUX('E', 0, AF8)>; /* UART8_RX */
-			bias-disable;
+			bias-pullup;
 		};
 		pins2 {
 			pinmux = <STM32_PINMUX('E', 1, AF8)>; /* UART8_TX */
-			bias-disable;
+			bias-pullup;
 			drive-push-pull;
 			slew-rate = <0>;
 		};
@@ -528,6 +528,7 @@
 			"pkh_otp",
 			"board_id";
 };
+
 
 /* USER CODE END addons */
 

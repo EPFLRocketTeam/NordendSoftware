@@ -11,6 +11,8 @@
  *	INCLUDES
  **********************/
 
+#if 0
+
 #include "servo.h"
 #include <math.h>
 #include <tim.h>
@@ -113,6 +115,6 @@ servo_state_t servo_get_state(servo_t *servo) {
 void servo_thread(__attribute__((unused)) void * arg) {return;}
 
 
-
+#endif
 
 /* END */

@@ -75,6 +75,7 @@ void led_feedback_init(void) {
 	//GPIO init leds
 	//feedback leds located on socket 3
 
+#if 0
 	GPIO_InitTypeDef GPIO_InitStructure;
 
 	GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
@@ -84,7 +85,7 @@ void led_feedback_init(void) {
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_RESET);
-
+#endif
 }
 
 
@@ -148,9 +149,9 @@ void led_rgb_set_rgb(uint8_t r, uint8_t g, uint8_t b) {
  * @param	color	Color structure, defines the color to be set.
  */
 void led_rgb_set_color(led_color_t color) {
-	LED_TIM.Instance->CCR1 = 0xff - color.r;
-	LED_TIM.Instance->CCR2 = 0xff - color.g;
-	LED_TIM.Instance->CCR3 = 0xff - color.b;
+	LED_TIM.Instance->CCR1 = color.r;
+	LED_TIM.Instance->CCR2 = color.g;
+	LED_TIM.Instance->CCR3 = color.b;
 }
 
 
@@ -197,7 +198,7 @@ void led_rgb_thread(__attribute__((unused)) void * arg) {
 
 	led_rgb_init();
 
-	led_feedback_init();
+	//led_feedback_init();
 
 	led_rgb_set_color(led_blue);
 

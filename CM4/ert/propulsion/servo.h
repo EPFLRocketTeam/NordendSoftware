@@ -6,6 +6,8 @@
  *  Description : template for code files
  */
 
+#if 0
+
 #ifndef SERVO_H
 #define SERVO_H
 
@@ -177,5 +179,8 @@ void servo_thread(__attribute__((unused)) void * arg);
 #endif /* __cplusplus */
 
 #endif /* SERVO_H */
+
+
+#endif
 
 /* END */

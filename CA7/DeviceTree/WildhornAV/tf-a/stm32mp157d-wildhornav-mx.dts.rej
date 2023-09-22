@@ -1,0 +1,11 @@
+--- WildhornAV/tf-a/stm32mp157d-wildhornav-mx.dts
++++ WildhornAV/tf-a/stm32mp157d-wildhornav-mx.dts
+@@ -107,7 +107,7 @@
+ 	uart8_pins_mx: uart8_mx-0 {
+ 		pins1 {
+ 			pinmux = <STM32_PINMUX('E', 0, AF8)>; /* UART8_RX */
+-			bias-disable;
++			bias-pull-up;
+ 		};
+ 		pins2 {
+ 			pinmux = <STM32_PINMUX('E', 1, AF8)>; /* UART8_TX */

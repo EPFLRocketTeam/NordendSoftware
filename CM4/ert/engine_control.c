@@ -35,8 +35,7 @@
 #include <abstraction/gpio.h>
 #include <engine_control.h>
 
-#include <propulsion/servo.h>
-#include <driver/pwm.h>
+#include <servo.h>
 
 
 #include <sensor/engine_pressure.h>
@@ -125,12 +124,15 @@
 #define THRUST_COUNTER		    10000 //ms
 #define SHUTDOWN_COUNTER		0     //ms
 
+#define IGNITION_DELAY_1		265
+#define IGNITION_DELAY_2		350
 
 
 
 
 
-#define CONTROL_HEART_BEAT 500
+
+#define CONTROL_HEART_BEAT 5
 
 
 
@@ -138,8 +140,10 @@
 
 //TODO Find IGNITER GPIO port and pin
 //Igniter pin definition
-#define IGNITER_PORT GPIOG
-#define IGNITER_PIN  1
+
+
+#define IGNITER_PORT GPIOA
+#define IGNITER_PIN  3
 
 
 //#define USE_CHECKPOINT
@@ -176,14 +180,14 @@ typedef struct control
 
 
 	solenoid_t solenoid_n2o;
-	solenoid_t solenoid_ethanol;
+	solenoid_t solenoid_eth;
 	solenoid_t solenoid_press;
 	solenoid_t solenoid_purge;
 
 	device_t *i2c_engine_press;
 	device_t *i2c_engine_temp;
 
-	servo_t servo_ethanol;
+	servo_t servo_eth;
 	servo_t servo_n2o;
 
 	StaticQueue_t command_queue_params;
@@ -291,7 +295,7 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 	
 	for (;;) {
 		led_checkpoint(checkpoint);
-		debug_log(LOG_INFO, "Current state : %d\n", control.state);
+		//debug_log(LOG_INFO, "Current state : %d\n", control.state);
 
 
 
@@ -370,57 +374,37 @@ util_error_t init_engine_control(void) {
                                 control.command_queue_storage,
                                 &control.command_queue_params);
 
-	control.igniter_time = IGNITER_COUNTER;
-	control.ignition_time = IGNITION_COUNTER;
-	control.thrust_time = THRUST_COUNTER;
-	control.shutdown_time = SHUTDOWN_COUNTER;
+	control.igniter_time = pdMS_TO_TICKS(IGNITER_COUNTER);
+	control.ignition_time = pdMS_TO_TICKS(IGNITION_COUNTER);
+	control.thrust_time = pdMS_TO_TICKS(THRUST_COUNTER);
+	control.shutdown_time = pdMS_TO_TICKS(SHUTDOWN_COUNTER);
 
-	// Assign Ethanol servo to pin 13 (TIM4, CH2) and N2O servo to pin 14 (TIM4, CH3)
-	util_error_t ethanol_err = servo_init(
-			&control.servo_ethanol,
-			PWM_SELECT_CH1,
-			min_pulse,
-			max_pulse,
-			SERVO_ETHANOL_OFFSET,
-			degrees_per_usec,
-			SERVO_ETHANOL_OPEN,
-			SERVO_ETHANOL_IGNITION,
-			SERVO_ETHANOL_CLOSED);
+	//                                 CHANNEL_SUR_LA_HB  PLS_MIN  PLS_MAX   ANGLE_MAX
+	servo_init(&control.servo_eth,     SERVO_CHANNEL_GP0, 700,     2300,     180);
+	servo_init(&control.servo_n2o,     SERVO_CHANNEL_GP1, 700,     2300,     180);
 
-	util_error_t n2o_err = servo_init(
-			&control.servo_n2o,
-			PWM_SELECT_CH2,
-			min_pulse,
-			max_pulse,
-			SERVO_N2O_OFFSET,
-			degrees_per_usec,
-			SERVO_N2O_OPEN,
-			SERVO_N2O_IGNITION,
-			SERVO_N2O_CLOSED);
-
-	//init the solenoids
-	solenoid_init(&control.solenoid_ethanol, 	1, GPIOC, GPIO_PIN_3);
-	solenoid_init(&control.solenoid_n2o, 		1, GPIOD, GPIO_PIN_10);
-	solenoid_init(&control.solenoid_purge, 		0, GPIOA, GPIO_PIN_8);
-	solenoid_init(&control.solenoid_press, 		0, GPIOC, GPIO_PIN_10);
+	//init the solenoids               [1]=NO [0]=NC
+	solenoid_init(&control.solenoid_eth, 	    1, GPIOC, GPIO_PIN_3);  //S3_GP0
+	solenoid_init(&control.solenoid_n2o, 		1, GPIOD, GPIO_PIN_10); //S3_MOSI
+	solenoid_init(&control.solenoid_purge, 		0, GPIOA, GPIO_PIN_8);  //S3_MISO
+	solenoid_init(&control.solenoid_press, 		0, GPIOC, GPIO_PIN_10); //S3_SCK
 
 	// Using channels 1 and 2 -- initialize the PWM channel
-	pwm_init();
 
 	// Initialize servo states
 	util_error_t servo_err = ER_SUCCESS;
-	servo_err |= servo_set_state(&control.servo_n2o, SERVO_CLOSED);
-	servo_err |= servo_set_state(&control.servo_ethanol, SERVO_CLOSED);
+	servo_err |= servo_set_angle(&control.servo_eth, 0);
+	servo_err |= servo_set_angle(&control.servo_n2o, 0);
 
 	// Initialize solenoids
 	util_error_t sol_err = ER_SUCCESS;
-	sol_err |= solenoid_inactive(&control.solenoid_ethanol);
+	sol_err |= solenoid_inactive(&control.solenoid_eth);
 	sol_err |= solenoid_inactive(&control.solenoid_n2o);
 	sol_err |= solenoid_inactive(&control.solenoid_purge);
 	sol_err |= solenoid_inactive(&control.solenoid_press);
 
 
-	return ethanol_err | n2o_err | servo_err | sol_err;
+	return servo_err | sol_err;
 }
 
 
@@ -460,7 +444,7 @@ int engine_control_command_pop(control_command_t * cmd, int32_t * parameter) {
 control_command_t control_read_commands(control_command_t * expected_cmd, size_t expected_cmd_len, int32_t * param) {
 	control_command_t cmd;
 	while(engine_control_command_pop(&cmd, param) != 0) {
-		for(int i = 0; i < expected_cmd_len; i++) {
+		for(uint32_t i = 0; i < expected_cmd_len; i++) {
 			if(cmd == expected_cmd[i]) {
 				return cmd;
 			} else if (cmd == COMMAND_ABORT) {
@@ -514,7 +498,7 @@ void control_man_purge(int32_t param) {
 void control_valve_eth(int32_t param) {
 
 	if(param > 0 && param < 90) {
-		servo_set_rotation(&control.servo_ethanol, (float) param);
+		//servo_set_rotation(&control.servo_ethanol, (float) param);
 	}
 }
 
@@ -525,7 +509,7 @@ void control_valve_eth(int32_t param) {
 void control_valve_n2o(int32_t param) {
 
 	if(param > 0 && param < 90) {
-		servo_set_rotation(&control.servo_n2o, (float) param);
+		//servo_set_rotation(&control.servo_n2o, (float) param);
 	}
 }
 
@@ -537,9 +521,9 @@ void control_valve_n2o(int32_t param) {
 void control_vent_eth(int32_t param) {
 
 	if(param == 1) {
-		solenoid_open(&control.solenoid_ethanol);
+		solenoid_open(&control.solenoid_eth);
 	} else if(param == 0) {
-		solenoid_close(&control.solenoid_ethanol);
+		solenoid_close(&control.solenoid_eth);
 	}
 
 }
@@ -567,6 +551,17 @@ void control_vent_n2o(int32_t param) {
 
 void control_idle_start(void) {
 	control.state = CONTROL_IDLE;
+
+	//init servos
+	servo_set_angle(&control.servo_eth, 0);
+	servo_set_angle(&control.servo_n2o, 0);
+
+	// Initialize solenoids
+	solenoid_inactive(&control.solenoid_eth);
+	solenoid_inactive(&control.solenoid_n2o);
+	solenoid_inactive(&control.solenoid_purge);
+	solenoid_inactive(&control.solenoid_press);
+
 #ifndef USE_CHECKPOINT
 	led_rgb_set_color(led_green);
 #endif
@@ -734,15 +729,18 @@ void control_ignition_start(void) {
 #ifndef USE_CHECKPOINT
 	led_rgb_set_color(led_teal);
 #endif
-
-	servo_set_state(&control.servo_n2o, SERVO_PARTIALLY_OPEN);
-	servo_set_state(&control.servo_ethanol, SERVO_PARTIALLY_OPEN);
+#if 0
+	servo_set_angle(&control.servo_n2o, 64);
+	servo_set_angle(&control.servo_eth, 74);
 	control.counter = control.ignition_time;
+#endif
 }
 
 
 void control_ignition_run(void) {
 
+	//ignition special for tight timings
+#if 0
 	//check for abort
 	control_command_t expected_cmds[] = {
 		COMMAND_NONE
@@ -756,8 +754,14 @@ void control_ignition_run(void) {
 	if (control.counter > 0) {
 		return;
 	}
-
-
+#else
+	servo_set_angle(&control.servo_n2o, 64);
+	servo_set_angle(&control.servo_eth, 74);
+	osDelay(pdMS_TO_TICKS(265));
+	servo_set_angle(&control.servo_n2o, 90);
+	osDelay(pdMS_TO_TICKS(350));
+	servo_set_angle(&control.servo_eth, 94);
+#endif
 	control_thrust_start();
 }
 
@@ -766,9 +770,10 @@ void control_thrust_start(void) {
 #ifndef USE_CHECKPOINT
 	led_rgb_set_color(led_pink);
 #endif
-
-	servo_set_state(&control.servo_n2o, SERVO_OPEN);
-	servo_set_state(&control.servo_ethanol, SERVO_OPEN);
+#if 0
+	servo_set_angle(&control.servo_n2o, 90);
+	servo_set_angle(&control.servo_eth, 90);
+#endif
 	control.counter = control.thrust_time;
 }
 
@@ -803,7 +808,7 @@ void control_shutdown_start(void) {
 	led_rgb_set_color(led_teal);
 #endif
 
-	servo_set_state(&control.servo_ethanol, SERVO_CLOSED);
+	servo_set_angle(&control.servo_eth, 0);
 	control.counter = control.shutdown_time;
 }
 
