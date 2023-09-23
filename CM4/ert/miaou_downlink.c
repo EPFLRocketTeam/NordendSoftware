@@ -60,7 +60,9 @@ static av_downlink_t miaou_packet;
 
 
 void miaou_downlink_handler(uint8_t opcode, uint16_t len, uint8_t * _data) {
-
+	UNUSED(opcode);
+	UNUSED(len);
+	UNUSED(_data);
 }
 
 
@@ -79,7 +81,7 @@ void miaou_downlink_thread(__attribute__((unused)) void * arg) {
 
 	serial_register_handler(miaou_interface, communicator_handler, &miaou_downlink_comunicator);
 
-	uint16_t checkpoint = led_add_checkpoint(led_orange);
+	//uint16_t checkpoint = led_add_checkpoint(led_orange);
 
 	static uint32_t packet_number = 0;
 
@@ -87,15 +89,34 @@ void miaou_downlink_thread(__attribute__((unused)) void * arg) {
 
 	for(;;) {
 
-		led_checkpoint(checkpoint);
 		led_rgb_set_color(led_orange);
+
+
+		engine_control_data_t ec_data;
+		sensor_acc_data_t acc_data0, acc_data1;
+
+		od_read_ENGINE_CONTROL_DATA(&ec_data);
+		od_read_SENSOR_ACC_B_0(&acc_data0);
+		od_read_SENSOR_ACC_B_1(&acc_data1);
+
 
 		packet_number += 1;
 
-		miaou_packet.acc_z = 0;
+		miaou_packet.acc_z = (acc_data0.acc[AXIS_Z] + acc_data1.acc[AXIS_Z]) / 2;
+
+
+
+		miaou_packet.engine_state.pressurize = ec_data.press;
+		miaou_packet.engine_state.purge = ec_data.purge;
+		miaou_packet.engine_state.vent_N2O = ec_data.vent_n2o;
+		miaou_packet.engine_state.vent_fuel = ec_data.vent_eth;
+		miaou_packet.engine_state.servo_N2O = ec_data.servo_n2o == 180 ? 1 : 0;
+		miaou_packet.engine_state.servo_fuel = ec_data.servo_eth == 180 ? 1 : 0;
+
+		miaou_packet.av_state = ec_data.state;
 
 		miaou_packet.packet_nbr = packet_number;
-		miaou_packet.timestamp = HAL_GetTick();
+		miaou_packet.timestamp = util_get_time();
 
 		comunicator_send(	&miaou_downlink_comunicator,
 							0x65, //radio_packet_opcode,
@@ -103,7 +124,7 @@ void miaou_downlink_thread(__attribute__((unused)) void * arg) {
 							(uint8_t *) &miaou_packet);
 
 
-		debug_log(LOG_INFO, "miaou packet sent!\n");
+		debug_log(LOG_INFO, "miaou packet sent: %d %d\n", miaou_packet.packet_nbr, miaou_packet.timestamp);
 
 
 		vTaskDelayUntil( &last_wake_time, period );

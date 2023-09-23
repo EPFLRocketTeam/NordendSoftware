@@ -64,3 +64,7 @@ util_error_t solenoid_inactive(solenoid_t * valve) {
 	}
 	return ER_SUCCESS;
 }
+
+uint8_t solenoid_get_active(solenoid_t * valve) {
+	return gpio_get(valve->GPIOx, valve->GPIO_Pin);
+}

@@ -62,6 +62,12 @@ typedef enum control_state
 typedef struct __attribute__((__packed__)) engine_control_data {
 	uint16_t state;
 	uint16_t last_cmd;
+	uint8_t  vent_eth;
+	uint8_t  vent_n2o;
+	uint8_t  press;
+	uint8_t  purge;
+	uint16_t servo_eth;
+	uint16_t servo_n2o;
 	uint32_t time;
 }engine_control_data_t;
 

@@ -345,10 +345,19 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 		control.ec_data.state = control.state;
 		control.ec_data.time = util_get_time();
 
+		control.ec_data.press = solenoid_get_active(&control.solenoid_press);
+		control.ec_data.purge = solenoid_get_active(&control.solenoid_purge);
+		control.ec_data.vent_eth = solenoid_get_active(&control.solenoid_eth);
+		control.ec_data.vent_n2o = solenoid_get_active(&control.solenoid_n2o);
+
+		control.ec_data.servo_n2o = servo_get_angle(&control.servo_n2o);
+		control.ec_data.servo_eth = servo_get_angle(&control.servo_eth);
+
 		debug_log(LOG_INFO, "update EC od: %d, %d, %d\n",
 					control.ec_data.state,
 					control.ec_data.last_cmd,
 					control.ec_data.time);
+
 		od_write_ENGINE_CONTROL_DATA(&control.ec_data);
 
 		vTaskDelayUntil(&last_wake_time, period);

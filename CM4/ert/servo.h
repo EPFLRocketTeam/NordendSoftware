@@ -18,6 +18,7 @@ typedef struct servo {
 	uint32_t pulse_min;
 	uint32_t pulse_max;
 	uint16_t angle_max;
+	uint16_t last_angle;
 }servo_t;
 
 
@@ -27,6 +28,7 @@ extern "C"{
 
 util_error_t servo_init(servo_t * servo, uint8_t channel, uint32_t pulse_min, uint32_t pulse_max, uint16_t angle_max);
 util_error_t servo_set_angle(servo_t * servo, uint16_t angle);
+uint16_t servo_get_angle(servo_t * servo);
 
 #ifdef __cplusplus
 } // extern "C"

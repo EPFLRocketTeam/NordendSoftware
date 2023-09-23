@@ -59,6 +59,7 @@ util_error_t servo_init(servo_t * servo, uint8_t channel, uint32_t pulse_min, ui
 util_error_t servo_set_angle(servo_t * servo, uint16_t angle) {
 	uint32_t new_pulse;
 	uint32_t delta_t = servo->pulse_max - servo->pulse_min;
+	servo->last_angle = angle;
 
 	new_pulse = delta_t*angle/servo->angle_max + servo->pulse_min;
 
@@ -68,6 +69,10 @@ util_error_t servo_set_angle(servo_t * servo, uint16_t angle) {
 		SERVO_TIM.Instance->CCR2 = new_pulse;
 	}
 	return ER_SUCCESS;
+}
+
+uint16_t servo_get_angle(servo_t * servo) {
+	return servo->last_angle;
 }
 
 
