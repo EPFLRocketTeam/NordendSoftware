@@ -339,9 +339,10 @@ int ui_update_content(ui_data_t * data) {
 
 }
 
-void ui_send_engine_command(ui_data_t * data, control_command_t cmd) {
+void ui_send_engine_command(ui_data_t * data, control_command_t cmd, uint8_t param) {
 	uint8_t _data[2];
 	_data[0] = cmd;
+	_data[1] = param;
 	comunicator_send(&data->com, SUBSYSTEM_PROPULSION, 2, _data);
 }
 
@@ -357,19 +358,43 @@ int ui_handle_input(ui_data_t * data) {
 		exit(0);
 		break;
 	case 'a':
-		ui_send_engine_command(data, COMMAND_ARM);
+		ui_send_engine_command(data, COMMAND_ARM, 0);
 		break;
 	case 'd':
-		ui_send_engine_command(data, COMMAND_DISARM);
+		ui_send_engine_command(data, COMMAND_DISARM, 0);
 		break;
 	case 'p':
-		ui_send_engine_command(data, COMMAND_PRESSURE);
+		ui_send_engine_command(data, COMMAND_PRESSURE, 0);
 		break;
 	case 'i':
-		ui_send_engine_command(data, COMMAND_IGNITE);
+		ui_send_engine_command(data, COMMAND_IGNITE, 0);
 		break;
 	case 'r':
-		ui_send_engine_command(data, COMMAND_RECOVER);
+		ui_send_engine_command(data, COMMAND_RECOVER, 0);
+		break;
+	case '1':
+		ui_send_engine_command(data, COMMAND_VENT_N2O, 1);
+		break;
+	case '2':
+		ui_send_engine_command(data, COMMAND_VENT_N2O, 0);
+		break;
+	case '3':
+		ui_send_engine_command(data, COMMAND_VENT_ETH, 1);
+		break;
+	case '4':
+		ui_send_engine_command(data, COMMAND_VENT_ETH, 0);
+		break;
+	case '5':
+		ui_send_engine_command(data, COMMAND_VALVE_N2O, 180);
+		break;
+	case '6':
+		ui_send_engine_command(data, COMMAND_VALVE_N2O, 0);
+		break;
+	case '7':
+		ui_send_engine_command(data, COMMAND_VALVE_ETH, 180);
+		break;
+	case '8':
+		ui_send_engine_command(data, COMMAND_VALVE_ETH, 0);
 		break;
 	default:
 		break;

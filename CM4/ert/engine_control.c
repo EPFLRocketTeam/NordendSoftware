@@ -391,13 +391,13 @@ util_error_t init_engine_control(void) {
 	control.shutdown_time = HB_MS2TICK(SHUTDOWN_COUNTER);
 
 	//                                 CHANNEL_SUR_LA_HB  PLS_MIN  PLS_MAX   ANGLE_MAX
-	servo_init(&control.servo_eth,     SERVO_CHANNEL_GP0, 700,     2300,     180);
-	servo_init(&control.servo_n2o,     SERVO_CHANNEL_GP1, 700,     2300,     180);
+	servo_init(&control.servo_eth,     SERVO_CHANNEL_GP1, 700,     2300,     180);
+	servo_init(&control.servo_n2o,     SERVO_CHANNEL_GP2, 700,     2300,     180);
 
 	//init the solenoids               [1]=NO [0]=NC
 	solenoid_init(&control.solenoid_eth, 	    1, GPIOC, GPIO_PIN_3);  //S3_GP0
-	solenoid_init(&control.solenoid_n2o, 		1, GPIOD, GPIO_PIN_10); //S3_MOSI
-	solenoid_init(&control.solenoid_purge, 		0, GPIOA, GPIO_PIN_8);  //S3_MISO
+	solenoid_init(&control.solenoid_n2o, 		1, GPIOD, GPIO_PIN_10); //S3_MISO
+	solenoid_init(&control.solenoid_purge, 		0, GPIOA, GPIO_PIN_8);  //S3_MOSI
 	solenoid_init(&control.solenoid_press, 		0, GPIOC, GPIO_PIN_10); //S3_SCK
 
 	// Using channels 1 and 2 -- initialize the PWM channel
@@ -511,8 +511,9 @@ void control_man_purge(int32_t param) {
 */
 void control_valve_eth(int32_t param) {
 
-	if(param > 0 && param < 90) {
+	if(param >= 0 && param <= 180) {
 		//servo_set_rotation(&control.servo_ethanol, (float) param);
+		servo_set_angle(&control.servo_eth, param);
 	}
 }
 
@@ -522,8 +523,9 @@ void control_valve_eth(int32_t param) {
 */
 void control_valve_n2o(int32_t param) {
 
-	if(param > 0 && param < 90) {
+	if(param >= 0 && param <= 180) {
 		//servo_set_rotation(&control.servo_n2o, (float) param);
+		servo_set_angle(&control.servo_n2o, param);
 	}
 }
 
@@ -535,9 +537,9 @@ void control_valve_n2o(int32_t param) {
 void control_vent_eth(int32_t param) {
 
 	if(param == 1) {
-		solenoid_open(&control.solenoid_eth);
+		solenoid_active(&control.solenoid_eth);
 	} else if(param == 0) {
-		solenoid_close(&control.solenoid_eth);
+		solenoid_inactive(&control.solenoid_eth);
 	}
 
 }
@@ -550,9 +552,9 @@ void control_vent_eth(int32_t param) {
 void control_vent_n2o(int32_t param) {
 
 	if(param == 1) {
-		solenoid_open(&control.solenoid_n2o);
+		solenoid_active(&control.solenoid_n2o);
 	} else if(param == 0) {
-		solenoid_close(&control.solenoid_n2o);
+		solenoid_inactive(&control.solenoid_n2o);
 	}
 
 }
@@ -811,6 +813,7 @@ void control_shutdown_start(void) {
 #endif
 
 	servo_set_angle(&control.servo_eth, 0);
+	servo_set_angle(&control.servo_n2o, 0);
 	control.counter_active = 1;
 	control.counter = control.shutdown_time;
 }

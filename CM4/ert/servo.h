@@ -10,8 +10,8 @@
 
 #include <util.h>
 
-#define SERVO_CHANNEL_GP0 0
-#define SERVO_CHANNEL_GP1 1
+#define SERVO_CHANNEL_GP1 0
+#define SERVO_CHANNEL_GP2 1
 
 typedef struct servo {
 	uint16_t pwm_channel;

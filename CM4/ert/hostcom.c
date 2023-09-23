@@ -122,8 +122,8 @@ void hostcom_handle_cmd(uint8_t opcode, uint16_t len, uint8_t * data) {
 
 	if(opcode == SUBSYSTEM_PROPULSION) { //propulsion commands
 #if ND_HAS_PROPULSION == ND_TRUE
-		engine_control_command_push(data[0], 0);
-		debug_log(LOG_INFO, "EC: received command: %d\n", data[0]);
+		engine_control_command_push(data[0], data[1]);
+		debug_log(LOG_INFO, "EC: received command: %d %d\n", data[0], data[1]);
 #else
 		//handle interboard commands
 #endif

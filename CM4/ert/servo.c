@@ -15,7 +15,7 @@
 #define SERVO_BASE_FREQ		(200e6)
 #define SERVO_PSC			(200)
 
-#define SERVO_FREQ		(50) //Hz
+#define SERVO_FREQ		(200) //Hz
 
 #define SERVO_MAX			((SERVO_BASE_FREQ/SERVO_PSC)/SERVO_FREQ)
 
@@ -42,11 +42,11 @@ util_error_t servo_init(servo_t * servo, uint8_t channel, uint32_t pulse_min, ui
 	SERVO_TIM.Instance->PSC = SERVO_PSC-1;
 	SERVO_TIM.Instance->ARR = SERVO_MAX;
 
-	if(channel == SERVO_CHANNEL_GP0) {
+	if(channel == SERVO_CHANNEL_GP1) {
 		SERVO_TIM.Instance->CCR1 = pulse_min;
 		servo->pwm_channel = TIM_CHANNEL_1;
 		HAL_TIM_PWM_Start(&SERVO_TIM, TIM_CHANNEL_1);
-	} else if (channel == SERVO_CHANNEL_GP1) {
+	} else if (channel == SERVO_CHANNEL_GP2) {
 		SERVO_TIM.Instance->CCR2 = pulse_min;
 		servo->pwm_channel = TIM_CHANNEL_2;
 		HAL_TIM_PWM_Start(&SERVO_TIM, TIM_CHANNEL_2);
