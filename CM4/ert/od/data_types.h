@@ -144,6 +144,10 @@ typedef struct __attribute__((__packed__)) sensor_eng_data {
 	uint32_t adc_2_time;
 	uint32_t adc_3_time;
 	uint32_t adc_4_time;
+	float press_eng;
+	float temp_eng;
+	float press_eth;
+	float press_n2o;
 }sensor_eng_data_t;
 
 
