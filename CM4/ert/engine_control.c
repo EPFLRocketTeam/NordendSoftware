@@ -785,8 +785,8 @@ void control_thrust_start(void) {
 #ifndef USE_CHECKPOINT
 	led_rgb_set_color(led_pink);
 #endif
-	servo_set_angle(&control.servo_n2o, 144);
-	servo_set_angle(&control.servo_eth, 144);
+	servo_set_angle(&control.servo_n2o, 180);
+	servo_set_angle(&control.servo_eth, 180);
 	control.counter_active = 1;
 	control.counter = control.thrust_time;
 }

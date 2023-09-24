@@ -98,6 +98,17 @@ util_error_t bmi088_gyr_read(device_t * dev, sensor_imu_data_t * data) {
 	 }
 }
 
+uint8_t bmi088_acc_is_available(device_t * dev) {
+	 i2c_sensor_context_t * context = (i2c_sensor_context_t *) dev->context;
+	 bmi088_acc_context_t * ctx = context->context;
+	 return ctx->hw_available;
+}
+uint8_t bmi088_gyr_is_available(device_t * dev) {
+	 i2c_sensor_context_t * context = (i2c_sensor_context_t *) dev->context;
+	 bmi088_gyr_context_t * ctx = context->context;
+	 return ctx->hw_available;
+}
+
 
 
 

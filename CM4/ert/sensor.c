@@ -119,15 +119,31 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 		bmp390_baro_read(bmp390_baro[1], &baro_data[1]);
 
 #if ND_COMPUTER == ND_A
-		od_write_SENSOR_IMU_A_0(&imu_data[0]);
-		od_write_SENSOR_BARO_A_0(&baro_data[0]);
-		od_write_SENSOR_IMU_A_1(&imu_data[1]);
-		od_write_SENSOR_BARO_A_1(&baro_data[1]);
+		if(bmi088_acc_is_available(bmi088_acc[0]) || bmi088_gyr_is_available(bmi088_gyr[0])) {
+			od_write_SENSOR_IMU_A_0(&imu_data[0]);
+		}
+		if(bmi088_acc_is_available(bmi088_acc[1]) || bmi088_gyr_is_available(bmi088_gyr[1])) {
+			od_write_SENSOR_IMU_A_1(&imu_data[1]);
+		}
+		if(bmp390_baro_is_available(bmp390_baro[0])) {
+			od_write_SENSOR_BARO_A_0(&baro_data[0]);
+		}
+		if(bmp390_baro_is_available(bmp390_baro[1])) {
+			od_write_SENSOR_BARO_A_1(&baro_data[1]);
+		}
 #else
-		od_write_SENSOR_IMU_B_0(&imu_data[0]);
-		od_write_SENSOR_BARO_B_0(&baro_data[0]);
-		od_write_SENSOR_IMU_B_1(&imu_data[1]);
-		od_write_SENSOR_BARO_B_1(&baro_data[1]);
+		if(bmi088_acc_is_available(bmi088_acc[0]) || bmi088_gyr_is_available(bmi088_gyr[0])) {
+			od_write_SENSOR_IMU_B_0(&imu_data[0]);
+		}
+		if(bmi088_acc_is_available(bmi088_acc[1]) || bmi088_gyr_is_available(bmi088_gyr[1])) {
+			od_write_SENSOR_IMU_B_1(&imu_data[1]);
+		}
+		if(bmp390_baro_is_available(bmp390_baro[0])) {
+			od_write_SENSOR_BARO_B_0(&baro_data[0]);
+		}
+		if(bmp390_baro_is_available(bmp390_baro[1])) {
+			od_write_SENSOR_BARO_B_1(&baro_data[1]);
+		}
 #endif
 
 

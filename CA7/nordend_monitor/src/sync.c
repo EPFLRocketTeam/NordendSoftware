@@ -162,25 +162,63 @@ void sync_handle_sensor_baro(uint8_t opcode, uint16_t len, uint8_t * _data) {
 	}
 }
 
+/*SENSOR_IMU_x_x,acc_x,acc_y,acc_z,acc_time,gyro_x,gyro_y,gyro_z,gyro_time*/
 void sync_handle_sensor_imu(uint8_t opcode, uint16_t len, uint8_t * _data) {
 	if(1 || len == sizeof(sensor_imu_data_t)) {
 		switch(opcode){
 		case SENSOR_IMU_A_0:
 			memcpy(&data.imu_a[0], _data, sizeof(sensor_imu_data_t));
+			fprintf(fp, "SENSOR_IMU_A_0,%g,%g,%g,%d,%g,%g,%g,%d\n",
+						data.imu_a[0].acc[AXIS_X],
+						data.imu_a[0].acc[AXIS_Y],
+						data.imu_a[0].acc[AXIS_Z],
+						data.imu_a[0].acc_time,
+						data.imu_a[0].gyro[AXIS_X],
+						data.imu_a[0].gyro[AXIS_Y],
+						data.imu_a[0].gyro[AXIS_Z],
+						data.imu_a[0].gyro_time);
 			break;
 		case SENSOR_IMU_A_1:
 			memcpy(&data.imu_a[1], _data, sizeof(sensor_imu_data_t));
+			fprintf(fp, "SENSOR_IMU_A_1,%g,%g,%g,%d,%g,%g,%g,%d\n",
+						data.imu_a[1].acc[AXIS_X],
+						data.imu_a[1].acc[AXIS_Y],
+						data.imu_a[1].acc[AXIS_Z],
+						data.imu_a[1].acc_time,
+						data.imu_a[1].gyro[AXIS_X],
+						data.imu_a[1].gyro[AXIS_Y],
+						data.imu_a[1].gyro[AXIS_Z],
+						data.imu_a[1].gyro_time);
 			break;
 		case SENSOR_IMU_B_0:
 			memcpy(&data.imu_b[0], _data, sizeof(sensor_imu_data_t));
+			fprintf(fp, "SENSOR_IMU_B_0,%g,%g,%g,%d,%g,%g,%g,%d\n",
+						data.imu_b[0].acc[AXIS_X],
+						data.imu_b[0].acc[AXIS_Y],
+						data.imu_b[0].acc[AXIS_Z],
+						data.imu_b[0].acc_time,
+						data.imu_b[0].gyro[AXIS_X],
+						data.imu_b[0].gyro[AXIS_Y],
+						data.imu_b[0].gyro[AXIS_Z],
+						data.imu_b[0].gyro_time);
 			break;
 		case SENSOR_IMU_B_1:
 			memcpy(&data.imu_b[1], _data, sizeof(sensor_imu_data_t));
+			fprintf(fp, "SENSOR_IMU_B_1,%g,%g,%g,%d,%g,%g,%g,%d\n",
+						data.imu_b[1].acc[AXIS_X],
+						data.imu_b[1].acc[AXIS_Y],
+						data.imu_b[1].acc[AXIS_Z],
+						data.imu_b[1].acc_time,
+						data.imu_b[1].gyro[AXIS_X],
+						data.imu_b[1].gyro[AXIS_Y],
+						data.imu_b[1].gyro[AXIS_Z],
+						data.imu_b[1].gyro_time);
 			break;
 		}
 	}
 }
 
+/*UNUSED*/
 void sync_handle_sensor_mag(uint8_t opcode, uint16_t len, uint8_t * _data) {
 	if(1 || len == sizeof(sensor_mag_data_t)) {
 		if(opcode == SENSOR_MAG_A) {
@@ -191,20 +229,41 @@ void sync_handle_sensor_mag(uint8_t opcode, uint16_t len, uint8_t * _data) {
 	}
 }
 
+/*SENSOR_ACC_x_x,acc_x,acc_y,acc_z,time*/
 void sync_handle_sensor_acc(uint8_t opcode, uint16_t len, uint8_t * _data) {
 	if(1 || len == sizeof(sensor_acc_data_t)) {
 		switch(opcode){
 		case SENSOR_ACC_A_0:
 			memcpy(&data.acc_a[0], _data, sizeof(sensor_acc_data_t));
+			fprintf(fp, "SENSOR_ACC_A_0,%g,%g,%g,%d\n",
+						data.acc_a[0].acc[AXIS_X],
+						data.acc_a[0].acc[AXIS_Y],
+						data.acc_a[0].acc[AXIS_Z],
+						data.acc_a[0].time);
 			break;
 		case SENSOR_ACC_A_1:
 			memcpy(&data.acc_a[1], _data, sizeof(sensor_acc_data_t));
+			fprintf(fp, "SENSOR_ACC_A_1,%g,%g,%g,%d\n",
+						data.acc_a[1].acc[AXIS_X],
+						data.acc_a[1].acc[AXIS_Y],
+						data.acc_a[1].acc[AXIS_Z],
+						data.acc_a[1].time);
 			break;
 		case SENSOR_ACC_B_0:
 			memcpy(&data.acc_b[0], _data, sizeof(sensor_acc_data_t));
+			fprintf(fp, "SENSOR_ACC_B_0,%g,%g,%g,%d\n",
+						data.acc_b[0].acc[AXIS_X],
+						data.acc_b[0].acc[AXIS_Y],
+						data.acc_b[0].acc[AXIS_Z],
+						data.acc_b[0].time);
 			break;
 		case SENSOR_ACC_B_1:
 			memcpy(&data.acc_b[1], _data, sizeof(sensor_acc_data_t));
+			fprintf(fp, "SENSOR_ACC_B_1,%g,%g,%g,%d\n",
+						data.acc_b[1].acc[AXIS_X],
+						data.acc_b[1].acc[AXIS_Y],
+						data.acc_b[1].acc[AXIS_Z],
+						data.acc_b[1].time);
 			break;
 		}
 	}
@@ -220,7 +279,7 @@ void sync_handle_sensor_eng(uint8_t opcode, uint16_t len, uint8_t * _data) {
 void sync_handle_data(uint8_t opcode, uint16_t len, uint8_t * _data) {
 
 	//printf("handling: %d | %d\n", opcode, len);
-	fprintf(fp, "handling: %d, %d\n", opcode, len);
+	//fprintf(fp, "handling: %d, %d\n", opcode, len);
 	switch(opcode) {
 	case GNSS_DATA_A:
 	case GNSS_DATA_B:

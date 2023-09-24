@@ -45,6 +45,12 @@ util_error_t bmp390_baro_read(device_t * dev, sensor_baro_data_t * data) {
 	 }
 }
 
+uint8_t bmp390_baro_is_available(device_t * dev) {
+	 i2c_sensor_context_t * context = (i2c_sensor_context_t *) dev->context;
+	 bmp390_baro_context_t * ctx = context->context;
+	 return ctx->hw_available;
+}
+
 
 
 

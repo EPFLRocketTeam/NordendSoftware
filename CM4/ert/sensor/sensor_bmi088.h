@@ -58,5 +58,8 @@ util_error_t bmi088_gyr_init(device_t * dev, bmi088_gyr_context_t * ctx);
 util_error_t bmi088_acc_read(device_t * dev, sensor_imu_data_t * data);
 util_error_t bmi088_gyr_read(device_t * dev, sensor_imu_data_t * data);
 
+uint8_t bmi088_acc_is_available(device_t * dev);
+uint8_t bmi088_gyr_is_available(device_t * dev);
+
 
 #endif /* SENSOR_BMI088_H */

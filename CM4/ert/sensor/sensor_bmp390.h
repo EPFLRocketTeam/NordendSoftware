@@ -42,6 +42,8 @@ util_error_t bmp390_baro_init(device_t * dev, bmp390_baro_context_t * ctx);
 
 util_error_t bmp390_baro_read(device_t * dev, sensor_baro_data_t * data);
 
+uint8_t bmp390_baro_is_available(device_t * dev);
+
 
 
 #endif /* SENSOR_BMP390_H */
