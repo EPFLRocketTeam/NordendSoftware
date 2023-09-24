@@ -51,6 +51,10 @@ static device_t bmi088_gyr_device1;
 static device_t bmp390_baro_device0;
 static device_t bmp390_baro_device1;
 
+static device_t adxl375_acc_device0;
+static device_t adxl375_acc_device1;
+
+
 static i2c_sensor_context_t bmi088_acc_context0 = {
 		.device_address = 0x18
 };
@@ -73,6 +77,14 @@ static i2c_sensor_context_t bmp390_baro_context0 = {
 
 static i2c_sensor_context_t bmp390_baro_context1 = {
 		.device_address = 0x77
+};
+
+static i2c_sensor_context_t adxl375_acc_context0 = {
+		.device_address = 0x3A
+};
+
+static i2c_sensor_context_t adxl375_acc_context1 = {
+		.device_address = 0x3B
 };
 
 
@@ -129,6 +141,8 @@ util_error_t i2c_sensor_init(void) {
 	device_create(&bmi088_gyr_device1, &bmi088_gyr_context1, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
 	device_create(&bmp390_baro_device0, &bmp390_baro_context0, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
 	device_create(&bmp390_baro_device1, &bmp390_baro_context1, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
+	device_create(&adxl375_acc_device0, &adxl375_acc_context0, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
+	device_create(&adxl375_acc_device1, &adxl375_acc_context1, i2c_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
 
 	return ER_SUCCESS;
 
@@ -166,6 +180,15 @@ device_t * i2c_sensor_get_bmp390_baro(uint8_t num) {
 		return &bmp390_baro_device0;
 	} else if(num == 1) {
 		return &bmp390_baro_device1;
+	}
+	return NULL;
+}
+
+device_t * i2c_sensor_get_adxl375_acc(uint8_t num) {
+	if(num == 0) {
+		return &adxl375_acc_device0;
+	} else if(num == 1) {
+		return &adxl375_acc_device1;
 	}
 	return NULL;
 }

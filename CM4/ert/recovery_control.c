@@ -274,7 +274,7 @@ int recovery_control_command_pop(recovery_cmd_t * cmd) {
 recovery_cmd_t recovery_read_commands(recovery_cmd_t * expected_cmd, size_t expected_cmd_len) {
 	recovery_cmd_t cmd;
 	while(recovery_control_command_pop(&cmd) != 0) {
-		for(int i = 0; i < expected_cmd_len; i++) {
+		for(size_t i = 0; i < expected_cmd_len; i++) {
 			if(cmd == expected_cmd[i]) {
 				return cmd;
 			} else if (cmd == RECOVERY_CMD_ABORT) {

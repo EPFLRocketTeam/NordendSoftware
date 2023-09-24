@@ -11,11 +11,14 @@
  *	INCLUDES
  **********************/
 
+#if 0
+
 #include <propulsion_sensor.h>
 #include <od/od.h>
 
 #include <main.h>
 #include <cmsis_os.h>
+#include <od/od.h>
 
 #include <device/i2c_sensor.h>
 #include <sensor/engine_pressure.h>
@@ -214,5 +217,7 @@ void prop_sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	}
 
 }
+
+#endif
 
 /* END */

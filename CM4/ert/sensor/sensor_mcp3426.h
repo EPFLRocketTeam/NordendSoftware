@@ -48,7 +48,7 @@ typedef struct mcp3426_adc_context {
 
 util_error_t mcp3425_adc_init(device_t * dev, mcp3426_adc_context_t * ctx);
 
-util_error_t mcp3425_adc_read(device_t * dev, uint8_t channel, uint32_t * data);
+util_error_t mcp3425_adc_read(device_t * dev, uint8_t channel, float * data);
 
 uint8_t mcp3425_adc_is_available(device_t * dev);
 

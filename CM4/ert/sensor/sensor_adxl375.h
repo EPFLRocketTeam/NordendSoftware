@@ -37,6 +37,7 @@ util_error_t adxl375_acc_init(device_t * dev, adxl375_acc_context_t * ctx);
 
 util_error_t adxl375_acc_read(device_t * dev, sensor_acc_data_t * data);
 
+uint8_t adx375_acc_is_available(device_t * dev);
 
 
 #endif /* SENSOR_ADXL375_H */

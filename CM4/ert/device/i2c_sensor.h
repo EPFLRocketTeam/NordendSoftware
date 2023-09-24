@@ -59,6 +59,7 @@ util_error_t i2c_engine_sensor_init(void);
 device_t * i2c_sensor_get_bmi088_gyr(uint8_t num);
 device_t * i2c_sensor_get_bmi088_acc(uint8_t num);
 device_t * i2c_sensor_get_bmp390_baro(uint8_t num);
+device_t * i2c_sensor_get_adxl375_acc(uint8_t num);
 
 device_t * i2c_engine_sensor_get_mcp3426_up(void);
 device_t * i2c_engine_sensor_get_mcp3426_dn(void);

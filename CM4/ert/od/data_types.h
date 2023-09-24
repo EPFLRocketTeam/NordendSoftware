@@ -136,10 +136,10 @@ typedef struct __attribute__((__packed__)) sensor_acc_data {
 
 
 typedef struct __attribute__((__packed__)) sensor_eng_data {
-	uint16_t adc_1;
-	uint16_t adc_2;
-	uint16_t adc_3;
-	uint16_t adc_4;
+	float adc_1;
+	float adc_2;
+	float adc_3;
+	float adc_4;
 	uint32_t adc_1_time;
 	uint32_t adc_2_time;
 	uint32_t adc_3_time;

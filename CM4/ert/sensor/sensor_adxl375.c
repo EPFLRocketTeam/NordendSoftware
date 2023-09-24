@@ -51,3 +51,14 @@ util_error_t adxl375_acc_read(device_t * dev, sensor_acc_data_t * data) {
 		return ER_RESSOURCE_ERROR;
 	}
 }
+
+
+uint8_t adx375_acc_is_available(device_t * dev) {
+	i2c_sensor_context_t * context = (i2c_sensor_context_t *) dev->context;
+	adxl375_acc_context_t * ctx = (adxl375_acc_context_t *) context->context;
+
+	return ctx->hw_available;
+}
+
+
+

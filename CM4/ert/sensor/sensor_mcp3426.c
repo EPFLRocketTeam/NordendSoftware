@@ -47,7 +47,9 @@ util_error_t mcp3425_adc_init(device_t * dev, mcp3426_adc_context_t * ctx) {
 	return ER_SUCCESS;
 }
 
-util_error_t mcp3425_adc_read(device_t * dev, uint8_t channel, uint32_t * data) {
+
+//output data in mv
+util_error_t mcp3425_adc_read(device_t * dev, uint8_t channel, float * data) {
 	i2c_sensor_context_t * context = (i2c_sensor_context_t *) dev->context;
 	mcp3426_adc_context_t * ctx = (mcp3426_adc_context_t *) context->context;
 
@@ -56,6 +58,9 @@ util_error_t mcp3425_adc_read(device_t * dev, uint8_t channel, uint32_t * data) 
 						MCP3422_SAMPLE_RATE_VALUE(MCP3422_SRATE_240) |
 						MCP3422_PGA_VALUE(MCP3422_PGA_1) |
 						MCP3422_CONT_SAMPLING;
+
+		ctx->pga = 1;
+		ctx->selected_sstvt = 1.0; // mV / LSB
 
 		//write only one byte
 		mcp3425_write_wrapper(dev, ctx->config);
@@ -66,7 +71,11 @@ util_error_t mcp3425_adc_read(device_t * dev, uint8_t channel, uint32_t * data) 
 		//read data
 		uint8_t _data[4];
 		mcp3425_read_wrapper(dev, &_data[0], 3);
-		*data = util_decode_i16(_data);
+		uint32_t tmp_data = util_decode_i16(_data);
+
+		*data = (float)tmp_data / ctx->pga * ctx->selected_sstvt;
+
+
 
 		return ER_SUCCESS;
 	} else {

@@ -100,7 +100,7 @@ void engine_sensor_thread(__attribute__((unused)) void * arg) {
 
 		//read data
 		sensor_eng_data_t data;
-		uint32_t _data;
+		float _data;
 		mcp3425_adc_read(mcp3426_adc_up, 0, &_data);
 		data.adc_1 = _data;
 		data.adc_1_time = util_get_time();
@@ -114,10 +114,6 @@ void engine_sensor_thread(__attribute__((unused)) void * arg) {
 		data.adc_4 = _data;
 		data.adc_4_time = util_get_time();
 
-		debug_log(LOG_WARNING, "sensor_available %d, %d\n",
-						mcp3425_adc_is_available(mcp3426_adc_up),
-						mcp3425_adc_is_available(mcp3426_adc_dn));
-
 
 		vTaskDelayUntil( &last_wake_time, period );
 
@@ -126,8 +122,13 @@ void engine_sensor_thread(__attribute__((unused)) void * arg) {
 }
 
 
+#define VOLTAGE_DIVIDER(v) (v)*(14.3 + 10.0) / (10.0)
+
 
 util_error_t engine_sensor_convert_values(sensor_eng_data_t * data) {
+
+	float true_voltage = VOLTAGE_DIVIDER(data->adc_1);
+
 
 }
 

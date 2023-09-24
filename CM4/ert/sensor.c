@@ -21,6 +21,7 @@
 #include <device/i2c_sensor.h>
 #include <sensor/sensor_bmi088.h>
 #include <sensor/sensor_bmp390.h>
+#include <sensor/sensor_adxl375.h>
 #include <od/od.h>
 #include <driver/hostproc.h>
 #include <hostcom.h>
@@ -52,14 +53,17 @@
 static device_t * bmi088_acc[2];
 static device_t * bmi088_gyr[2];
 static device_t * bmp390_baro[2];
+static device_t * adxl375_acc[2];
 
 static bmi088_acc_context_t bmi088_acc_ctx[2];
 static bmi088_gyr_context_t bmi088_gyr_ctx[2];
 static bmp390_baro_context_t bmp390_baro_ctx[2];
+static adxl375_acc_context_t adxl375_acc_ctx[2];
 
 
 static sensor_imu_data_t imu_data[2];
 static sensor_baro_data_t baro_data[2];
+static sensor_acc_data_t acc_data[2];
 
 /**********************
  *	PROTOTYPES
@@ -93,6 +97,9 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	bmp390_baro[0] = i2c_sensor_get_bmp390_baro(0);
 	bmp390_baro[1] = i2c_sensor_get_bmp390_baro(1);
 
+	adxl375_acc[0] = i2c_sensor_get_adxl375_acc(0);
+	adxl375_acc[1] = i2c_sensor_get_adxl375_acc(1);
+
 	bmi088_acc_init(bmi088_acc[0], &bmi088_acc_ctx[0]);
 	bmi088_gyr_init(bmi088_gyr[0], &bmi088_gyr_ctx[0]);
 	bmi088_acc_init(bmi088_acc[1], &bmi088_acc_ctx[1]);
@@ -100,6 +107,9 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 
 	bmp390_baro_init(bmp390_baro[0], &bmp390_baro_ctx[0]);
 	bmp390_baro_init(bmp390_baro[1], &bmp390_baro_ctx[1]);
+
+	adxl375_acc_init(adxl375_acc[0], &adxl375_acc_ctx[0]);
+	adxl375_acc_init(adxl375_acc[1], &adxl375_acc_ctx[1]);
 
 
 
@@ -118,6 +128,9 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 		bmp390_baro_read(bmp390_baro[0], &baro_data[0]);
 		bmp390_baro_read(bmp390_baro[1], &baro_data[1]);
 
+		adxl375_acc_read(adxl375_acc[0], &acc_data[0]);
+		adxl375_acc_read(adxl375_acc[1], &acc_data[1]);
+
 #if ND_COMPUTER == ND_A
 		if(bmi088_acc_is_available(bmi088_acc[0]) || bmi088_gyr_is_available(bmi088_gyr[0])) {
 			od_write_SENSOR_IMU_A_0(&imu_data[0]);
@@ -131,6 +144,12 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 		if(bmp390_baro_is_available(bmp390_baro[1])) {
 			od_write_SENSOR_BARO_A_1(&baro_data[1]);
 		}
+		if(adx375_acc_is_available(adxl375_acc[0])) {
+			od_write_SENSOR_ACC_A_0(&acc_data[0]);
+		}
+		if(adx375_acc_is_available(adxl375_acc[1])) {
+			od_write_SENSOR_ACC_A_1(&acc_data[1]);
+		}
 #else
 		if(bmi088_acc_is_available(bmi088_acc[0]) || bmi088_gyr_is_available(bmi088_gyr[0])) {
 			od_write_SENSOR_IMU_B_0(&imu_data[0]);
@@ -143,6 +162,12 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 		}
 		if(bmp390_baro_is_available(bmp390_baro[1])) {
 			od_write_SENSOR_BARO_B_1(&baro_data[1]);
+		}
+		if(adx375_acc_is_available(adxl375_acc[0])) {
+			od_write_SENSOR_ACC_B_0(&acc_data[0]);
+		}
+		if(adx375_acc_is_available(adxl375_acc[1])) {
+			od_write_SENSOR_ACC_B_1(&acc_data[1]);
 		}
 #endif
 
