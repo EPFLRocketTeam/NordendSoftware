@@ -56,62 +56,107 @@ void sync_copy_data(sync_store_t * _data) {
 	memcpy(_data, &data, sizeof(sync_store_t));
 }
 
-
-
+/*GNSS_DATA_x,lon,lat,alt,spd,hdop,time*/
 void sync_handle_gnss(uint8_t opcode, uint16_t len, uint8_t * _data) {
 	if(1 || len == sizeof(gnss_data_t)) {
 		if(opcode == GNSS_DATA_A) {
 			memcpy(&data.gnss_data_a, _data, sizeof(gnss_data_t));
+			fprintf(fp, "GNSS_DATA_A,%g,%g,%g,%g,%g,%d\n",
+					data.gnss_data_a.longitude,
+					data.gnss_data_a.latitude,
+					data.gnss_data_a.altitude,
+					data.gnss_data_a.speed,
+					data.gnss_data_a.hdop,
+					data.gnss_data_a.time);
 		} else {
 			memcpy(&data.gnss_data_b, _data, sizeof(gnss_data_t));
+			fprintf(fp, "GNSS_DATA_B,%g,%g,%g,%g,%g,%d\n",
+					data.gnss_data_b.longitude,
+					data.gnss_data_b.latitude,
+					data.gnss_data_b.altitude,
+					data.gnss_data_b.speed,
+					data.gnss_data_b.hdop,
+					data.gnss_data_b.time);
 		}
 	}
 }
 
+/* BATTERY_x,voltage,time*/
 void sync_handle_battery(uint8_t opcode, uint16_t len, uint8_t * _data) {
 	if(1 || len == sizeof(battery_data_t)) {
 		if(opcode == BATTERY_A) {
 			memcpy(&data.battery_a, _data, sizeof(battery_data_t));
+			fprintf(fp, "BATTERY_A,%d,%d\n",
+					data.battery_a.voltage,
+					data.battery_a.time);
 		} else {
 			memcpy(&data.battery_b, _data, sizeof(battery_data_t));
+			fprintf(fp, "BATTERY_B,%d,%d\n",
+					data.battery_b.voltage,
+					data.battery_b.time);
 		}
 	}
 }
 
+/*ENGINE_CONTROL,state,last_cmd,vent_eth,vent_n2o,press,purge,servo_eth,servo_n2o,time*/
 void sync_handle_engine_control(uint8_t opcode, uint16_t len, uint8_t * _data) {
 	if(1 || len == sizeof(engine_control_data_t)) {
 		memcpy(&data.engine_control, _data, sizeof(engine_control_data_t));
-//		for(uint8_t i = 0; i < sizeof(engine_control_data_t); i++) {
-//			fprintf(stderr, "%x ", _data[i]);
-//		}
-		fprintf(fp, "ENGINE_CONTROL,%d,%d,%ld\n",
+		fprintf(fp, "ENGINE_CONTROL,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
 					data.engine_control.state,
 					data.engine_control.last_cmd,
+					data.engine_control.vent_eth,
+					data.engine_control.vent_n2o,
+					data.engine_control.press,
+					data.engine_control.purge,
+					data.engine_control.servo_eth,
+					data.engine_control.servo_n2o,
 					data.engine_control.time);
 	}
 }
 
-
+//UNUSED LOL
 void sync_handle_recovery_control(uint8_t opcode, uint16_t len, uint8_t * _data) {
 	if(1 || len == sizeof(recovery_control_data_t)) {
 		memcpy(&data.recovery_control, _data, sizeof(recovery_control_data_t));
 	}
 }
 
+/*SENSOR_BARO_x_x,pressure,temperature,altitude,time*/
 void sync_handle_sensor_baro(uint8_t opcode, uint16_t len, uint8_t * _data) {
 	if(1 || len == sizeof(sensor_baro_data_t)) {
 		switch(opcode){
 		case SENSOR_BARO_A_0:
 			memcpy(&data.baro_a[0], _data, sizeof(sensor_baro_data_t));
+			fprintf(fp, "SENSOR_BARO_A_0,%d,%d,%g,%d\n",
+						data.baro_a[0].pressure,
+						data.baro_a[0].temperature,
+						data.baro_a[0].alt,
+						data.baro_a[0].time);
 			break;
 		case SENSOR_BARO_A_1:
 			memcpy(&data.baro_a[1], _data, sizeof(sensor_baro_data_t));
+			fprintf(fp, "SENSOR_BARO_A_1,%d,%d,%g,%d\n",
+						data.baro_a[1].pressure,
+						data.baro_a[1].temperature,
+						data.baro_a[1].alt,
+						data.baro_a[1].time);
 			break;
 		case SENSOR_BARO_B_0:
 			memcpy(&data.baro_b[0], _data, sizeof(sensor_baro_data_t));
+			fprintf(fp, "SENSOR_BARO_B_0,%d,%d,%g,%d\n",
+						data.baro_b[0].pressure,
+						data.baro_b[0].temperature,
+						data.baro_b[0].alt,
+						data.baro_b[0].time);
 			break;
 		case SENSOR_BARO_B_1:
 			memcpy(&data.baro_b[1], _data, sizeof(sensor_baro_data_t));
+			fprintf(fp, "SENSOR_BARO_B_1,%d,%d,%g,%d\n",
+						data.baro_b[1].pressure,
+						data.baro_b[1].temperature,
+						data.baro_b[1].alt,
+						data.baro_b[1].time);
 			break;
 		}
 	}
@@ -247,7 +292,7 @@ void * sync_entry(void * ptr) {
     static char fname[64];
     static uint16_t num = 0;
     do{
-    	snprintf(fname, 64, "/home/root/av_sync%d.log", num);
+    	snprintf(fname, 64, "/home/root/sync%d.log", num);
     	num++;
     }while((access(fname, F_OK) == 0));
     fp = fopen(fname, "w+");

@@ -183,20 +183,27 @@ else
 		#scp start_fw.sh $SSH_TARGET:~/
 		#scp stop_fw.sh $SSH_TARGET:~/
 		ssh $SSH_TARGET " kill -9 \$( pidof nordend_monitor )"
-		scp ../../CA7/nordend_monitor/nordend_monitor $SSH_TARGET:~/
+        
+        cp  ../../CA7/nordend_monitor/nordend_monitor nordend_monitor
+        bzip2 -f nordend_monitor
+        echo "monitor deflated"
+		scp nordend_monitor.bz2 $SSH_TARGET:~/
+        echo "monitor sent"
+        ssh $SSH_TARGET "bunzip2 -f nordend_monitor.bz2"
+        echo "monitor inflated"
 		scp rc.local $SSH_TARGET:/etc/rc.local
 		ssh $SSH_TARGET "chmod +x /etc/rc.local"
 		echo "tools sent"
 
 		cp  ../$SOURCE_FOLDER/WildhornAV_CM4.elf WildhornAV_CM4.elf
 		bzip2 -f WildhornAV_CM4.elf
-		echo "firmware compressed"
+		echo "firmware deflated"
 
 		scp WildhornAV_CM4.elf.bz2 $SSH_TARGET:~/
 		echo "firmware sent"
 
 		ssh $SSH_TARGET "bunzip2 -f  WildhornAV_CM4.elf.bz2"
-		echo "firmware uncompressed"
+		echo "firmware inflated"
 
         ssh $SSH_TARGET "mkdir /lib/firmware/"
 

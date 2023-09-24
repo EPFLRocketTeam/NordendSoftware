@@ -33,29 +33,29 @@ typedef enum control_command {
 typedef enum control_state
 {
 	/** Wait for arming or calibration */
-	CONTROL_IDLE = 0xf1,
+	CONTROL_IDLE,
 	/** Calibrate sensors and actuators */
-	CONTROL_CALIBRATION = 0xf2,
+	CONTROL_CALIBRATION,
 	/** Manual Servo movement */
-	CONTROL_MANUAL_OPERATION = 0xf3,
+	CONTROL_MANUAL_OPERATION,
 	/** System is armed and ready to pressure*/
-	CONTROL_ARMED = 0xf4,
+	CONTROL_ARMED,
 	/** system is pressured */
-	CONTROL_PRESSURED = 0xf5,
+	CONTROL_PRESSURED,
 	/** fire igniter */
-	CONTROL_IGNITER = 0xf6,
+	CONTROL_IGNITER,
 	/** partially open valves*/
-	CONTROL_IGNITION = 0xf7,
+	CONTROL_IGNITION,
 	/** fully open valves */
-	CONTROL_THRUST = 0xf8,
+	CONTROL_THRUST,
 	/** close ethanol valve */
-	CONTROL_SHUTDOWN = 0xf9,
+	CONTROL_SHUTDOWN,
 	/** glide */
-	CONTROL_GLIDE = 0xfA,
+	CONTROL_GLIDE,
 	/** system error*/
-	CONTROL_ERROR = 0xfB,
+	CONTROL_ERROR,
 	/** User triggered abort */
-	CONTROL_ABORT = 0xfC
+	CONTROL_ABORT
 } control_state_t;
 
 
@@ -98,7 +98,7 @@ typedef struct __attribute__((__packed__)) gnss_data {
 }gnss_data_t;
 
 typedef struct __attribute__((__packed__)) battery_data {
-	uint32_t voltage;
+	uint32_t voltage; //mv
 	uint32_t time;
 }battery_data_t;
 
