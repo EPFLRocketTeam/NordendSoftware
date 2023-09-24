@@ -108,12 +108,12 @@ util_error_t i2c_sensor_write_reg_HAL(void* context, device_interface_t * interf
  **********************/
 
 
-util_error_t i2c_prop_sensor_init(void) {
-	device_interface_t * i2c_prop_sensor_interface = i2c_get_s3_interface();
+util_error_t i2c_engine_sensor_init(void) {
+	device_interface_t * i2c_engine_sensor_interface = i2c_get_s3_interface();
 
-	device_create(&mcp3426_adc_device_up, &mcp3426_adc_context_up, i2c_prop_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
-	device_create(&mcp3426_adc_device_dn, &mcp3426_adc_context_dn, i2c_prop_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
-	device_create(&mcp3426_adc_device_st, &mcp3426_adc_context_st, i2c_prop_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
+	device_create(&mcp3426_adc_device_up, &mcp3426_adc_context_up, i2c_engine_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
+	device_create(&mcp3426_adc_device_dn, &mcp3426_adc_context_dn, i2c_engine_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
+	device_create(&mcp3426_adc_device_st, &mcp3426_adc_context_st, i2c_engine_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
 
 	return ER_SUCCESS;
 }
@@ -133,6 +133,15 @@ util_error_t i2c_sensor_init(void) {
 	return ER_SUCCESS;
 
 }
+
+device_t * i2c_engine_sensor_get_mcp3426_up(void) {
+	return &mcp3426_adc_device_up;
+}
+
+device_t * i2c_engine_sensor_get_mcp3426_dn(void) {
+	return &mcp3426_adc_device_dn;
+}
+
 
 device_t * i2c_sensor_get_bmi088_acc(uint8_t num) {
 	if(num == 0) {

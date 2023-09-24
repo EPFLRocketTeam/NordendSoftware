@@ -25,7 +25,7 @@
 #include <init.h>
 #include <sensor.h>
 
-#include <propulsion_sensor.h>
+#include <engine_sensor.h>
 
 #include <od/od.h>
 #include <device/comunicator.h>
@@ -100,7 +100,8 @@
 static TaskHandle_t od_update_handle = NULL;
 static TaskHandle_t od_broadcast_handle = NULL;
 static TaskHandle_t engine_control_handle = NULL;
-static TaskHandle_t led_rgb_handle = NULL;
+static TaskHandle_t engine_sensor_handle = NULL;
+//static TaskHandle_t led_rgb_handle = NULL;
 static TaskHandle_t serial_handle = NULL;
 static TaskHandle_t hostcom_handle = NULL;
 static TaskHandle_t miaou_handle = NULL;
@@ -143,19 +144,11 @@ void init(void) {
 	can_init(ND_COMPUTER);
 
 #if ND_HAS_PROPULSION == ND_TRUE
-
 	i2c_s3_init();
-
-
 #endif
 
 
 #if ND_HAS_SENSORS == ND_TRUE
-	/**
-	 * Some stuff is wrong in how they handled the sensors.
-	 * They initialize only one bus...
-	 * We have to init all the used busses and then init the sensors located on those busses.
-	 */
 	//init the sensors
 
 	//init the i2c s2 interface for the sensors
@@ -188,8 +181,14 @@ void init(void) {
 
 #if ND_HAS_PROPULSION == ND_TRUE
 	INIT_THREAD_CREATE(engine_control_handle, engine_control, engine_control_thread, NULL, CONTROL_SZ, CONTROL_PRIO);
+
+	//create engine sensor devices
+	i2c_engine_sensor_init();
+
+	INIT_THREAD_CREATE(engine_sensor_handle, engine_sensor, engine_sensor_thread, NULL, SENSOR_SZ, SENSOR_PRIO);
 #else
 	UNUSED(engine_control_handle);
+	UNUSED(engine_sensor_handle);
 #endif
 
 #if ND_HAS_RECOVERY == ND_TRUE

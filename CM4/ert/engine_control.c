@@ -257,7 +257,8 @@ void control_valve_n2o(int32_t param);
 void control_vent_eth(int32_t param);
 void control_vent_n2o(int32_t param);
 
-util_error_t init_engine_control();
+util_error_t init_engine_control(void);
+util_error_t publish_engine_params(void);
 
 int engine_control_command_pop(control_command_t * cmd, int32_t * parameter);
 
@@ -265,9 +266,7 @@ int engine_control_command_pop(control_command_t * cmd, int32_t * parameter);
  *	DECLARATIONS
  **********************/
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//CONTROL THREAD INITIALIZATION
-///////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 /**
  * @brief 	Control thread entry point
@@ -341,29 +340,37 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 			break;
 		}
 
+		publish_engine_params();
 
-		control.ec_data.state = control.state;
-		control.ec_data.time = util_get_time();
-
-		control.ec_data.press = solenoid_get_active(&control.solenoid_press);
-		control.ec_data.purge = solenoid_get_active(&control.solenoid_purge);
-		control.ec_data.vent_eth = solenoid_get_active(&control.solenoid_eth);
-		control.ec_data.vent_n2o = solenoid_get_active(&control.solenoid_n2o);
-
-		control.ec_data.servo_n2o = servo_get_angle(&control.servo_n2o);
-		control.ec_data.servo_eth = servo_get_angle(&control.servo_eth);
-
-		debug_log(LOG_INFO, "update EC od: %d, %d, %d\n",
-					control.ec_data.state,
-					control.ec_data.last_cmd,
-					control.ec_data.time);
-
-		od_write_ENGINE_CONTROL_DATA(&control.ec_data);
 
 		vTaskDelayUntil(&last_wake_time, period);
 		
 	}
 }
+
+
+util_error_t publish_engine_params(void) {
+	control.ec_data.state = control.state;
+	control.ec_data.time = util_get_time();
+
+	control.ec_data.press = solenoid_get_active(&control.solenoid_press);
+	control.ec_data.purge = solenoid_get_active(&control.solenoid_purge);
+	control.ec_data.vent_eth = solenoid_get_active(&control.solenoid_eth);
+	control.ec_data.vent_n2o = solenoid_get_active(&control.solenoid_n2o);
+
+	control.ec_data.servo_n2o = servo_get_angle(&control.servo_n2o);
+	control.ec_data.servo_eth = servo_get_angle(&control.servo_eth);
+
+//	debug_log(LOG_INFO, "update EC od: %d, %d, %d\n",
+//				control.ec_data.state,
+//				control.ec_data.last_cmd,
+//				control.ec_data.time);
+
+	od_write_ENGINE_CONTROL_DATA(&control.ec_data);
+
+	return ER_SUCCESS;
+}
+
 
 
 /**
@@ -752,10 +759,13 @@ void control_ignition_start(void) {
 	gpio_clr(IGNITER_PORT, IGNITER_PIN);
 	servo_set_angle(&control.servo_n2o, 64);
 	servo_set_angle(&control.servo_eth, 74);
+	publish_engine_params();
 	osDelay(HB_MS2TICK(265));
 	servo_set_angle(&control.servo_n2o, 90);
+	publish_engine_params();
 	osDelay(HB_MS2TICK(350));
 	servo_set_angle(&control.servo_eth, 94);
+	publish_engine_params();
 
 	control.counter_active = 1;
 	control.counter = control.ignition_time;

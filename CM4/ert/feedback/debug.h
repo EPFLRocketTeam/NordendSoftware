@@ -36,6 +36,8 @@ typedef enum log_prio {
  *  MACROS
  **********************/
 
+#define MAX_PRIO LOG_INFO
+
 
 /**********************
  *  TYPEDEFS

@@ -108,7 +108,7 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 	for(;;) {
 		//poll sensors for data
 
-		debug_log(LOG_WARNING, "reading sensors\n");
+		debug_log(LOG_DEBUG, "reading sensors\n");
 
 		bmi088_acc_read(bmi088_acc[0], &imu_data[0]);
 		bmi088_gyr_read(bmi088_gyr[0], &imu_data[0]);

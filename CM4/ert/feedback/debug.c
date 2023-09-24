@@ -51,6 +51,7 @@
 
 
 void debug_log(log_prio_t prio, const char * lotte, ...) {
+	if(prio > MAX_PRIO) return;
 	char buffer[128];
 	va_list args;
 	va_start(args, lotte);
