@@ -348,7 +348,7 @@ void ui_send_engine_command(ui_data_t * data, control_command_t cmd, uint8_t par
 
 
 int ui_handle_input(ui_data_t * data) {
-	timeout(1000);
+	timeout(200);
 
 	char c = getch();
 

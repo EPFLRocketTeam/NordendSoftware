@@ -73,13 +73,13 @@
 #define SENSOR_PRIO		(3)
 
 #define PROP_SENSOR_SZ	DEFAULT_SZ
-#define PROP_SENSOR_PRIO		(1)
+#define PROP_SENSOR_PRIO		(3)
 
 #define CAN_RX_SZ	DEFAULT_SZ
-#define CAN_RX_PRIO		(3)
+#define CAN_RX_PRIO		(6)
 
 #define CAN_TX_SZ	DEFAULT_SZ
-#define CAN_TX_PRIO		(3)
+#define CAN_TX_PRIO		(6)
 
 
 /**********************

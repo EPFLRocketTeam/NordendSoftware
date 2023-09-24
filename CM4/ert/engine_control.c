@@ -459,7 +459,7 @@ int engine_control_command_pop(control_command_t * cmd, int32_t * parameter) {
 		}
 		//control.ec_data.last_parameter = command.parameter;
 		control.ec_data.last_cmd = command.cmd;
-		debug_log(LOG_INFO, "cmd popcat : %d (%d)\n", command.cmd, command.parameter);
+		debug_log(LOG_INFO, "cmd pop : %d (%d)\n", command.cmd, command.parameter);
 		//return 1 if a command has been received
 		return 1;
 	} else {

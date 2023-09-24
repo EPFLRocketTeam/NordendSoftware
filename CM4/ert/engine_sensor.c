@@ -1,7 +1,7 @@
 /*  Title		: Sensor Acquisition
- *  Filename	: sensor.c
+ *  Filename	: engine_sensor.c
  *	Author		: iacopo sprenger
- *	Date		: 13.07.2021
+ *	Date		: 24.09.2023
  *	Version		: 0.1
  *	Description	: Thread grouping all the sensors on the same I2C bus.
  */
@@ -31,7 +31,7 @@
  **********************/
 
 //TODO: check if this is short/long enough
-#define ENGINE_SENSOR_HEART_BEAT	200
+#define ENGINE_SENSOR_HEART_BEAT	50
 
 
 /**********************
@@ -113,6 +113,10 @@ void engine_sensor_thread(__attribute__((unused)) void * arg) {
 		mcp3425_adc_read(mcp3426_adc_dn, 1, &_data);
 		data.adc_4 = _data;
 		data.adc_4_time = util_get_time();
+
+		debug_log(LOG_WARNING, "sensor_available %d, %d\n",
+						mcp3425_adc_is_available(mcp3426_adc_up),
+						mcp3425_adc_is_available(mcp3426_adc_dn));
 
 
 		vTaskDelayUntil( &last_wake_time, period );

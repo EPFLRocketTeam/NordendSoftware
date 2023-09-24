@@ -280,10 +280,10 @@ void od_update_task(__attribute__((unused)) void *argument) {
 
 
         debug_log(LOG_DEBUG, "added to OD: %d\n", to_receive.data_id);
-        if(to_receive.data_id == ENGINE_CONTROL_DATA) {
-        	engine_control_data_t * _data = (engine_control_data_t*) &to_receive.data;
-        	debug_log(LOG_INFO, "OD_DATA: %d\n", _data->state);
-        }
+//        if(to_receive.data_id == ENGINE_CONTROL_DATA) {
+//        	engine_control_data_t * _data = (engine_control_data_t*) &to_receive.data;
+//        	debug_log(LOG_INFO, "OD_DATA: %d\n", _data->state);
+//        }
 
 
         // Update field atomically
@@ -312,11 +312,6 @@ void od_broadcast_task(__attribute__((unused)) void *argument) {
 
 		debug_log(LOG_DEBUG, "sending_frame: %d\n", to_send.data_id);
 
-		if(to_send.data_id == ENGINE_CONTROL_DATA) {
-			engine_control_data_t * _data = (engine_control_data_t*) &to_send.data;
-			debug_log(LOG_INFO, "OD_send_DATA: %d\n", _data->state);
-		}
-
 		//TODO: comunicator data could be generated only once!!
 
 		comunicator_send(od_hostcom_comunicator, to_send.data_id, to_send.size, to_send.data);
@@ -328,10 +323,6 @@ void od_broadcast_task(__attribute__((unused)) void *argument) {
 
 		//debug_log(LOG_DEBUG, "frame sent!: %d\n", to_send.data_id);
 
-		if(to_send.data_id == ENGINE_CONTROL_DATA) {
-			engine_control_data_t * _data = (engine_control_data_t*) &to_send.data;
-			debug_log(LOG_INFO, "OD_send_DATA_AFT: %d\n", _data->state);
-		}
 
 
 	}

@@ -32,7 +32,7 @@
  **********************/
 
 //TODO: check if this is short/long enough
-#define I2C_SENSOR_HEART_BEAT	200
+#define I2C_SENSOR_HEART_BEAT	50
 
 
 /**********************

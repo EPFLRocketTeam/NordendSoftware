@@ -4,6 +4,7 @@
 
 #include <util.h>
 #include <device/device.h>
+#include <od/data_types.h>
 
 #define ADXL375_REG_DEVID				(0x00)
 #define ADXL375_REG_THS_SHK				(0x1D)
@@ -27,11 +28,12 @@
 
 typedef struct adxl375_acc_context {
 	uint8_t hw_available;
+	float selected_sstvt;
 
 }adxl375_acc_context_t;
 
 
-util_error_t adxl375_acc_init(device_t * dev, adxl375_acc_context_t ctx);
+util_error_t adxl375_acc_init(device_t * dev, adxl375_acc_context_t * ctx);
 
 util_error_t adxl375_acc_read(device_t * dev, sensor_acc_data_t * data);
 
