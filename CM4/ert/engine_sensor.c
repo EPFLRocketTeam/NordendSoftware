@@ -147,7 +147,7 @@ util_error_t engine_sensor_convert_values(sensor_eng_data_t * data) {
 
 	data->press_eth = engine_convert_pressure(VOLTAGE_DIVIDER(data->adc_1));
 	data->press_n2o = engine_convert_pressure(VOLTAGE_DIVIDER(data->adc_2));
-	data->temp_eng  =  VOLTAGE_DIVIDER(data->adc_3);
+	data->temp_eng  =  VOLTAGE_DIVIDER(data->adc_3); //TODO: find our how to read the temperature sensor..
 	data->press_eng = engine_convert_pressure(VOLTAGE_DIVIDER(data->adc_4));
 
 	return ER_SUCCESS;
