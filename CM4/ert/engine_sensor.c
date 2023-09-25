@@ -114,6 +114,10 @@ void engine_sensor_thread(__attribute__((unused)) void * arg) {
 		data.adc_4 = _data;
 		data.adc_4_time = util_get_time();
 
+		if(mcp3425_adc_is_available(mcp3426_adc_up) && mcp3425_adc_is_available(mcp3426_adc_dn)) {
+			engine_sensor_convert_values(&data);
+			od_write_ENGINE_SENSORS_DATA(&data);
+		}
 
 		vTaskDelayUntil( &last_wake_time, period );
 
@@ -125,11 +129,28 @@ void engine_sensor_thread(__attribute__((unused)) void * arg) {
 #define VOLTAGE_DIVIDER(v) (v)*(14.3 + 10.0) / (10.0)
 
 
+#define V_SUPPLY 	(5000.0) //mv
+#define P_MAX		(60.0)   //bar
+#define P_MIN      	(1.0)    //bar
+
+
+float engine_convert_pressure(float voltage) {
+	float delta_p = P_MAX - P_MIN;
+	float v_max = 0.8*V_SUPPLY;
+	float v_min = 0.1*V_SUPPLY;
+
+	return (delta_p * (voltage - v_min)) / v_max + P_MIN;
+}
+
+
 util_error_t engine_sensor_convert_values(sensor_eng_data_t * data) {
 
-	float true_voltage = VOLTAGE_DIVIDER(data->adc_1);
+	data->press_eth = engine_convert_pressure(VOLTAGE_DIVIDER(data->adc_1));
+	data->press_n2o = engine_convert_pressure(VOLTAGE_DIVIDER(data->adc_2));
+	data->temp_eng  =  VOLTAGE_DIVIDER(data->adc_3);
+	data->press_eng = engine_convert_pressure(VOLTAGE_DIVIDER(data->adc_4));
 
-
+	return ER_SUCCESS;
 }
 
 /* END */

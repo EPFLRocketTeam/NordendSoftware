@@ -24,6 +24,8 @@
 #define BMP390_REG_BARO_REV_ID				(0x01)
 #define BMP390_REG_BARO_CHIPID				(0x00)
 
+#define BMP390_REG_TRIM						(0x31)
+
 #define BMP390_BARO_CHIPID_VAL				(0x60)
 
 
@@ -33,6 +35,24 @@ typedef struct bmp390_baro_context {
 	uint8_t hw_available;
 	uint16_t selected_range;
 	float selected_sstvt;
+
+	/* calibration coeffs */
+	uint16_t par_t1;
+	uint16_t par_t2;
+	int8_t   par_t3;
+	int16_t  par_p1;
+	int16_t  par_p2;
+	int8_t   par_p3;
+	int8_t   par_p4;
+	uint16_t par_p5;
+	uint16_t par_p6;
+	int8_t   par_p7;
+	int8_t   par_p8;
+	int16_t  par_p9;
+	int8_t   par_p10;
+	int8_t   par_p11;
+	float    t_lin;
+
 }bmp390_baro_context_t;
 
 

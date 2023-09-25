@@ -103,8 +103,10 @@ typedef struct __attribute__((__packed__)) battery_data {
 }battery_data_t;
 
 typedef struct __attribute__((__packed__)) sensor_baro_data {
-	uint32_t pressure;
-	int32_t temperature;
+	uint32_t raw_press;
+	uint32_t raw_temp;
+	float press;
+	float temp;
 	float alt;
 
 	uint32_t time;

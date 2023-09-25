@@ -112,8 +112,8 @@ void miaou_downlink_thread(__attribute__((unused)) void * arg) {
 		miaou_packet.acc_z = (imu_data0.acc[AXIS_Z] + imu_data1.acc[AXIS_Z]) / 2;
 
 
-		miaou_packet.baro_press = (baro_data0.pressure + baro_data1.pressure) / 2;
-		miaou_packet.baro_temp = (baro_data0.temperature + baro_data1.temperature) / 2;
+		miaou_packet.baro_press = (baro_data0.raw_press + baro_data1.raw_press) / 2;
+		miaou_packet.baro_temp = (baro_data0.raw_temp + baro_data1.raw_temp) / 2;
 
 
 
