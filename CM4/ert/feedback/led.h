@@ -17,6 +17,7 @@
 
 #include <stdint.h>
 
+
 /**********************
  *  CONSTANTS
  **********************/
@@ -148,6 +149,8 @@ void led_rgb_thread(void * arg);
 void led_set(uint8_t num);
 
 void led_clear(uint8_t num);
+
+void rainbow_thread(__attribute__((unused)) void * arg);
 
 #ifdef __cplusplus
 } // extern "C"

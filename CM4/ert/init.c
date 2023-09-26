@@ -108,6 +108,7 @@ static TaskHandle_t miaou_handle = NULL;
 static TaskHandle_t can_rx_handle = NULL;
 static TaskHandle_t can_tx_handle = NULL;
 static TaskHandle_t sensor_handle = NULL;
+static TaskHandle_t rainbow_handle = NULL;
 
 /**********************
  *	PROTOTYPES
@@ -193,6 +194,9 @@ void init(void) {
 
 #if ND_HAS_RECOVERY == ND_TRUE
 	//HERE PLACE THE RECOVERY THREAD INIT @CHARLOTTE
+	INIT_THREAD_CREATE(rainbow_handle, rainbow, rainbow_thread, NULL, LED_RGB_SZ, LED_RGB_PRIO);
+#else
+	UNUSED(rainbow_handle);
 #endif
 
 #if ND_HAS_UPLINK == ND_TRUE

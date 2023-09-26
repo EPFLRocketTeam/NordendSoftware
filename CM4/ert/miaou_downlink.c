@@ -89,21 +89,26 @@ void miaou_downlink_thread(__attribute__((unused)) void * arg) {
 
 	for(;;) {
 
-		led_rgb_set_color(led_orange);
-
+		//led_rgb_set_color(led_orange);
 
 		engine_control_data_t ec_data;
 		sensor_acc_data_t acc_data0, acc_data1;
-		sensor_baro_data_t baro_data0, baro_data1;
+		sensor_baro_data_t baro_data0, baro_data1, baro_data_r0, baro_data_r1;
 		sensor_imu_data_t imu_data0, imu_data1;
+		gnss_data_t gnss_data, gnss_data_r;
 
 		od_read_ENGINE_CONTROL_DATA(&ec_data);
 		od_read_SENSOR_ACC_B_0(&acc_data0);
 		od_read_SENSOR_ACC_B_1(&acc_data1);
 		od_read_SENSOR_BARO_B_0(&baro_data0);
 		od_read_SENSOR_BARO_B_1(&baro_data1);
+		od_read_SENSOR_BARO_A_0(&baro_data_r0);
+		od_read_SENSOR_BARO_A_1(&baro_data_r1);
 		od_read_SENSOR_IMU_B_0(&imu_data0);
 		od_read_SENSOR_IMU_B_1(&imu_data1);
+
+		od_read_GNSS_DATA_B(&gnss_data);
+		od_read_GNSS_DATA_A(&gnss_data_r);
 
 
 		packet_number += 1;
@@ -112,10 +117,18 @@ void miaou_downlink_thread(__attribute__((unused)) void * arg) {
 		miaou_packet.acc_z = (imu_data0.acc[AXIS_Z] + imu_data1.acc[AXIS_Z]) / 2;
 
 
-		miaou_packet.baro_press = (baro_data0.raw_press + baro_data1.raw_press) / 2;
-		miaou_packet.baro_temp = (baro_data0.raw_temp + baro_data1.raw_temp) / 2;
+		miaou_packet.baro_press = (baro_data0.press + baro_data1.press) / 2;
+		miaou_packet.baro_temp = (baro_data0.temp + baro_data1.temp) / 2;
 
+		miaou_packet.baro_press_r = (baro_data_r0.press + baro_data_r1.press) / 2;
 
+		miaou_packet.gnss_lon = gnss_data.longitude;
+		miaou_packet.gnss_lat = gnss_data.latitude;
+		miaou_packet.gnss_alt = gnss_data.altitude;
+
+		miaou_packet.gnss_lon_r = gnss_data_r.longitude;
+		miaou_packet.gnss_lat_r = gnss_data_r.latitude;
+		miaou_packet.gnss_alt_r = gnss_data_r.altitude;
 
 		miaou_packet.engine_state.pressurize = ec_data.press;
 		miaou_packet.engine_state.purge = ec_data.purge;
@@ -131,13 +144,12 @@ void miaou_downlink_thread(__attribute__((unused)) void * arg) {
 		miaou_packet.timestamp = util_get_time();
 
 		comunicator_send(	&miaou_downlink_comunicator,
-							0x65, //radio_packet_opcode,
+							MIAOU_RF, //radio_packet_opcode,
 							sizeof(av_downlink_t), //radio_packet_size,
 							(uint8_t *) &miaou_packet);
 
 
 		debug_log(LOG_INFO, "miaou packet sent: %d %d\n", miaou_packet.packet_nbr, miaou_packet.timestamp);
-
 
 		vTaskDelayUntil( &last_wake_time, period );
 	}

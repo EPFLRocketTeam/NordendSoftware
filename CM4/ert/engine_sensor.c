@@ -88,7 +88,7 @@ void engine_sensor_thread(__attribute__((unused)) void * arg) {
 	mcp3426_adc_dn = i2c_engine_sensor_get_mcp3426_dn();
 	//init and discover sensors
 
-	osDelay(10000);
+	//osDelay(10000);
 
 
 	mcp3425_adc_init(mcp3426_adc_up, &mcp3426_adc_up_ctx);

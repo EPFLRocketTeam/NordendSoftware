@@ -34,7 +34,7 @@
 /**
  * COMPUTER TYPE HERE !!
  */
-#define ND_COMPUTER	ND_A
+#define ND_COMPUTER	ND_B
 
 #ifdef BRDA
 #define ND_COMPUTER	ND_A

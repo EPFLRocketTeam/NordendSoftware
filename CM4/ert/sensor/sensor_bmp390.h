@@ -31,11 +31,7 @@
 
 
 
-typedef struct bmp390_baro_context {
-	uint8_t hw_available;
-	uint16_t selected_range;
-	float selected_sstvt;
-
+typedef struct bmp390_trim_reg {
 	/* calibration coeffs */
 	uint16_t par_t1;
 	uint16_t par_t2;
@@ -51,7 +47,36 @@ typedef struct bmp390_baro_context {
 	int16_t  par_p9;
 	int8_t   par_p10;
 	int8_t   par_p11;
+}bmp390_trim_reg_t;
+
+typedef struct bmp390_trim_val {
+	/* calibration coeffs */
+	float    par_t1;
+	float    par_t2;
+	float    par_t3;
+	float    par_p1;
+	float    par_p2;
+	float    par_p3;
+	float    par_p4;
+	float    par_p5;
+	float    par_p6;
+	float    par_p7;
+	float    par_p8;
+	float    par_p9;
+	float    par_p10;
+	float    par_p11;
 	float    t_lin;
+
+}bmp390_trim_val_t;
+
+typedef struct bmp390_baro_context {
+	uint8_t hw_available;
+	uint16_t selected_range;
+	float selected_sstvt;
+	bmp390_trim_reg_t trim_reg;
+	bmp390_trim_val_t calib_data;
+
+	float initial_pressure;
 
 }bmp390_baro_context_t;
 

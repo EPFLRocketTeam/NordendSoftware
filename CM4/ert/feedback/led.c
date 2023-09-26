@@ -17,6 +17,7 @@
 #include <abstraction/gpio.h>
 
 #include <feedback/debug.h>
+#include <math.h>
 
 /**********************
  *	CONFIGURATION
@@ -129,6 +130,15 @@ void led_rgb_init(void) {
 	HAL_TIM_PWM_Start(&LED_TIM, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&LED_TIM, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(&LED_TIM, TIM_CHANNEL_3);
+
+//	gpio_config_t cfg = {
+//			.drive = GPIO_DRIVE_PP,
+//			.mode = GPIO_MODE_OUT,
+//			.speed = 0,
+//			.bias = GPIO_BIAS_NONE
+//	};
+//
+//	gpio_cfg(GPIOA, GPIO_PIN_15, cfg);
 }
 /**
  * @brief	Set RBG LED color using r, g, b values.
@@ -190,6 +200,97 @@ void led_checkpoint(uint16_t point) {
 	if(point < checkpoint_count) {
 		checkpoints[point].check = 1;
 	}
+}
+
+
+led_color_t led_hsv_2_rgb(float h, float s, float v) {
+	float r = 0, g = 0, b = 0;
+
+	if (s == 0)
+	{
+		r = v;
+		g = v;
+		b = v;
+	}
+	else
+	{
+		int i;
+		float f, p, q, t;
+
+		if (h == 360)
+			h = 0;
+		else
+			h = h / 60;
+
+		i = (int)truncf(h);
+		f = h - i;
+
+		p = v * (1.0 - s);
+		q = v * (1.0 - (s * f));
+		t = v * (1.0 - (s * (1.0 - f)));
+
+		switch (i)
+		{
+		case 0:
+			r = v;
+			g = t;
+			b = p;
+			break;
+
+		case 1:
+			r = q;
+			g = v;
+			b = p;
+			break;
+
+		case 2:
+			r = p;
+			g = v;
+			b = t;
+			break;
+
+		case 3:
+			r = p;
+			g = q;
+			b = v;
+			break;
+
+		case 4:
+			r = t;
+			g = p;
+			b = v;
+			break;
+
+		default:
+			r = v;
+			g = p;
+			b = q;
+			break;
+		}
+
+	}
+
+	led_color_t rgb;
+	rgb.r = r * 255;
+	rgb.g = g * 255;
+	rgb.b = b * 255;
+
+	return rgb;
+}
+
+void rainbow_thread(__attribute__((unused)) void * arg) {
+
+	float hue = 0;
+	for(;;) {
+
+		led_rgb_set_color(led_hsv_2_rgb(hue, 1, 1));
+
+		hue += 5;
+		if(hue > 360) hue = 0;
+
+		osDelay(100);
+	}
+
 }
 
 
