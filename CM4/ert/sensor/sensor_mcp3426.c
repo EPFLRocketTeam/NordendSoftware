@@ -38,8 +38,10 @@ util_error_t mcp3425_adc_init(device_t * dev, mcp3426_adc_context_t * ctx) {
 	//check if write is possible
 	if(mcp3425_write_wrapper(dev, 0) == ER_SUCCESS) {
 		ctx->hw_available = 1;
+		debug_log(LOG_WARNING, "detected board\n");
 	} else {
 		ctx->hw_available = 0;
+		debug_log(LOG_WARNING, "not detected board\n");
 		return ER_RESSOURCE_ERROR;
 	}
 

@@ -25,6 +25,8 @@ echo "last firmware hash [local]: "$LAST_FIRMWARE_HASH
 # use ssh
 echo "using SSH"
 
+ssh-keygen -f "$HOME/.ssh/known_hosts" -R "192.168.7.1"
+
 ssh $SSH_TARGET " kill -9 \$( pidof nordend_monitor )"
 
 cp  ../../CA7/nordend_monitor/nordend_monitor nordend_monitor

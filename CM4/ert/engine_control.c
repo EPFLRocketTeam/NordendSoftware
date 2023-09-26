@@ -94,12 +94,23 @@
  * GLIDE
  * - Engine is depressured (sol_press closed and sol_purge open).
  * - Recovery is signaled that the burn is finished.
+ * - After GLIDE_COUNTER is elapsed, we move to DESCENT
  * 
+ * DESCENT
+ * - vent n2o et eth
+ * - After DESCENT_COUNTER is elapsed, we move to SAFE
+ *
+ * SAFE
+ * - toutes les valves en etat 0
+ * - tous les servos fermes
+ *
  * ERROR
  * - Automatically triggered error state.
  * - Can move to IDLE with the RECOVER command.
  * 
  * ABORT
+ * - toutes les valves en etat 0
+ * - tous les servos fermes
  * - Manually triggered error state.
  * - Can move to IDLE with the RECOVER command.
  * 
@@ -120,10 +131,12 @@
 
 #define COMMAND_QUEUE_LENGTH 	16
 
-#define IGNITER_COUNTER 		4500  //ms
-#define IGNITION_COUNTER		1000  //ms
-#define THRUST_COUNTER		    3000  //ms
-#define SHUTDOWN_COUNTER		0     //ms
+#define IGNITER_COUNTER 		4500   //ms
+#define IGNITION_COUNTER		1000   //ms
+#define THRUST_COUNTER		    3000   //ms
+#define SHUTDOWN_COUNTER		0      //ms
+#define GLIDE_TIME				10000  //ms
+#define DESCENT_TIME			120000 //ms
 
 #define IGNITION_DELAY_1		265
 #define IGNITION_DELAY_2		350
@@ -179,6 +192,8 @@ typedef struct control
 	int32_t ignition_time;
 	int32_t thrust_time;
 	int32_t shutdown_time;
+	int32_t glide_time;
+	int32_t descent_time;
 
 
 	solenoid_t solenoid_n2o;
@@ -235,6 +250,8 @@ void control_ignition_start(void);
 void control_thrust_start(void);
 void control_shutdown_start(void);
 void control_glide_start(void);
+void control_descent_start(void);
+void control_safe_start(void);
 void control_error_start(void);
 void control_abort_start(void);
 
@@ -247,6 +264,8 @@ void control_ignition_run(void);
 void control_thrust_run(void);
 void control_shutdown_run(void);
 void control_glide_run(void);
+void control_descent_run(void);
+void control_safe_run(void);
 void control_error_run(void);
 void control_abort_run(void);
 
@@ -405,6 +424,8 @@ util_error_t init_engine_control(void) {
 	control.ignition_time = HB_MS2TICK(IGNITION_COUNTER);
 	control.thrust_time = HB_MS2TICK(THRUST_COUNTER);
 	control.shutdown_time = HB_MS2TICK(SHUTDOWN_COUNTER);
+	control.glide_time = HB_MS2TICK(GLIDE_TIME);
+	control.descent_time = HB_MS2TICK(DESCENT_TIME);
 
 	//                                 CHANNEL_SUR_LA_HB  PLS_MIN  PLS_MAX   ANGLE_MAX
 	servo_init(&control.servo_eth,     SERVO_CHANNEL_GP1, 700,     2300,     180);
@@ -669,6 +690,7 @@ void control_armed_start(void) {
 #ifndef USE_CHECKPOINT
 	led_rgb_set_color(led_yellow);
 #endif
+	solenoid_inactive(&control.solenoid_press);
 }
 
 void control_armed_run(void) {
@@ -703,15 +725,18 @@ void control_pressured_start(void) {
 void control_pressured_run(void) {
 	//wait for ignition command
 	control_command_t expected_cmds[] = {
-		COMMAND_IGNITE
+		COMMAND_IGNITE,
+		COMMAND_DEPRESSURE
 	};
 
 	control_command_t received_command;
 
-	received_command = control_read_commands(expected_cmds, 1, NULL);
+	received_command = control_read_commands(expected_cmds, 2, NULL);
 
 	if(received_command == COMMAND_IGNITE) { //ignition command
 		control_igniter_start();
+	} else if(received_command == COMMAND_DEPRESSURE) {
+		control_armed_start();
 	}
 
 }
@@ -832,6 +857,7 @@ void control_shutdown_start(void) {
 #endif
 
 	servo_set_angle(&control.servo_eth, 0);
+	//TODO: en vol on ferme que le N2O
 	servo_set_angle(&control.servo_n2o, 0);
 	control.counter_active = 1;
 	control.counter = control.shutdown_time;
@@ -858,10 +884,71 @@ void control_glide_start(void) {
 #ifndef USE_CHECKPOINT
 	led_rgb_set_color(led_blue);
 #endif
+	control.counter_active = 1;
+	control.counter = control.glide_time;
 }
 
 void control_glide_run(void) {
 
+	//check for abort
+	control_command_t expected_cmds[] = {
+		COMMAND_NONE
+	};
+	control_read_commands(expected_cmds, 1, NULL);
+
+	if (control.counter < CONTROL_HEART_BEAT/2) {
+		control.counter_active = 0;
+		control_descent_start();
+	}
+
+
+
+	//do nothing
+}
+
+void control_descent_start(void) {
+	control.state = CONTROL_DESCENT;
+#ifndef USE_CHECKPOINT
+	led_rgb_set_color(led_teal);
+#endif
+	control.counter_active = 1;
+	control.counter = control.descent_time;
+
+}
+
+void control_descent_run(void) {
+	//check for abort
+	control_command_t expected_cmds[] = {
+		COMMAND_NONE
+	};
+	control_read_commands(expected_cmds, 1, NULL);
+
+	if (control.counter < CONTROL_HEART_BEAT/2) {
+		control.counter_active = 0;
+		control_safe_start();
+	}
+}
+
+
+
+
+void control_safe_start(void) {
+	control.state = CONTROL_SAFE;
+#ifndef USE_CHECKPOINT
+	led_rgb_set_color(led_pink);
+#endif
+	//set every valve to safe state
+	solenoid_inactive(&control.solenoid_eth);
+	solenoid_inactive(&control.solenoid_n2o);
+	solenoid_inactive(&control.solenoid_press);
+	solenoid_inactive(&control.solenoid_purge);
+
+	servo_set_angle(&control.servo_eth, 0);
+	servo_set_angle(&control.servo_n2o, 0);
+}
+
+
+void control_safe_run(void) {
 	control_command_t expected_cmds[] = {
 		COMMAND_RECOVER
 	};
@@ -870,10 +957,6 @@ void control_glide_run(void) {
 	if(received_command == COMMAND_RECOVER) {
 		control_idle_start();
 	}
-
-
-
-	//do nothing
 }
 
 void control_error_start(void) {
@@ -909,6 +992,17 @@ void control_abort_start(void) {
 #ifndef USE_CHECKPOINT
 	led_rgb_set_color(led_white);
 #endif
+
+	//set every valve to safe state
+	solenoid_inactive(&control.solenoid_eth);
+	solenoid_inactive(&control.solenoid_n2o);
+	solenoid_inactive(&control.solenoid_press);
+	solenoid_inactive(&control.solenoid_purge);
+
+	servo_set_angle(&control.servo_eth, 0);
+	servo_set_angle(&control.servo_n2o, 0);
+
+
 }
 
 /**

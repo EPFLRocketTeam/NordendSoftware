@@ -19,6 +19,7 @@ typedef enum control_command {
 	COMMAND_ARM,
 	COMMAND_DISARM,
 	COMMAND_PRESSURE,
+	COMMAND_DEPRESSURE,
 	COMMAND_IGNITE,
 	COMMAND_RECOVER,
 	COMMAND_VENT_N2O,
@@ -52,6 +53,10 @@ typedef enum control_state
 	CONTROL_SHUTDOWN,
 	/** glide */
 	CONTROL_GLIDE,
+	/** Descent */
+	CONTROL_DESCENT,
+	/** Safe state */
+	CONTROL_SAFE,
 	/** system error*/
 	CONTROL_ERROR,
 	/** User triggered abort */
@@ -147,7 +152,7 @@ typedef struct __attribute__((__packed__)) sensor_eng_data {
 	uint32_t adc_3_time;
 	uint32_t adc_4_time;
 	float press_eng;
-	float temp_eng;
+	float temp_tank;
 	float press_eth;
 	float press_n2o;
 }sensor_eng_data_t;

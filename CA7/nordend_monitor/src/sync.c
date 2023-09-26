@@ -129,32 +129,32 @@ void sync_handle_sensor_baro(uint8_t opcode, uint16_t len, uint8_t * _data) {
 		case SENSOR_BARO_A_0:
 			memcpy(&data.baro_a[0], _data, sizeof(sensor_baro_data_t));
 			fprintf(fp, "SENSOR_BARO_A_0,%d,%d,%g,%d\n",
-						data.baro_a[0].raw_press,
-						data.baro_a[0].raw_temp,
+						data.baro_a[0].press,
+						data.baro_a[0].temp,
 						data.baro_a[0].alt,
 						data.baro_a[0].time);
 			break;
 		case SENSOR_BARO_A_1:
 			memcpy(&data.baro_a[1], _data, sizeof(sensor_baro_data_t));
 			fprintf(fp, "SENSOR_BARO_A_1,%d,%d,%g,%d\n",
-						data.baro_a[1].raw_press,
-						data.baro_a[1].raw_temp,
+						data.baro_a[1].press,
+						data.baro_a[1].temp,
 						data.baro_a[1].alt,
 						data.baro_a[1].time);
 			break;
 		case SENSOR_BARO_B_0:
 			memcpy(&data.baro_b[0], _data, sizeof(sensor_baro_data_t));
 			fprintf(fp, "SENSOR_BARO_B_0,%d,%d,%g,%d\n",
-						data.baro_b[0].raw_press,
-						data.baro_b[0].raw_temp,
+						data.baro_b[0].press,
+						data.baro_b[0].temp,
 						data.baro_b[0].alt,
 						data.baro_b[0].time);
 			break;
 		case SENSOR_BARO_B_1:
 			memcpy(&data.baro_b[1], _data, sizeof(sensor_baro_data_t));
 			fprintf(fp, "SENSOR_BARO_B_1,%d,%d,%g,%d\n",
-						data.baro_b[1].raw_press,
-						data.baro_b[1].raw_temp,
+						data.baro_b[1].press,
+						data.baro_b[1].temp,
 						data.baro_b[1].alt,
 						data.baro_b[1].time);
 			break;

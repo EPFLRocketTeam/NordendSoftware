@@ -34,3 +34,6 @@
 [submodule "CM4/ert/ERT_RF_Protocol_Interface"]
 	path = CM4/ert/ERT_RF_Protocol_Interface
 	url = https://github.com/EPFLRocketTeam/ERT_RF_Protocol_Interface.git
+[submodule "linux"]
+	path = linux
+	url = https://github.com/STMicroelectronics/linux.git

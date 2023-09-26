@@ -44,6 +44,22 @@ util_error_t bmp390_baro_init(device_t * dev, bmp390_baro_context_t * ctx) {
 	 ctx->par_p10= util_decode_i8 (&data[19]);
 	 ctx->par_p11= util_decode_i8 (&data[20]);
 
+	 debug_log(LOG_WARNING, "coeffs: %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d\n",
+			 ctx->par_t1,
+			 ctx->par_t2,
+			 ctx->par_t3,
+			 ctx->par_p1,
+			 ctx->par_p2,
+			 ctx->par_p3,
+			 ctx->par_p4,
+			 ctx->par_p5,
+			 ctx->par_p6,
+			 ctx->par_p7,
+			 ctx->par_p8,
+			 ctx->par_p9,
+			 ctx->par_p10,
+			 ctx->par_p11);
+
 
 	 //enable pressure and temperature in normal mode
 	 device_write_u8(dev, BMP390_REG_BARO_PWR_CTRL, (0b11 << 4) | 0b11);
@@ -66,7 +82,7 @@ util_error_t bmp390_baro_read(device_t * dev, sensor_baro_data_t * data) {
 		 data->temp = bmp390_compensate_temperature(dev, data->raw_temp);
 		 data->press = bmp390_compensate_pressure(dev, data->raw_press);
 
-		 debug_log(LOG_WARNING, "baro data: %d, %d\n", data->press, data->temp);
+		 debug_log(LOG_WARNING, "baro data: %d, %d\n", data->raw_press, data->raw_temp);
 
 		 return ER_SUCCESS;
 	 } else {

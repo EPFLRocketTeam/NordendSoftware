@@ -299,10 +299,10 @@ int ui_draw_so(ui_data_t * data){
 	mvwprintw(data->win_so, 7, 1, "[B]IMU_GYRO: %g %g %g", data->sync_data.imu_b[0].gyro[0], data->sync_data.imu_b[0].gyro[1], data->sync_data.imu_b[0].gyro[2]);
 	mvwprintw(data->win_so, 8, 1, "[B]IMU_GYRO: %g %g %g", data->sync_data.imu_b[1].gyro[0], data->sync_data.imu_b[1].gyro[1], data->sync_data.imu_b[1].gyro[2]);
 
-	mvwprintw(data->win_so, 9, 1, "[A]BARO: %d (alt: %g)", data->sync_data.baro_a[0].raw_press, data->sync_data.baro_a[0].alt);
-	mvwprintw(data->win_so,10, 1, "[A]BARO: %d (alt: %g)", data->sync_data.baro_a[1].raw_press, data->sync_data.baro_a[1].alt);
-	mvwprintw(data->win_so,11, 1, "[B]BARO: %d (alt: %g)", data->sync_data.baro_b[0].raw_press, data->sync_data.baro_b[0].alt);
-	mvwprintw(data->win_so,12, 1, "[B]BARO: %d (alt: %g)", data->sync_data.baro_b[1].raw_press, data->sync_data.baro_b[1].alt);
+	mvwprintw(data->win_so, 9, 1, "[A]BARO: %g %g (alt: %g)", data->sync_data.baro_a[0].press, data->sync_data.baro_a[0].temp, data->sync_data.baro_a[0].alt);
+	mvwprintw(data->win_so,10, 1, "[A]BARO: %g %g (alt: %g)", data->sync_data.baro_a[1].press, data->sync_data.baro_a[1].temp, data->sync_data.baro_a[1].alt);
+	mvwprintw(data->win_so,11, 1, "[B]BARO: %g %g (alt: %g)", data->sync_data.baro_b[0].press, data->sync_data.baro_b[0].temp, data->sync_data.baro_b[0].alt);
+	mvwprintw(data->win_so,12, 1, "[B]BARO: %g %g (alt: %g)", data->sync_data.baro_b[1].press, data->sync_data.baro_b[1].temp, data->sync_data.baro_b[1].alt);
 
 	mvwprintw(data->win_so,13, 1, "[A]MAG: %g %g %g", data->sync_data.mag_a.mag[0], data->sync_data.mag_a.mag[1], data->sync_data.mag_a.mag[2]);
 	mvwprintw(data->win_so,14, 1, "[B]MAG: %g %g %g", data->sync_data.mag_b.mag[0], data->sync_data.mag_b.mag[1], data->sync_data.mag_b.mag[2]);

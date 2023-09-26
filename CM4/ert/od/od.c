@@ -128,8 +128,9 @@ static osMessageQueueId_t out_q;
 static osMessageQueueId_t in_q;
 
 
-//static comunicator_t od_can_comunicator;
-static comunicator_t * od_hostcom_comunicator;
+static SemaphoreHandle_t xSemaphore = NULL;
+static StaticSemaphore_t xMutexBuffer;
+
 
 /**********************
  *	DECLARATIONS
@@ -162,6 +163,8 @@ void od_init() {
 			.mq_size = sizeof(in_mem)
 	};
 	in_q = osMessageQueueNew(OD_MSGQ_SIZE, sizeof(od_frame_t), &in_attr);
+
+	xSemaphore = xSemaphoreCreateMutexStatic( &xMutexBuffer );
 
 	//legacy serial bus that replaces the CAN
 	//comunicator_init(&od_can_comunicator, serial_get_s3_interface(), od_can_handler);
@@ -222,6 +225,7 @@ void od_sync_handler(uint8_t opcode, uint16_t len, uint8_t * data) {
 
 void od_handle_can_frame(uint8_t src, od_frame_t *frame) {
 	UNUSED(src);
+	debug_log(LOG_INFO, "Can handling: %d\n", src);
 	osMessageQueuePut(in_q, frame, 0U, 100);
 }
 
@@ -267,6 +271,10 @@ static void od_unsafe_write(uint8_t data_id, uint8_t *src) {
  * Task definition
  */
 void od_update_task(__attribute__((unused)) void *argument) {
+
+	comunicator_t * od_hostcom_comunicator = hostcom_get_sync_comunicator();
+
+
     while(1) {
         // Get latest incoming frame (blocking)
         od_frame_t to_receive;
@@ -279,11 +287,7 @@ void od_update_task(__attribute__((unused)) void *argument) {
 #endif
 
 
-        debug_log(LOG_DEBUG, "added to OD: %d\n", to_receive.data_id);
-//        if(to_receive.data_id == ENGINE_CONTROL_DATA) {
-//        	engine_control_data_t * _data = (engine_control_data_t*) &to_receive.data;
-//        	debug_log(LOG_INFO, "OD_DATA: %d\n", _data->state);
-//        }
+        debug_log(LOG_INFO, "added to OD: %d\n", to_receive.data_id);
 
 
         // Update field atomically
@@ -293,6 +297,22 @@ void od_update_task(__attribute__((unused)) void *argument) {
         memcpy(entry.data, to_receive.data, entry.size);
 
         osKernelRestoreLock(lock);
+
+        //broadcast to hostproc
+        if( xSemaphoreTake( xSemaphore, ( TickType_t ) 5 ) == pdTRUE ) {
+
+        	comunicator_send(	od_hostcom_comunicator,
+        						to_receive.data_id,
+								to_receive.size,
+								to_receive.data);
+
+			xSemaphoreGive( xSemaphore );
+		}
+		else
+		{
+			debug_log(LOG_DEBUG, "Failed to acquire hostcom\n");
+		}
+
     }
 }
 
@@ -301,7 +321,7 @@ void od_update_task(__attribute__((unused)) void *argument) {
 
 void od_broadcast_task(__attribute__((unused)) void *argument) {
 
-	od_hostcom_comunicator = hostcom_get_sync_comunicator();
+	comunicator_t * od_hostcom_comunicator = hostcom_get_sync_comunicator();
 
 	while(1) {
 		od_frame_t to_send;
@@ -312,11 +332,17 @@ void od_broadcast_task(__attribute__((unused)) void *argument) {
 
 		debug_log(LOG_DEBUG, "sending_frame: %d\n", to_send.data_id);
 
-		//TODO: comunicator data could be generated only once!!
-
-		comunicator_send(od_hostcom_comunicator, to_send.data_id, to_send.size, to_send.data);
-
 		can_transmit_data_sync(&to_send);
+
+		if( xSemaphoreTake( xSemaphore, ( TickType_t ) 5 ) == pdTRUE ) {
+			comunicator_send(od_hostcom_comunicator, to_send.data_id, to_send.size, to_send.data);
+
+			xSemaphoreGive( xSemaphore );
+		} else {
+			debug_log(LOG_DEBUG, "Failed to acquire hostcom\n");
+		}
+
+
 
 		//this is the legacy uart that replaces CAN
 		//comunicator_send(&od_can_comunicator, to_send.data_id, to_send.size, to_send.data);

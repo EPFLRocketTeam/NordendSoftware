@@ -22,6 +22,7 @@
  **********************/
 
 
+
 //present sockets
 
 #define ND_TRUE		    1
@@ -34,6 +35,13 @@
  * COMPUTER TYPE HERE !!
  */
 #define ND_COMPUTER	ND_A
+
+#ifdef BRDA
+#define ND_COMPUTER	ND_A
+#endif
+#ifdef BRDB
+#define ND_COMPUTER	ND_B
+#endif
 
 #if ND_COMPUTER == ND_A
 /* S1 */

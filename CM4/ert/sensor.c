@@ -88,6 +88,9 @@ void sensor_i2c_thread(__attribute__((unused)) void * arg) {
 
 	last_wake_time = xTaskGetTickCount();
 
+	//watch hardware discovery logs
+	osDelay(10000);
+
 	//init and discover sensors
 	bmi088_acc[0] = i2c_sensor_get_bmi088_acc(0);
 	bmi088_gyr[0] = i2c_sensor_get_bmi088_gyr(0);

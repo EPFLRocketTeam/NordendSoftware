@@ -2,6 +2,7 @@
 #include "sensor_adxl375.h"
 #include <device/device.h>
 #include <device/i2c_sensor.h>
+#include <feedback/debug.h>
 
 
 
@@ -13,6 +14,8 @@ util_error_t adxl375_acc_init(device_t * dev, adxl375_acc_context_t * ctx) {
 	uint8_t data[1];
 
 	device_read_u8(dev, ADXL375_REG_DEVID, &data[0]);
+
+	debug_log(LOG_WARNING, "discovering adxl %x\n", data[0]);
 
 	if(data[0] == ADXL375_DEVID_VAL) {
 		ctx->hw_available = 1;
