@@ -32,7 +32,7 @@
  **********************/
 
 //TODO: check if this is short/long enough
-#define ENGINE_SENSOR_HEART_BEAT	50
+#define ENGINE_SENSOR_HEART_BEAT	200
 
 
 /**********************
@@ -88,21 +88,22 @@ void engine_sensor_thread(__attribute__((unused)) void * arg) {
 	mcp3426_adc_dn = i2c_engine_sensor_get_mcp3426_dn();
 	//init and discover sensors
 
-	//osDelay(10000);
+	//osDelay(100);
+
+
 
 
 	mcp3425_adc_init(mcp3426_adc_up, &mcp3426_adc_up_ctx);
 	mcp3425_adc_init(mcp3426_adc_dn, &mcp3426_adc_dn_ctx);
 
-	//set the i2c-can to master mode
-	gpio_set(GPIOA, GPIO_PIN_2);
+
 
 
 	// main loop
 	for(;;) {
 		//poll sensors for data
 
-		debug_log(LOG_DEBUG, "reading sensors\n");
+		debug_log(LOG_INFO, "reading engine sensors\n");
 
 		//read data
 		sensor_eng_data_t data;
@@ -161,10 +162,11 @@ float engine_convert_temperature(float voltage) {
 
 util_error_t engine_sensor_convert_values(sensor_eng_data_t * data) {
 
-	data->press_eth = engine_convert_pressure(VOLTAGE_DIVIDER(data->adc_1));
-	data->press_n2o = engine_convert_pressure(VOLTAGE_DIVIDER(data->adc_2));
-	data->temp_tank = engine_convert_temperature(data->adc_3); //TODO: find our how to read the temperature sensor..
+	data->press_eth = engine_convert_pressure(VOLTAGE_DIVIDER(data->adc_2));
+	data->press_n2o = engine_convert_pressure(VOLTAGE_DIVIDER(data->adc_1));
 	data->press_eng = engine_convert_pressure(VOLTAGE_DIVIDER(data->adc_4));
+	data->temp_tank = engine_convert_temperature(data->adc_3); //TODO: find our how to read the temperature sensor..
+
 
 	return ER_SUCCESS;
 }

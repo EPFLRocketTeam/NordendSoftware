@@ -61,6 +61,7 @@
 /* External variables --------------------------------------------------------*/
 extern FDCAN_HandleTypeDef hfdcan1;
 extern I2C_HandleTypeDef hi2c2;
+extern I2C_HandleTypeDef hi2c5;
 extern IPCC_HandleTypeDef hipcc;
 extern SPI_HandleTypeDef hspi2;
 extern TIM_HandleTypeDef htim14;
@@ -350,6 +351,34 @@ void IPCC_TX1_IRQHandler(void)
   /* USER CODE BEGIN IPCC_TX1_IRQn 1 */
 
   /* USER CODE END IPCC_TX1_IRQn 1 */
+}
+
+/**
+  * @brief This function handles I2C5 event interrupt.
+  */
+void I2C5_EV_IRQHandler(void)
+{
+  /* USER CODE BEGIN I2C5_EV_IRQn 0 */
+
+  /* USER CODE END I2C5_EV_IRQn 0 */
+  HAL_I2C_EV_IRQHandler(&hi2c5);
+  /* USER CODE BEGIN I2C5_EV_IRQn 1 */
+
+  /* USER CODE END I2C5_EV_IRQn 1 */
+}
+
+/**
+  * @brief This function handles I2C5 error interrupt.
+  */
+void I2C5_ER_IRQHandler(void)
+{
+  /* USER CODE BEGIN I2C5_ER_IRQn 0 */
+
+  /* USER CODE END I2C5_ER_IRQn 0 */
+  HAL_I2C_ER_IRQHandler(&hi2c5);
+  /* USER CODE BEGIN I2C5_ER_IRQn 1 */
+
+  /* USER CODE END I2C5_ER_IRQn 1 */
 }
 
 /**

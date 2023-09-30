@@ -347,6 +347,12 @@ void engine_control_thread(__attribute__((unused)) void *arg) {
 		case CONTROL_GLIDE:
 			control_glide_run();
 			break;
+		case CONTROL_DESCENT:
+			control_descent_run();
+			break;
+		case CONTROL_SAFE:
+			control_safe_run();
+			break;
 		case CONTROL_ERROR:
 			control_error_run();
 			break;
@@ -433,9 +439,9 @@ util_error_t init_engine_control(void) {
 
 	//init the solenoids               [1]=NO [0]=NC
 	solenoid_init(&control.solenoid_eth, 	    1, GPIOC, GPIO_PIN_3);  //S3_GP0
-	solenoid_init(&control.solenoid_n2o, 		1, GPIOD, GPIO_PIN_10); //S3_MISO
-	solenoid_init(&control.solenoid_purge, 		0, GPIOA, GPIO_PIN_8);  //S3_MOSI
-	solenoid_init(&control.solenoid_press, 		0, GPIOC, GPIO_PIN_10); //S3_SCK
+	solenoid_init(&control.solenoid_press, 		0, GPIOD, GPIO_PIN_10); //S3_MISO
+	solenoid_init(&control.solenoid_n2o, 		1, GPIOA, GPIO_PIN_8);  //S3_MOSI
+	solenoid_init(&control.solenoid_purge, 		0, GPIOC, GPIO_PIN_10); //S3_SCK
 
 	// Using channels 1 and 2 -- initialize the PWM channel
 
@@ -448,7 +454,7 @@ util_error_t init_engine_control(void) {
 	util_error_t sol_err = ER_SUCCESS;
 	sol_err |= solenoid_inactive(&control.solenoid_eth);
 	sol_err |= solenoid_inactive(&control.solenoid_n2o);
-	sol_err |= solenoid_inactive(&control.solenoid_purge);
+	//sol_err |= solenoid_inactive(&control.solenoid_purge);
 	sol_err |= solenoid_inactive(&control.solenoid_press);
 
 
@@ -515,15 +521,13 @@ control_command_t control_read_commands(control_command_t * expected_cmd, size_t
 /**
  * Manually open/close the pressurant valve
  * param: 
- * 	1: open
- * 	0: close
 */
 void control_man_press(int32_t param) {
 
 	if(param == 1) {
-		solenoid_open(&control.solenoid_press);
+		solenoid_active(&control.solenoid_press);
 	} else if(param == 0) {
-		solenoid_close(&control.solenoid_press);
+		solenoid_inactive(&control.solenoid_press);
 	}
 }
 
@@ -535,11 +539,11 @@ void control_man_press(int32_t param) {
 */
 void control_man_purge(int32_t param) {
 
-	if(param == 1) {
-		solenoid_open(&control.solenoid_purge);
-	} else if(param == 0) {
-		solenoid_close(&control.solenoid_purge);
-	}
+//	if(param == 1) {
+//		solenoid_open(&control.solenoid_purge);
+//	} else if(param == 0) {
+//		solenoid_close(&control.solenoid_purge);
+//	}
 }
 
 /**
@@ -913,6 +917,9 @@ void control_descent_start(void) {
 #endif
 	control.counter_active = 1;
 	control.counter = control.descent_time;
+
+	solenoid_inactive(&control.solenoid_eth);
+	solenoid_inactive(&control.solenoid_n2o);
 
 }
 

@@ -48,6 +48,9 @@
 static comunicator_t miaou_uplink_comunicator;
 
 
+static float prev_altitude = 0;
+
+
 /**********************
  *	PROTOTYPES
  **********************/
@@ -65,11 +68,17 @@ void miaou_uplink_handler(uint8_t opcode, uint16_t len, uint8_t * _data) {
 
 	debug_log(LOG_INFO, "Handling miaou packet op=%u, l=%u\n", opcode, len);
 	if(opcode == MIAOU_RF) {
-		if(len == sizeof(av_uplink_t)) {
+		if(len >= sizeof(av_uplink_t)) {
 			av_uplink_t data;
+
 			memcpy(&data, _data, sizeof(av_uplink_t));
 			debug_log(LOG_INFO, "received: id=%u, v=%u\n", data.order_id, data.order_value);
 			//handle command frame from miaou
+
+			if(data.prefix != ERT_PREFIX) {
+				//wrong packet
+				return;
+			}
 
 
 			switch(data.order_id) {
@@ -109,7 +118,11 @@ void miaou_uplink_handler(uint8_t opcode, uint16_t len, uint8_t * _data) {
 				}
 				break;
 			case AV_CMD_PRESSURIZE:
-				engine_control_command_push(COMMAND_PRESSURE, 0);
+				if(data.order_value == ACTIVE) {
+					engine_control_command_push(COMMAND_PRESSURE, 0);
+				} else if(data.order_value == INACTIVE){
+					engine_control_command_push(COMMAND_DEPRESSURE, 0);
+				}
 				break;
 			case AV_CMD_ABORT:
 				engine_control_command_push(COMMAND_ABORT, 0);
@@ -127,9 +140,26 @@ void miaou_uplink_handler(uint8_t opcode, uint16_t len, uint8_t * _data) {
 
 		}
 	} else if(opcode == MIAOU_GNSS) {
-		if(len == sizeof(av_miaou_gnss_t)) {
+		if(1 || len == sizeof(av_miaou_gnss_t)) {
 			av_miaou_gnss_t data;
 			memcpy(&data, _data, sizeof(av_miaou_gnss_t));
+
+			gnss_data_t gnss_data;
+			if(data.altitude == 0) {
+				gnss_data.altitude = prev_altitude;
+			} else {
+				gnss_data.altitude = data.altitude;
+				prev_altitude = data.altitude;
+			}
+			gnss_data.latitude = data.latitude;
+			gnss_data.longitude = data.longitude;
+			gnss_data.speed = data.speed;
+			gnss_data.hdop = data.hdop;
+			gnss_data.time = data.time;
+
+			debug_log(LOG_WARNING, "handling gnss: %d\n", gnss_data.time);
+			od_write_GNSS_DATA_A(&gnss_data);
+
 			//handle gnss frame from miaou
 		}
 	}

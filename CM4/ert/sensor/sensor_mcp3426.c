@@ -1,6 +1,7 @@
 
 #include "sensor_mcp3426.h"
 #include <device/i2c_sensor.h>
+#include <driver/i2c.h>
 #include <feedback/debug.h>
 #include <string.h>
 #include <util.h>
@@ -8,24 +9,35 @@
 
 util_error_t mcp3425_write_wrapper(device_t * dev, uint8_t data) {
 	i2c_sensor_context_t * context = (i2c_sensor_context_t *) dev->context;
+	i2c_interface_context_t * if_ctx = (i2c_interface_context_t *) dev->interface->context;
 	uint8_t _data[2];
-	_data[0] = context->device_address;
-	_data[1] = data;
-	return device_interface_send(dev->interface, _data, 2);
+//	_data[0] = context->device_address;
+//	_data[1] = data;
+//	return device_interface_send(dev->interface, _data, 2);
+
+	_data[0] = data;
+
+	if(HAL_OK == HAL_I2C_Master_Transmit(if_ctx->i2c, (context->device_address << 1), &_data[0], 1, 10)) {
+		return ER_SUCCESS;
+	} else {
+		return ER_TIMEOUT;
+	}
 }
 
 util_error_t mcp3425_read_wrapper(device_t * dev, uint8_t * data, uint16_t len) {
 	i2c_sensor_context_t * context = (i2c_sensor_context_t *) dev->context;
+	i2c_interface_context_t * if_ctx = (i2c_interface_context_t *) dev->interface->context;
+
 	if(len > 4) {
 		return ER_OUT_OF_RANGE;
 	}
-	uint8_t _data[5];
-	uint32_t _len = len+1;
-	_data[0] = context->device_address;
-	memcpy(&_data[1], data, len);
-	util_error_t err = device_interface_recv(dev->interface, _data, &_len);
-	memcpy(&data[0], &_data[1], len);
-	return err;
+	//uint8_t _data[4];
+
+	if(HAL_OK == HAL_I2C_Master_Receive(if_ctx->i2c, (context->device_address << 1), &data[0], len, 10)) {
+		return ER_SUCCESS;
+	} else {
+		return ER_TIMEOUT;
+	}
 }
 
 util_error_t mcp3425_adc_init(device_t * dev, mcp3426_adc_context_t * ctx) {
@@ -38,10 +50,10 @@ util_error_t mcp3425_adc_init(device_t * dev, mcp3426_adc_context_t * ctx) {
 	//check if write is possible
 	if(mcp3425_write_wrapper(dev, 0) == ER_SUCCESS) {
 		ctx->hw_available = 1;
-		debug_log(LOG_WARNING, "detected board\n");
+		debug_log(LOG_WARNING, "%s: detected board\n", __func__);
 	} else {
 		ctx->hw_available = 0;
-		debug_log(LOG_WARNING, "not detected board\n");
+		debug_log(LOG_WARNING, "%s: not detected board\n", __func__);
 		return ER_RESSOURCE_ERROR;
 	}
 
@@ -68,14 +80,14 @@ util_error_t mcp3425_adc_read(device_t * dev, uint8_t channel, float * data) {
 		mcp3425_write_wrapper(dev, ctx->config);
 
 		//wait for a sample to be acquired (240sps)
-		osDelay(HB_MS2TICK(1000/240));
+		osDelay(HB_MS2TICK(1000/200));
 
 		//read data
-		uint8_t _data[4];
-		mcp3425_read_wrapper(dev, &_data[0], 3);
-		uint32_t tmp_data = util_decode_i16(_data);
+		uint8_t _data[4] = {0};
+		mcp3425_read_wrapper(dev, &_data[0], 2);
+		uint32_t tmp_data = (_data[1]) + (_data[0] << 8);
 
-		*data = (float)tmp_data / ctx->pga * ctx->selected_sstvt;
+		*data = (float)tmp_data / ((float) ctx->pga) * ctx->selected_sstvt;
 
 
 

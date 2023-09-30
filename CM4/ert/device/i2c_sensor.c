@@ -18,6 +18,7 @@
 #include <driver/i2c.h>
 #include <util.h>
 #include <string.h>
+#include <abstraction/gpio.h>
 /**********************
  *	CONSTANTS
  **********************/
@@ -80,11 +81,11 @@ static i2c_sensor_context_t bmp390_baro_context1 = {
 };
 
 static i2c_sensor_context_t adxl375_acc_context0 = {
-		.device_address = 0x3A
+		.device_address = 0x1d
 };
 
 static i2c_sensor_context_t adxl375_acc_context1 = {
-		.device_address = 0x3B
+		.device_address = 0x53
 };
 
 
@@ -94,11 +95,11 @@ static device_t mcp3426_adc_device_dn;
 static device_t mcp3426_adc_device_st;
 
 static i2c_sensor_context_t mcp3426_adc_context_up = {
-		.device_address = 0b1101001
+		.device_address = 0x69
 };
 
 static i2c_sensor_context_t mcp3426_adc_context_dn = {
-		.device_address = 0b1101000
+		.device_address = 0x68
 };
 
 static i2c_sensor_context_t mcp3426_adc_context_st = {
@@ -126,6 +127,16 @@ util_error_t i2c_engine_sensor_init(void) {
 	device_create(&mcp3426_adc_device_up, &mcp3426_adc_context_up, i2c_engine_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
 	device_create(&mcp3426_adc_device_dn, &mcp3426_adc_context_dn, i2c_engine_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
 	device_create(&mcp3426_adc_device_st, &mcp3426_adc_context_st, i2c_engine_sensor_interface, i2c_sensor_read_reg_HAL, i2c_sensor_write_reg_HAL);
+
+	gpio_config_t conf = {0};
+	conf.bias = GPIO_BIAS_HIGH;
+	conf.drive = GPIO_DRIVE_PP;
+	conf.mode = GPIO_MODE_OUT;
+	conf.speed = 0;
+	gpio_cfg(GPIOA, GPIO_PIN_2, conf);
+
+	//set the i2c-can to master mode
+	gpio_set(GPIOA, GPIO_PIN_2);
 
 	return ER_SUCCESS;
 }

@@ -272,6 +272,11 @@ void sync_handle_sensor_acc(uint8_t opcode, uint16_t len, uint8_t * _data) {
 void sync_handle_sensor_eng(uint8_t opcode, uint16_t len, uint8_t * _data) {
 	if(1 || len == sizeof(sensor_eng_data_t)) {
 		memcpy(&data.sensor_eng, _data, sizeof(sensor_eng_data_t));
+		fprintf(fp, "SENSOR_ENG,%g,%g,%g,%g\n",
+					data.sensor_eng.press_eng,
+					data.sensor_eng.temp_tank,
+					data.sensor_eng.press_n2o,
+					data.sensor_eng.press_eth);
 	}
 }
 

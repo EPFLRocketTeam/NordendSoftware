@@ -31,6 +31,7 @@ typedef enum control_command {
 	COMMAND_ABORT
 } control_command_t;
 
+//CAUTION COPIED TO ERT_protocol
 typedef enum control_state
 {
 	/** Wait for arming or calibration */

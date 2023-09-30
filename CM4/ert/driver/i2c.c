@@ -16,6 +16,8 @@
 #include <i2c.h>
 #include <util.h>
 
+#include <feedback/debug.h>
+
 /**********************
  *	CONSTANTS
  **********************/
@@ -169,10 +171,13 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c) {
  */
 util_error_t i2c_send(void * context, uint8_t * data, uint32_t len) {
 	i2c_interface_context_t * ctx = (i2c_interface_context_t *) context;
+	debug_log(LOG_ERROR, "sending %x ...\n", data[0]);
 	HAL_I2C_Master_Transmit_IT(ctx->i2c, data[0], &(data[1]), len-1);
 	if( xSemaphoreTake(ctx->sem, I2C_TIMEOUT) == pdTRUE ) {
+		debug_log(LOG_ERROR, "sent, with error code %d\n", ctx->error);
 		return ctx->error;
 	} else {
+		debug_log(LOG_ERROR, "timeout\n");
 		return ER_TIMEOUT;
 	}
 }

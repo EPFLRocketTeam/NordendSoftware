@@ -251,6 +251,12 @@ int ui_draw_ec(ui_data_t * data){
 	case CONTROL_GLIDE:
 		snprintf(state_name, STATE_NAME_LEN, "GLIDE");
 		break;
+	case CONTROL_DESCENT:
+		snprintf(state_name, STATE_NAME_LEN, "DESCENT");
+		break;
+	case CONTROL_SAFE:
+		snprintf(state_name, STATE_NAME_LEN, "SAFE");
+		break;
 	case CONTROL_ERROR:
 		snprintf(state_name, STATE_NAME_LEN, "ERROR");
 		break;
@@ -265,6 +271,11 @@ int ui_draw_ec(ui_data_t * data){
 	mvwprintw(data->win_ec, 1, 1, "Engine state: %s", state_name);
 	mvwprintw(data->win_ec, 2, 1, "Engine last cmd: %d", data->sync_data.engine_control.last_cmd);
 
+	mvwprintw(data->win_ec, 3, 1, "eth pressure: %g (%g mV)", data->sync_data.sensor_eng.press_eth, data->sync_data.sensor_eng.adc_2);
+	mvwprintw(data->win_ec, 4, 1, "n2o pressure: %g (%g mV)", data->sync_data.sensor_eng.press_n2o, data->sync_data.sensor_eng.adc_1);
+	mvwprintw(data->win_ec, 5, 1, "eng pressure: %g (%g mV)", data->sync_data.sensor_eng.press_eng, data->sync_data.sensor_eng.adc_4);
+	mvwprintw(data->win_ec, 6, 1, "tank temperature: %g (%g mV)", data->sync_data.sensor_eng.temp_tank, data->sync_data.sensor_eng.adc_3);
+
 	mvwprintw(data->win_ec, data->ec_h-2, 1, "a: ARM | d: DISARM | p: PRESSURE | i: IGNITE");
 
 	wrefresh(data->win_ec);
@@ -276,8 +287,9 @@ int ui_draw_rc(ui_data_t * data){
 	wmove(data->win_rc, 0, 1);
 	waddstr(data->win_rc, "Recovery Control");
 
-	mvwprintw(data->win_rc, 1, 1, "Recovery state: %d", data->sync_data.recovery_control.state);
-	mvwprintw(data->win_rc, 2, 1, "Recovery last cmd: %d", data->sync_data.recovery_control.last_cmd);
+	mvwprintw(data->win_rc, 1, 1, "Recovery state: LOL", data->sync_data.recovery_control.state);
+	mvwprintw(data->win_rc, 2, 1, "[A] GNSS: %gE, %gN, %g, %g, %d", data->sync_data.gnss_data_a.latitude, data->sync_data.gnss_data_a.longitude, data->sync_data.gnss_data_a.altitude, data->sync_data.gnss_data_a.speed, data->sync_data.gnss_data_a.time);
+	mvwprintw(data->win_rc, 3, 1, "[B] GNSS: %gE, %gN, %g, %g, %d", data->sync_data.gnss_data_b.latitude, data->sync_data.gnss_data_b.longitude, data->sync_data.gnss_data_b.altitude, data->sync_data.gnss_data_b.speed, data->sync_data.gnss_data_b.time);
 
 	wrefresh(data->win_rc);
 }
@@ -395,6 +407,15 @@ int ui_handle_input(ui_data_t * data) {
 		break;
 	case '8':
 		ui_send_engine_command(data, COMMAND_VALVE_ETH, 0);
+		break;
+	case '9':
+		ui_send_engine_command(data, COMMAND_MAN_PRESS, 1);
+		break;
+	case '0':
+		ui_send_engine_command(data, COMMAND_MAN_PRESS, 0);
+		break;
+	case 'x':
+		ui_send_engine_command(data, COMMAND_ABORT, 0);
 		break;
 	default:
 		break;

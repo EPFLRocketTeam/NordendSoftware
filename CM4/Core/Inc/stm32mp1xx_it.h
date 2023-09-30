@@ -65,6 +65,8 @@ void DMA2_Stream1_IRQHandler(void);
 void DMA2_Stream3_IRQHandler(void);
 void IPCC_RX1_IRQHandler(void);
 void IPCC_TX1_IRQHandler(void);
+void I2C5_EV_IRQHandler(void);
+void I2C5_ER_IRQHandler(void);
 void TIM16_IRQHandler(void);
 void TIM14_IRQHandler(void);
 void RCC_WAKEUP_IRQHandler(void);
