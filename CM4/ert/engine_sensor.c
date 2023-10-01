@@ -17,6 +17,7 @@
 
 #include <main.h>
 #include <cmsis_os.h>
+#include <math.h>
 
 #include <device/i2c_sensor.h>
 #include <sensor/sensor_mcp3426.h>
@@ -121,10 +122,10 @@ void engine_sensor_thread(__attribute__((unused)) void * arg) {
 		data.adc_4 = _data;
 		data.adc_4_time = util_get_time();
 
-		if(mcp3425_adc_is_available(mcp3426_adc_up) && mcp3425_adc_is_available(mcp3426_adc_dn)) {
+		//if(mcp3425_adc_is_available(mcp3426_adc_up) && mcp3425_adc_is_available(mcp3426_adc_dn)) {
 			engine_sensor_convert_values(&data);
 			od_write_ENGINE_SENSORS_DATA(&data);
-		}
+		//}
 
 		vTaskDelayUntil( &last_wake_time, period );
 
@@ -155,7 +156,9 @@ float engine_convert_temperature(float voltage) {
 
 	float resistance = 5100*voltage / (5000 - voltage);
 
-	return resistance; //pt1000 formula here
+	float temp = (sqrtf(-0.00232 * resistance + 17.59246) - 3.908) / 0.00116;
+
+	return temp; //pt1000 formula here
 
 }
 

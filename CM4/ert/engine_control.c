@@ -133,13 +133,15 @@
 
 #define IGNITER_COUNTER 		4500   //ms
 #define IGNITION_COUNTER		1000   //ms
-#define THRUST_COUNTER		    3000   //ms
+#define THRUST_COUNTER		    1000   //ms
 #define SHUTDOWN_COUNTER		0      //ms
 #define GLIDE_TIME				10000  //ms
 #define DESCENT_TIME			120000 //ms
 
-#define IGNITION_DELAY_1		265
-#define IGNITION_DELAY_2		350
+
+//UNUSED
+//#define IGNITION_DELAY_1		265
+//#define IGNITION_DELAY_2		350
 
 
 

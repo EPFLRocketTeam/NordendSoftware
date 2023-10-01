@@ -63,24 +63,37 @@ int ui_start(int argc, char ** argv, ui_param_t * param){
 
 	ui_data_t data = {0};
 
+	int nogui = 0;
 
-	//UI initialize
-	ui_init(argc, argv, &data);
+	if (argc == 2) {
+		if(strcmp(argv[1], "nogui") == 0) {
+			nogui = 1;
+		}
+	}
+
+	if(!nogui) {
+		//UI initialize
+		ui_init(argc, argv, &data);
+	}
 
 
 
 	//UI mainloop
 	for(;;) {
 
-		sync_copy_data(&data.sync_data);
+		if(!nogui) {
+			sync_copy_data(&data.sync_data);
 
-		ui_update_content(&data);
+			ui_update_content(&data);
 
-		ui_handle_input(&data);
+			ui_handle_input(&data);
+		} else {
+			sleep(1);
+		}
 
 
 
-		//sleep(1);
+		//
 
 
 	}
